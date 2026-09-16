@@ -30,6 +30,7 @@ const categoryAccept: Record<string, string> = {
   "ZIP / archives": ".zip,.7z,.rar",
 };
 
+
 const previewColors = ["#f44336", "#a259ff", "#4d7cff", "#777", "#82b9a8"];
 
 function MaskedText({ text, className = "" }: { text: string; className?: string }) {
