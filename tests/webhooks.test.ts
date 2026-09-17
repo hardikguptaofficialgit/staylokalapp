@@ -42,10 +42,20 @@ describe("Dodo sponsor webhook", () => {
     expect(activateClaimMock).not.toHaveBeenCalled();
   });
 
+  it("rejects successful events without sponsor payment metadata", async () => {
+    unwrapMock.mockReturnValue({ type: "payment.succeeded", data: { metadata: {} } });
+    const response = await POST(new Request("https://example.com/webhook", {
+      body: "{}",
+      method: "POST",
+    }));
+    expect(response.status).toBe(400);
+    expect(activateClaimMock).not.toHaveBeenCalled();
+  });
+
   it("returns a retryable error when activation fails", async () => {
     unwrapMock.mockReturnValue({
       type: "payment.succeeded",
-      data: { metadata: { claim_id: "claim-1" }, payment_id: "pay-1" },
+      data: { metadata: { claim_id: "claim-1" }, payment_id: "pay_12345678" },
     });
     activateClaimMock.mockRejectedValue(new Error("temporary Appwrite failure"));
 
@@ -61,7 +71,7 @@ describe("Dodo sponsor webhook", () => {
   it("activates a sponsor claim from payment metadata", async () => {
     unwrapMock.mockReturnValue({
       type: "payment.succeeded",
-      data: { metadata: { claim_id: "claim-1" }, payment_id: "pay-1" },
+      data: { metadata: { claim_id: "claim-1" }, payment_id: "pay_12345678" },
     });
 
     const response = await POST(new Request("https://example.com/webhook", {
@@ -70,6 +80,6 @@ describe("Dodo sponsor webhook", () => {
     }));
 
     expect(response.status).toBe(200);
-    expect(activateClaimMock).toHaveBeenCalledWith("claim-1", "pay-1");
+    expect(activateClaimMock).toHaveBeenCalledWith("claim-1", "pay_12345678");
   });
 });

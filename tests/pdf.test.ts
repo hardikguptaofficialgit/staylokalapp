@@ -86,4 +86,19 @@ describe("PDF processor", () => {
     expect(report.pageCount).toBe(1);
     expect(report.metadata.author).toBe("Private author");
   });
+
+  it("crops PDF page boxes without rasterizing the document", async () => {
+    const result = await pdfProcessor([await fixture()], { operation: "pdf-crop", x: 10, y: 20, width: 60, height: 50 }, context);
+    const output = await PDFDocument.load(await result[0].blob.arrayBuffer());
+    expect(output.getPage(0).getCropBox()).toMatchObject({ width: 192, height: 120 });
+    expect(result[0].name).toBe("fixture-cropped.pdf");
+  });
+
+  it("fits PDF pages to A4 while preserving content", async () => {
+    const result = await pdfProcessor([await fixture()], { operation: "pdf-page-size", size: "a4" }, context);
+    const output = await PDFDocument.load(await result[0].blob.arrayBuffer());
+    expect(output.getPage(0).getWidth()).toBeCloseTo(595.28);
+    expect(output.getPage(0).getHeight()).toBeCloseTo(841.89);
+    expect(result[0].name).toBe("fixture-a4.pdf");
+  });
 });

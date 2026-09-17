@@ -46,9 +46,9 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
                 processing={workflow.status === "processing"}
                 onProcess={(options) => void workflow.processWithOptions(options)}
               />
-            ) : ["pdf-to-jpg", "pdf-to-png", "pdf-ocr", "pdf-compress", "pdf-watermark", "pdf-page-numbers", "pdf-add-text", "pdf-header-footer", "pdf-flatten", "pdf-privacy", "pdf-redact", "pdf-highlight", "pdf-shape", "pdf-remove-blank", "pdf-duplicate-page"].includes(selected.id) && !workflow.oversizedInput ? (
+            ) : ["pdf-to-jpg", "pdf-to-png", "pdf-contact-sheet", "pdf-crop", "pdf-page-size", "pdf-ocr", "pdf-compress", "pdf-watermark", "pdf-page-numbers", "pdf-add-text", "pdf-header-footer", "pdf-flatten", "pdf-privacy", "pdf-redact", "pdf-highlight", "pdf-shape", "pdf-remove-blank", "pdf-duplicate-page"].includes(selected.id) && !workflow.oversizedInput ? (
               <PdfAdvancedEditor
-                operation={selected.id as "pdf-to-jpg" | "pdf-to-png" | "pdf-ocr" | "pdf-compress" | "pdf-watermark" | "pdf-page-numbers" | "pdf-add-text" | "pdf-header-footer" | "pdf-flatten" | "pdf-privacy" | "pdf-redact" | "pdf-highlight" | "pdf-shape" | "pdf-remove-blank" | "pdf-duplicate-page"}
+                operation={selected.id as "pdf-to-jpg" | "pdf-to-png" | "pdf-contact-sheet" | "pdf-crop" | "pdf-page-size" | "pdf-ocr" | "pdf-compress" | "pdf-watermark" | "pdf-page-numbers" | "pdf-add-text" | "pdf-header-footer" | "pdf-flatten" | "pdf-privacy" | "pdf-redact" | "pdf-highlight" | "pdf-shape" | "pdf-remove-blank" | "pdf-duplicate-page"}
                 file={workflow.activeFile}
                 processing={workflow.status === "processing"}
                 onProcess={(options) => void workflow.processWithOptions(options)}

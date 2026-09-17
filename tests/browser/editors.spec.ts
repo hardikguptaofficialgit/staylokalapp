@@ -99,6 +99,16 @@ test.describe("visual editor browser flows", () => {
     await expect(cropEditor.getByLabel("Height")).toHaveValue("200");
     await cropEditor.getByLabel("Width").fill("160");
     await cropEditor.getByLabel("Height").fill("100");
+    const selection = page.locator(".image-crop-selection");
+    const beforeSelection = await selection.boundingBox();
+    if (!beforeSelection) throw new Error("Crop selection is not visible");
+    await page.mouse.move(beforeSelection.x + beforeSelection.width / 2, beforeSelection.y + beforeSelection.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(beforeSelection.x + beforeSelection.width / 2 + 20, beforeSelection.y + beforeSelection.height / 2 + 20);
+    await page.mouse.up();
+    const afterSelection = await selection.boundingBox();
+    expect(afterSelection?.x).toBeGreaterThan(beforeSelection.x);
+    expect(afterSelection?.y).toBeGreaterThan(beforeSelection.y);
     await page.getByRole("button", { name: "Back to compatible tools" }).click();
 
     await openImageTool(page, "Resize & compress");

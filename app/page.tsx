@@ -6,6 +6,7 @@ import SelectedToolPanel from "@/components/app/SelectedToolPanel";
 import ToolBrowser from "@/components/app/ToolBrowser";
 import WorkspaceSidebar from "@/components/app/WorkspaceSidebar";
 import SponsorRail from "@/components/app/SponsorRail";
+import SponsorPaymentStatus from "@/components/app/SponsorPaymentStatus";
 import { useFileWorkflow } from "@/lib/app/useFileWorkflow";
 
 export default function Home() {
@@ -30,6 +31,7 @@ export default function Home() {
         }}
       />
       <AppHeader workflow={workflow} />
+      <SponsorPaymentStatus />
       <section
         className={`mx-auto w-full flex-grow px-6 lg:px-10 ${hasFiles ? "max-w-[1500px] pb-16 pt-6" : showAllTools ? "all-tools-section max-w-[1400px] pb-16 pt-2 sm:pt-4" : "landing-section max-w-[1400px] pb-4 pt-2 sm:pt-4"}`}
       >

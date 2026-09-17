@@ -50,6 +50,99 @@ async function renderPdfPages(file: File, context: Parameters<ToolProcessor>[2],
 const pdfProcessor: ToolProcessor = async (files, options, context) => {
   if (!files.length) throw new ProcessingError("Add at least one PDF first.", "invalid");
   const operation = String(options.operation || options.mode || "merge");
+  if (operation === "pdf-page-size") {
+    const size = String(options.size || "a4");
+    const dimensions = size === "letter" ? [612, 792] : size === "original" ? null : [595.28, 841.89];
+    const source = await PDFDocument.load(await files[0].arrayBuffer());
+    if (dimensions) {
+      source.getPages().forEach((page) => {
+        const oldWidth = page.getWidth();
+        const oldHeight = page.getHeight();
+        const scale = Math.min(dimensions[0] / oldWidth, dimensions[1] / oldHeight);
+        const offsetX = (dimensions[0] - oldWidth * scale) / 2;
+        const offsetY = (dimensions[1] - oldHeight * scale) / 2;
+        page.setSize(dimensions[0], dimensions[1]);
+        page.scaleContent(scale, scale);
+        page.translateContent(offsetX, offsetY);
+      });
+    }
+    const baseName = files[0].name.replace(/\.pdf$/i, "").replace(/[<>:"/\\|?*]+/g, "-").trim() || "document";
+    return [{
+      blob: blobFromBytes(Uint8Array.from(await source.save()), "application/pdf"),
+      type: "application/pdf",
+      name: `${baseName}-${size === "original" ? "original-size" : size}.pdf`,
+    }];
+  }
+  if (operation === "pdf-crop") {
+    const x = Math.max(0, Math.min(100, Number(options.x) || 0));
+    const y = Math.max(0, Math.min(100, Number(options.y) || 0));
+    const width = Math.max(0, Math.min(100 - x, Number(options.width) || 0));
+    const height = Math.max(0, Math.min(100 - y, Number(options.height) || 0));
+    if (width <= 0 || height <= 0) throw new ProcessingError("Crop width and height must be greater than zero.", "invalid");
+    const source = await PDFDocument.load(await files[0].arrayBuffer());
+    source.getPages().forEach((page) => {
+      const pageWidth = page.getWidth();
+      const pageHeight = page.getHeight();
+      page.setCropBox(
+        pageWidth * x / 100,
+        pageHeight * (100 - y - height) / 100,
+        pageWidth * width / 100,
+        pageHeight * height / 100,
+      );
+    });
+    const baseName = files[0].name.replace(/\.pdf$/i, "").replace(/[<>:"/\\|?*]+/g, "-").trim() || "document";
+    return [{
+      blob: blobFromBytes(Uint8Array.from(await source.save()), "application/pdf"),
+      type: "application/pdf",
+      name: `${baseName}-cropped.pdf`,
+    }];
+  }
+  if (operation === "pdf-contact-sheet") {
+    const pages = await renderPdfPages(files[0], context);
+    const columns = Math.max(1, Math.min(4, Number(options.columns) || 3));
+    const cardWidth = 280;
+    const gap = 24;
+    const labelHeight = 28;
+    const rows = Math.ceil(pages.length / columns);
+    const cardHeights = pages.map((page) => Math.round(cardWidth * page.height / page.width) + labelHeight);
+    const cardHeight = Math.max(...cardHeights, 1);
+    const canvas = document.createElement("canvas");
+    canvas.width = columns * cardWidth + (columns + 1) * gap;
+    canvas.height = rows * cardHeight + (rows + 1) * gap;
+    const canvasContext = canvas.getContext("2d");
+    if (!canvasContext) throw new ProcessingError("Your browser could not create the contact sheet canvas.", "unsupported");
+    canvasContext.fillStyle = "#f4f4f4";
+    canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+    for (const [index, page] of pages.entries()) {
+      if (context.signal.aborted) throw new ProcessingError("Processing cancelled.", "cancelled");
+      const bitmap = await createImageBitmap(blobFromBytes(page.bytes, "image/png"));
+      const width = Math.min(cardWidth, bitmap.width);
+      const height = Math.round(width * bitmap.height / bitmap.width);
+      const x = gap + (index % columns) * (cardWidth + gap);
+      const y = gap + Math.floor(index / columns) * (cardHeight + gap);
+      canvasContext.fillStyle = "#fff";
+      canvasContext.fillRect(x, y, cardWidth, cardHeight);
+      canvasContext.drawImage(bitmap, x, y, width, height);
+      bitmap.close();
+      canvasContext.fillStyle = "#555";
+      canvasContext.font = "14px sans-serif";
+      canvasContext.fillText(`Page ${page.index}`, x + 10, y + cardHeight - 10);
+      context.onProgress({ ratio: (index + 1) / pages.length, label: `Placed page ${page.index} of ${pages.length}` });
+    }
+    const imageBlob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new ProcessingError("Contact sheet export failed.", "runtime")), "image/png");
+    });
+    const output = await PDFDocument.create();
+    const image = await output.embedPng(await imageBlob.arrayBuffer());
+    const outputPage = output.addPage([canvas.width, canvas.height]);
+    outputPage.drawImage(image, { x: 0, y: 0, width: canvas.width, height: canvas.height });
+    const baseName = files[0].name.replace(/\.pdf$/i, "").replace(/[<>:"/\\|?*]+/g, "-").trim() || "document";
+    return [{
+      blob: blobFromBytes(Uint8Array.from(await output.save()), "application/pdf"),
+      type: "application/pdf",
+      name: `${baseName}-contact-sheet.pdf`,
+    }];
+  }
   if (operation === "pdf-flatten") {
     const pages = await renderPdfPages(files[0], context);
     const output = await PDFDocument.create();

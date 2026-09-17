@@ -37,6 +37,14 @@ export default function AppHeader({ workflow }: { workflow: AppWorkflow }) {
             <span className="hidden sm:inline font-medium">{workflow.theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
           </button>
         </div>
+        <details className="mobile-header-menu">
+          <summary aria-label="Open navigation menu">Menu</summary>
+          <div className="mobile-header-menu-panel">
+            <button type="button" onClick={() => workflow.setViewMode("all")}>All Tools</button>
+            <button type="button" onClick={() => window.dispatchEvent(new Event("open-sponsor-modal"))}>Sponsor</button>
+            <a href="/donate">Donate</a>
+          </div>
+        </details>
       </header>
   );
 }

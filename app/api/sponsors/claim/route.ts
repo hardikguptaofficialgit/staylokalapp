@@ -74,7 +74,12 @@ export async function POST(request: Request) {
     });
     const session = await client.checkoutSessions.create({
       billing_currency: "USD",
-      metadata: { claim_id: pendingClaim.$id, target_rank: String(targetRank) },
+      metadata: {
+        bid: `$${(claim.bidCents / 100).toFixed(2)}`,
+        claim_id: pendingClaim.$id,
+        company_name: claim.companyName,
+        target_rank: String(targetRank),
+      },
       product_cart: [{
         amount: claim.bidCents,
         product_id: process.env.DODO_SPONSOR_PRODUCT_ID,

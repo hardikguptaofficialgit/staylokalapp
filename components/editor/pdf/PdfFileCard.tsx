@@ -1,4 +1,5 @@
 import type { PdfPage } from "./types";
+import PdfPagePreview from "./PdfPagePreview";
 
 type PdfFileCardProps = {
   page: PdfPage;
@@ -17,11 +18,9 @@ export default function PdfFileCard({ page, index, selected, included = false, o
       aria-pressed={selected}
       className={`pdf-file-card ${selected ? "is-selected" : ""} ${included ? "is-included" : ""}`}
     >
-      <iframe
-        src={`${page.previewUrl}#toolbar=0&navpanes=0&scrollbar=0&page=1&view=Fit`}
+      <PdfPagePreview
+        previewUrl={page.previewUrl}
         title={`Page ${index + 1} thumbnail`}
-        tabIndex={-1}
-        scrolling="no"
         className="pdf-file-card-preview"
       />
       <span className="pdf-file-card-label">

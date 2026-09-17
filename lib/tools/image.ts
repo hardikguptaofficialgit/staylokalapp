@@ -17,6 +17,49 @@ function loadImage(file: File) {
 }
 
 const imageProcessor: ToolProcessor = async (files, options, context) => {
+  if (String(options.operation || "") === "image-contact-sheet") {
+    const columns = Math.max(1, Math.min(4, Number(options.columns) || 3));
+    const cardWidth = 280;
+    const gap = 24;
+    const labelHeight = 28;
+    const images = [];
+    for (const [index, file] of files.entries()) {
+      if (context.signal.aborted) throw new ProcessingError("Processing cancelled.", "cancelled");
+      const image = await loadImage(file);
+      images.push(image);
+      context.onProgress({ ratio: Math.min(0.4, (index + 1) / files.length / 2), label: `Loaded image ${index + 1} of ${files.length}` });
+    }
+    const rows = Math.ceil(images.length / columns);
+    const cardHeights = images.map((image) => Math.round(cardWidth * image.naturalHeight / image.naturalWidth) + labelHeight);
+    const cardHeight = Math.max(...cardHeights, 1);
+    const canvas = document.createElement("canvas");
+    canvas.width = columns * cardWidth + (columns + 1) * gap;
+    canvas.height = rows * cardHeight + (rows + 1) * gap;
+    const canvasContext = canvas.getContext("2d");
+    if (!canvasContext) throw new ProcessingError("Your browser could not create the contact sheet canvas.", "unsupported");
+    canvasContext.fillStyle = "#f4f4f4";
+    canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+    images.forEach((image, index) => {
+      const width = Math.min(cardWidth, image.naturalWidth);
+      const height = Math.round(width * image.naturalHeight / image.naturalWidth);
+      const x = gap + (index % columns) * (cardWidth + gap);
+      const y = gap + Math.floor(index / columns) * (cardHeight + gap);
+      canvasContext.fillStyle = "#fff";
+      canvasContext.fillRect(x, y, cardWidth, cardHeight);
+      canvasContext.drawImage(image, x, y, width, height);
+      canvasContext.fillStyle = "#555";
+      canvasContext.font = "14px sans-serif";
+      canvasContext.fillText(`Image ${index + 1}`, x + 10, y + cardHeight - 10);
+      context.onProgress({ ratio: 0.4 + ((index + 1) / images.length) * 0.5, label: `Placed image ${index + 1} of ${images.length}` });
+    });
+    const format = String(options.format || "image/png");
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, format, 0.92));
+    if (!blob) throw new ProcessingError("Contact sheet export failed.", "runtime");
+    context.onProgress({ ratio: 1, label: "Contact sheet ready" });
+    const extension = format === "image/jpeg" ? "jpg" : format.split("/")[1] || "png";
+    const baseName = files.length === 1 ? files[0].name.replace(/\.[^.]+$/, "") : "images";
+    return [{ blob, type: format, name: `${baseName}-contact-sheet.${extension}` }];
+  }
   if (String(options.operation || "") === "image-upscale") {
     let Upscaler: typeof import("upscaler").default | undefined;
     let model: typeof import("@upscalerjs/esrgan-thick/2x").default | undefined;
@@ -209,8 +252,10 @@ const imageProcessor: ToolProcessor = async (files, options, context) => {
     if (operation === "image-crop") {
       const sourceWidth = Math.min(targetWidth, image.naturalWidth);
       const sourceHeight = Math.min(targetHeight, image.naturalHeight);
-      const sourceX = Math.max(0, Math.min(image.naturalWidth - sourceWidth, Number(options.cropX) || (image.naturalWidth - sourceWidth) / 2));
-      const sourceY = Math.max(0, Math.min(image.naturalHeight - sourceHeight, Number(options.cropY) || (image.naturalHeight - sourceHeight) / 2));
+      const cropX = Number(options.cropX);
+      const cropY = Number(options.cropY);
+      const sourceX = Math.max(0, Math.min(image.naturalWidth - sourceWidth, Number.isFinite(cropX) ? cropX : (image.naturalWidth - sourceWidth) / 2));
+      const sourceY = Math.max(0, Math.min(image.naturalHeight - sourceHeight, Number.isFinite(cropY) ? cropY : (image.naturalHeight - sourceHeight) / 2));
       ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, targetWidth, targetHeight);
     } else {
       ctx.drawImage(image, 0, 0, targetWidth, targetHeight);

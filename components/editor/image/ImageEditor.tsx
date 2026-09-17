@@ -155,6 +155,14 @@ export default function ImageEditor({ file, operation, options, onOptionsChange 
     if (!drag || !image || !crop) return;
     const dx = (event.clientX - drag.startX) / display.scale;
     const dy = (event.clientY - drag.startY) / display.scale;
+    if (drag.handle === "move") {
+      applyCrop(clampCrop({
+        ...drag.crop,
+        x: drag.crop.x + dx,
+        y: drag.crop.y + dy,
+      }, image.naturalWidth, image.naturalHeight));
+      return;
+    }
     const next = { ...drag.crop };
     if (drag.handle.includes("e")) next.width += dx;
     if (drag.handle.includes("s")) next.height += dy;
@@ -174,6 +182,22 @@ export default function ImageEditor({ file, operation, options, onOptionsChange 
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     dragRef.current = { handle, startX: event.clientX, startY: event.clientY, crop };
+    const stop = () => {
+      dragRef.current = null;
+      window.removeEventListener("pointermove", updateCropFromPointer);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+    };
+    window.addEventListener("pointermove", updateCropFromPointer);
+    window.addEventListener("pointerup", stop, { once: true });
+    window.addEventListener("pointercancel", stop, { once: true });
+  }
+
+  function beginCropMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (!crop || event.target instanceof HTMLButtonElement) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragRef.current = { handle: "move", startX: event.clientX, startY: event.clientY, crop };
     const stop = () => {
       dragRef.current = null;
       window.removeEventListener("pointermove", updateCropFromPointer);
@@ -227,7 +251,11 @@ export default function ImageEditor({ file, operation, options, onOptionsChange 
       <div ref={stageRef} className="relative h-[min(58vw,460px)] min-h-64 overflow-hidden rounded-2xl border border-line bg-black/10 touch-none">
         {displayedUrl && <img src={displayedUrl} className="absolute inset-0 m-auto max-h-full max-w-full object-contain" alt="Image preview" />} {/* eslint-disable-line @next/next/no-img-element */}
         {isCrop && cropStyle && (
-          <div className="pointer-events-none absolute border-2 border-white shadow-[0_0_0_9999px_rgba(0,0,0,.5)]" style={cropStyle}>
+          <div
+            className="image-crop-selection pointer-events-auto absolute cursor-move border-2 border-white shadow-[0_0_0_9999px_rgba(0,0,0,.5)]"
+            onPointerDown={beginCropMove}
+            style={cropStyle}
+          >
             {["nw", "n", "ne", "e", "se", "s", "sw", "w"].map((handle) => (
               <button
                 key={handle}
@@ -264,6 +292,11 @@ export default function ImageEditor({ file, operation, options, onOptionsChange 
             <select className="field ml-2" value={String(options.flip || "hflip")} onChange={(event) => updateOptions({ flip: event.target.value })}>
               <option value="hflip">Horizontal</option><option value="vflip">Vertical</option>
             </select>
+          </label>
+        )}
+        {operation === "image-contact-sheet" && (
+          <label className="text-sm font-medium">Columns
+            <input className="field ml-2 w-24" type="number" min={1} max={4} step={1} value={Number(options.columns) || 3} onChange={(event) => updateOptions({ columns: Math.max(1, Math.min(4, Number(event.target.value) || 1)) })} />
           </label>
         )}
         {isCrop && <button type="button" className="control-pill min-h-11" onClick={resetCrop}>Reset crop</button>}

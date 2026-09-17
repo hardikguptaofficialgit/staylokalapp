@@ -20,20 +20,25 @@ export default function SponsorRail() {
       setModalRank(null);
       setSelected(null);
     };
+    const refreshLeaderboard = () => {
+      fetch("/api/sponsors/leaderboard")
+        .then(async (response) => (await response.json()) as { configured?: boolean; sponsors?: RankedSponsor[] })
+        .then((result) => {
+          if (!active) return;
+          setConfigured(Boolean(result.configured));
+          setSponsors(result.sponsors ?? []);
+        })
+        .catch(() => undefined);
+    };
     window.addEventListener("open-sponsor-modal", openModal);
     window.addEventListener("close-sponsor-modal", closeModal);
-    fetch("/api/sponsors/leaderboard")
-      .then(async (response) => (await response.json()) as { configured?: boolean; sponsors?: RankedSponsor[] })
-      .then((result) => {
-        if (!active) return;
-        setConfigured(Boolean(result.configured));
-        setSponsors(result.sponsors ?? []);
-      })
-      .catch(() => undefined);
+    window.addEventListener("sponsor-leaderboard-refresh", refreshLeaderboard);
+    refreshLeaderboard();
     return () => {
       active = false;
       window.removeEventListener("open-sponsor-modal", openModal);
       window.removeEventListener("close-sponsor-modal", closeModal);
+      window.removeEventListener("sponsor-leaderboard-refresh", refreshLeaderboard);
     };
   }, []);
 
@@ -51,6 +56,7 @@ export default function SponsorRail() {
   return (
     <>
       <aside className={`sponsor-stack all-tools-sponsor-stack ${displaySponsors.length ? "" : "sponsor-stack-unavailable"}`} aria-label="Sponsored placements">
+        <span className="sponsor-mobile-label">Sponsored</span>
         <span className="sponsor-orbit" aria-hidden="true" />
         {displaySponsors.length === 0 && <span>No sponsor placements yet.</span>}
         {displaySponsors.map((sponsor, index) => (
@@ -60,13 +66,13 @@ export default function SponsorRail() {
                 className={`sponsor-mark ${sponsor.logoUrl ? "has-sponsor-logo" : ""}`}
                 style={{ backgroundColor: previewColors[index % previewColors.length], backgroundImage: sponsor.logoUrl ? `url("${sponsor.logoUrl}")` : undefined }}
               >
+                {index === 0 && <Crown className="sponsor-crown" size={11} weight="fill" />}
                 {sponsor.companyName.slice(0, 1)}
               </span>
               <span className="sponsor-card-copy">
                 <strong>{sponsor.companyName}</strong>
                 <small>#{index + 1}</small>
               </span>
-              {index === 0 && <Crown className="sponsor-crown" size={13} weight="fill" />}
               <strong className="sponsor-amount">${(sponsor.bidCents / 100).toFixed(0)}</strong>
             </button>
             <button className="sponsor-card-action" type="button" onClick={() => setModalRank(sponsor.rank)}>Outbid #{sponsor.rank}</button>

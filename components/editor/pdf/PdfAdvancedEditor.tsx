@@ -5,7 +5,7 @@ import { useState } from "react";
 import PdfAnnotationEditor from "./PdfAnnotationEditor";
 
 type PdfAdvancedEditorProps = {
-  operation: "pdf-to-jpg" | "pdf-to-png" | "pdf-ocr" | "pdf-compress" | "pdf-watermark" | "pdf-page-numbers" | "pdf-add-text" | "pdf-header-footer" | "pdf-flatten" | "pdf-privacy" | "pdf-redact" | "pdf-highlight" | "pdf-shape" | "pdf-remove-blank" | "pdf-duplicate-page";
+  operation: "pdf-to-jpg" | "pdf-to-png" | "pdf-contact-sheet" | "pdf-crop" | "pdf-page-size" | "pdf-ocr" | "pdf-compress" | "pdf-watermark" | "pdf-page-numbers" | "pdf-add-text" | "pdf-header-footer" | "pdf-flatten" | "pdf-privacy" | "pdf-redact" | "pdf-highlight" | "pdf-shape" | "pdf-remove-blank" | "pdf-duplicate-page";
   file?: File;
   processing: boolean;
   onProcess: (options?: Record<string, string | number | boolean>) => void;
@@ -14,6 +14,9 @@ type PdfAdvancedEditorProps = {
 const details = {
   "pdf-to-jpg": { icon: Images, label: "Export JPG pages", description: "Each PDF page becomes a separate JPG download." },
   "pdf-to-png": { icon: Images, label: "Export PNG pages", description: "Each PDF page becomes a separate PNG download." },
+  "pdf-contact-sheet": { icon: Images, label: "Create contact sheet", description: "Arrange every PDF page into a visual overview locally." },
+  "pdf-crop": { icon: Images, label: "Crop PDF pages", description: "Crop every page to a selected region without rasterizing the document." },
+  "pdf-page-size": { icon: Images, label: "Resize PDF pages", description: "Fit every page to a standard paper size without rasterizing." },
   "pdf-ocr": { icon: Scan, label: "OCR searchable PDF", description: "Run English OCR locally and download text plus a searchable PDF." },
   "pdf-compress": { icon: FileArrowDown, label: "Compress PDF", description: "Optimize streams locally and report only a smaller result." },
   "pdf-watermark": { icon: FilePdf, label: "Add watermark", description: "Stamp every page with your own text locally." },
@@ -31,6 +34,8 @@ const details = {
 
 export default function PdfAdvancedEditor({ operation, file, processing, onProcess }: PdfAdvancedEditorProps) {
   const [exportMode, setExportMode] = useState<"single" | "individual" | "zip">("individual");
+  const [columns, setColumns] = useState(3);
+  const [pageSize, setPageSize] = useState("a4");
   const [pageNumber, setPageNumber] = useState(1);
   const [text, setText] = useState("");
   const [fontSize, setFontSize] = useState(12);
@@ -41,6 +46,9 @@ export default function PdfAdvancedEditor({ operation, file, processing, onProce
   const detail = details[operation];
   const Icon = detail.icon;
   const isRasterExport = operation === "pdf-to-jpg" || operation === "pdf-to-png";
+  const isContactSheet = operation === "pdf-contact-sheet";
+  const isCrop = operation === "pdf-crop";
+  const isPageSize = operation === "pdf-page-size";
   const isWatermark = operation === "pdf-watermark";
   const isTextOverlay = operation === "pdf-add-text";
   const isHeaderFooter = operation === "pdf-header-footer";
@@ -73,6 +81,28 @@ export default function PdfAdvancedEditor({ operation, file, processing, onProce
               </label>
             )}
             <small>Individual files use the original PDF name and page number.</small>
+          </div>
+        )}
+        {isContactSheet && (
+          <div className="pdf-export-options" aria-label="Contact sheet options">
+            <label>
+              <span>Columns</span>
+              <input type="number" min={1} max={4} step={1} value={columns} onChange={(event) => setColumns(Math.max(1, Math.min(4, Number(event.target.value) || 1)))} disabled={processing} />
+            </label>
+            <small>Pages are rendered locally into one printable PDF overview.</small>
+          </div>
+        )}
+        {isPageSize && (
+          <div className="pdf-export-options" aria-label="PDF page size options">
+            <label>
+              <span>Page size</span>
+              <select value={pageSize} onChange={(event) => setPageSize(event.target.value)} disabled={processing}>
+                <option value="a4">A4</option>
+                <option value="letter">US Letter</option>
+                <option value="original">Original size</option>
+              </select>
+            </label>
+            <small>Content is fitted and centered while preserving its aspect ratio.</small>
           </div>
         )}
         {isWatermark && (
@@ -126,7 +156,7 @@ export default function PdfAdvancedEditor({ operation, file, processing, onProce
             </label>
           </div>
         )}
-        {(isRedact || isHighlight || isShape) && (
+        {(isCrop || isRedact || isHighlight || isShape) && (
           <div className="pdf-export-options" aria-label="PDF annotation region">
             <PdfAnnotationEditor file={file} region={redaction} disabled={processing} onRegionChange={setRedaction} />
             <div className="pdf-annotation-precision">
@@ -137,7 +167,7 @@ export default function PdfAdvancedEditor({ operation, file, processing, onProce
                 </label>
               ))}
             </div>
-            <small>{isRedact ? "The selected region is permanently rasterized." : "The selected region remains text-selectable."}</small>
+            <small>{isCrop ? "The selected region becomes the visible page area while preserving PDF content." : isRedact ? "The selected region is permanently rasterized." : "The selected region remains text-selectable."}</small>
           </div>
         )}
         {isDuplicatePage && (
@@ -149,7 +179,7 @@ export default function PdfAdvancedEditor({ operation, file, processing, onProce
           </div>
         )}
       </div>
-      <button type="button" className="action-button" onClick={() => onProcess(isRasterExport ? { exportMode, pageNumber } : isWatermark ? { text, fontSize } : isTextOverlay ? { text, pageNumber: textRegion.pageNumber, fontSize, x: textRegion.x, y: textRegion.y } : isHeaderFooter ? { header: text, footer, fontSize } : (isRedact || isHighlight || isShape) ? redaction : isDuplicatePage ? { pageNumber } : { fontSize })} disabled={processing}>
+      <button type="button" className="action-button" onClick={() => onProcess(isRasterExport ? { exportMode, pageNumber } : isContactSheet ? { columns } : isPageSize ? { size: pageSize } : isWatermark ? { text, fontSize } : isTextOverlay ? { text, pageNumber: textRegion.pageNumber, fontSize, x: textRegion.x, y: textRegion.y } : isHeaderFooter ? { header: text, footer, fontSize } : (isCrop || isRedact || isHighlight || isShape) ? redaction : isDuplicatePage ? { pageNumber } : { fontSize })} disabled={processing}>
         <FilePdf size={17} /> {processing ? "Processing..." : "Run tool"}
       </button>
     </section>

@@ -1,7 +1,7 @@
 "use client";
 
 import { FilePdf, Images } from "@phosphor-icons/react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type ImageToPdfEditorProps = {
   files: File[];
@@ -9,10 +9,19 @@ type ImageToPdfEditorProps = {
   onProcess: () => void;
 };
 
-export default function ImageToPdfEditor({ files, processing, onProcess }: ImageToPdfEditorProps) {
-  const urls = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files]);
-  useEffect(() => () => urls.forEach((url) => URL.revokeObjectURL(url)), [urls]);
+function ImagePreview({ file }: { file: File }) {
+  const url = useMemo(() => URL.createObjectURL(file), [file]);
+  const [failed, setFailed] = useState(false);
 
+  useEffect(() => () => URL.revokeObjectURL(url), [url]);
+
+  if (failed) {
+    return <span className="image-to-pdf-preview-fallback" aria-label={`${file.name} preview unavailable`}>Preview unavailable</span>;
+  }
+  return <img src={url} alt={`${file.name} preview`} onError={() => setFailed(true)} />; // eslint-disable-line @next/next/no-img-element
+}
+
+export default function ImageToPdfEditor({ files, processing, onProcess }: ImageToPdfEditorProps) {
   return (
     <section className="image-to-pdf-editor" aria-label="Convert images to PDF">
       <div className="image-to-pdf-heading">
@@ -24,8 +33,8 @@ export default function ImageToPdfEditor({ files, processing, onProcess }: Image
       </div>
       <div className="image-to-pdf-grid">
         {files.map((file, index) => (
-          <div className="image-to-pdf-item" key={`${file.name}-${index}`}>
-            {urls[index] && <img src={urls[index]} alt="" />} {/* eslint-disable-line @next/next/no-img-element */}
+          <div className="image-to-pdf-item" key={`${file.name}-${file.size}-${file.lastModified}-${index}`}>
+            <ImagePreview file={file} />
             <span>{file.name}</span>
           </div>
         ))}

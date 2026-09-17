@@ -19,7 +19,7 @@ these statuses:
 
 StayLokal V1 is **READY TO FREEZE** under the accepted verification criteria:
 
-- `npm test` — **PASS** (52 tests)
+- `npm test` — **PASS** (58 tests)
 - `npm run lint` — **PASS**
 - `npm run typecheck` — **PASS**
 - `npm run build` — **PASS**
@@ -78,6 +78,11 @@ sent to those services.
 | JPG/PNG to PDF | `WORKING` | Local `pdf-lib` image embedding and multi-image export exist. |
 | PDF metadata viewer/remover | `WORKING` | Metadata is read locally and can be removed into a new PDF. |
 | PDF → JPG/PNG | `WORKING` | PDF.js renders selected or all pages locally; pages can download individually or as a ZIP archive. |
+| PDF contact sheet | `WORKING` | PDF.js renders pages locally into a configurable-column overview PDF; focused Chromium round-trip coverage passes. |
+| PDF page cropping | `WORKING` | Percentage-based page crop boxes preserve PDF content without rasterization; focused Chromium round-trip coverage passes. |
+| PDF page resizing | `WORKING` | Pages can be fitted and centered onto A4, US Letter, or original size without rasterizing; focused Chromium round-trip coverage passes. |
+| PDF mobile previews | `WORKING` | PDF.js canvas previews replace native PDF iframes for the main page and thumbnails, including narrow mobile viewports. |
+| Image contact sheet | `WORKING` | Multiple local images can be arranged into one configurable-column PNG/JPG/WebP overview; focused Chromium round-trip coverage passes. |
 | PDF watermark/page numbers | `WORKING` | Text overlays are generated in a cancellable local PDF worker. |
 | PDF add-text overlay | `WORKING` | User text can be placed on a rendered selected page by interaction, with precise page/position/font controls and local PDF-worker export. |
 | PDF headers/footers | `WORKING` | Header and footer text can be added to every page through the local PDF worker. |
@@ -103,23 +108,25 @@ sent to those services.
 | Cancellation | `PARTIALLY WORKING` | AbortController and worker termination exist; exhaustive browser verification is incomplete. |
 | Result/download UI | `WORKING` | Blob result links are rendered and object URLs are cleaned on result changes. |
 | Donation checkout | `PARTIALLY WORKING` | Dodo hosted donation checkout route and `/donate` UI exist; production credentials are not configured. |
-| Sponsor leaderboard | `PARTIALLY WORKING` | Five-rank pay-to-outbid UI, ranking logic, Appwrite repository, Dodo claim route, and signed webhook exist; external configuration and live verification remain. |
+| Sponsor leaderboard | `PARTIALLY WORKING` | Five-rank pay-to-outbid UI, ranking logic, Appwrite repository, Dodo claim route, signed webhook, and verified payment-return confirmation exist; external configuration and live verification remain. |
 | Backend/API/database/auth | `PARTIALLY WORKING` | Donation and sponsor API routes exist; Appwrite is used for optional sponsor persistence, with no user account system. |
 | Full browser suite | `IMPLEMENTED BUT UNTESTED` | Tests exist, but the full Playwright run has startup/long-running media problems. |
 
 ## 3. Current exposed registry
 
-The registry in `lib/tools/registry.ts` exposes exactly fifty-one tools. No other tool is
+The registry in `lib/tools/registry.ts` exposes exactly fifty-eight tools. No other tool is
 shown by the current tool picker.
 
 ### Image
 `image-process`, `image-crop`, `image-rotate`, `image-flip`, `image-thumbnail`,
 `image-gif`, `image-background-remove`, `image-convert`, `image-upscale`,
-`image-watermark`, and `image-meme`.
+`image-watermark`, `image-meme`, and `image-contact-sheet`.
 
 ### PDF
 `pdf-merge`, `pdf-rotate`, `pdf-split`, `pdf-extract`, `pdf-delete-pages`,
 `pdf-reorder`, `pdf-image-to-pdf`, `pdf-metadata`, `pdf-to-jpg`, `pdf-to-png`,
+`pdf-contact-sheet`,
+`pdf-crop`, `pdf-page-size`,
 `pdf-watermark`, `pdf-page-numbers`, `pdf-add-text`, `pdf-header-footer`,
 `pdf-flatten`, `pdf-privacy`, `pdf-redact`, `pdf-highlight`, `pdf-shape`,
 `pdf-remove-blank`, `pdf-duplicate-page`, `pdf-add-image`, `pdf-fill-form`, and
@@ -591,9 +598,8 @@ The tests must not be described as a complete successful browser matrix.
   rotate, flip, and metadata tools — `PLANNED`
 - Video merge — `PLANNED`, blocked by reliability
 - Subtitle-file workflow — `PLANNED`
-- PDF → JPG/PNG, image contact sheets, PDF text extraction, and true PDF compression —
-  `PLANNED`; these require a verified browser PDF renderer/text extractor/compression
-  path and are not exposed in the registry.
+- Image contact sheets, PDF text extraction, and true PDF compression — `PLANNED`;
+  these require additional verified browser paths and are not exposed in the registry.
 - Broader audio-only workflows — `PLANNED`
 - Document editing — `PLANNED`
 - Spreadsheet editing beyond preview and CSV export — `PLANNED`
@@ -627,6 +633,9 @@ freeze:
 - `<body>` flex column shell
 - metadata title and description
 
+The `/rules` page documents sponsor placement ranking, bidding, payment activation,
+content eligibility, and the no-guaranteed-traffic limitation.
+
 ### 7.2 Main application window
 
 `app/page.tsx` renders one `<main class="app-window">` containing:
@@ -636,6 +645,10 @@ freeze:
 
 The app window has responsive framing, theme variables, custom scrollbar styling, and
 keyboard focus rules in `app/globals.css`.
+
+The empty landing state includes a “How StayLokal works” section below the upload
+workspace, including local-processing steps, sponsor bidding explanation, and a link
+to `/rules`.
 
 ### 7.3 Header
 
@@ -810,7 +823,8 @@ PDF export owns a separate local AbortController inside `PdfEditor`.
 
 Donation and sponsor route handlers exist under `app/api/`. They keep Dodo and
 Appwrite credentials server-only. Sponsor activation is driven by a verified Dodo
-payment webhook rather than the browser redirect.
+payment webhook, with a server-side Dodo payment retrieval fallback on the browser
+return so local development does not appear to silently lose a successful payment.
 
 ### Database — `PARTIALLY WORKING`
 
@@ -879,6 +893,7 @@ components/editor/
   pdf/PdfWorkspace.tsx    PDF editor layout composition
   pdf/PdfToolbar.tsx      Workflow-specific PDF actions
   pdf/PdfCanvas.tsx       Primary document preview surface
+  pdf/PdfPagePreview.tsx  Shared local PDF.js canvas preview for desktop and mobile
   pdf/PdfPageControls.tsx Page navigation and thumbnails
   pdf/PdfFileCard.tsx     Compact PDF page card
   pdf/PdfEditorFooter.tsx Export and cancellation footer
@@ -1013,7 +1028,7 @@ The accepted static verification currently passes:
 ```text
 npm test
   8 Vitest files passed
-  52 tests passed
+  58 tests passed
 
 npm run lint
   passed
