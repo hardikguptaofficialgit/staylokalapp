@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { readJsonResponse } from "@/lib/app/fetch-json";
 import { ArrowLeft, CheckCircle, Heart, LockKey, Moon, Sun } from "@phosphor-icons/react";
-import { FormEvent, useState } from "react";
+import { applyTheme, persistTheme, resolveTheme, subscribeTheme, type Theme } from "@/lib/app/theme";
+import { FormEvent, useEffect, useState, useSyncExternalStore } from "react";
 
 const MINIMUM_DONATION = 5;
 
@@ -16,14 +18,16 @@ export default function DonatePage() {
     const params = new URLSearchParams(window.location.search);
     return params.get("success") === "1" || params.get("status") === "succeeded";
   });
-  const [isLight, setIsLight] = useState(() => (
-    typeof document !== "undefined" && document.documentElement.dataset.theme === "light"
-  ));
+  const theme = useSyncExternalStore(subscribeTheme, resolveTheme, () => "dark" as Theme);
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   function toggleTheme() {
-    const nextTheme = isLight ? "dark" : "light";
-    document.documentElement.dataset.theme = nextTheme;
-    setIsLight(!isLight);
+    const nextTheme: Theme = theme === "light" ? "dark" : "light";
+    applyTheme(nextTheme);
+    persistTheme(nextTheme);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -43,7 +47,7 @@ export default function DonatePage() {
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
-      const result = (await response.json()) as { checkoutUrl?: string; error?: string };
+      const result = await readJsonResponse<{ checkoutUrl?: string; error?: string }>(response);
       if (!response.ok || !result.checkoutUrl) {
         throw new Error(result.error ?? "Unable to start checkout.");
       }
@@ -63,7 +67,7 @@ export default function DonatePage() {
         </Link>
         <div className="donate-header-actions">
           <button className="control-pill theme-toggle" onClick={toggleTheme} aria-label="Toggle color mode" type="button">
-            {isLight ? <Moon size={16} /> : <Sun size={16} />}
+            {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
           </button>
           <Link className="donate-back-link" href="/">
             <ArrowLeft size={15} /> Back

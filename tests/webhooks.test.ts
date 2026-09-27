@@ -1,18 +1,26 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { activateClaimMock, unwrapMock } = vi.hoisted(() => ({
+const { activateClaimMock, findClaimByIdMock, retrieveMock, unwrapMock } = vi.hoisted(() => ({
   activateClaimMock: vi.fn(),
+  findClaimByIdMock: vi.fn(),
+  retrieveMock: vi.fn(),
   unwrapMock: vi.fn(),
 }));
 
-vi.mock("dodopayments", () => ({
-  default: class {
-    webhooks = { unwrap: unwrapMock };
-  },
-}));
+vi.mock("../lib/sponsors/dodo-payments", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../lib/sponsors/dodo-payments")>();
+  return {
+    ...actual,
+    createDodoClient: () => ({
+      payments: { retrieve: retrieveMock },
+      webhooks: { unwrap: unwrapMock },
+    }),
+  };
+});
 
 vi.mock("../lib/sponsors/appwrite", () => ({
   activateClaim: activateClaimMock,
+  findClaimById: findClaimByIdMock,
 }));
 
 import { POST } from "../app/api/webhooks/dodo/route";
@@ -23,7 +31,15 @@ describe("Dodo sponsor webhook", () => {
     process.env.DODO_PAYMENTS_WEBHOOK_KEY = "test-webhook-key";
     process.env.DODO_PAYMENTS_ENVIRONMENT = "test_mode";
     activateClaimMock.mockReset();
+    findClaimByIdMock.mockReset();
+    retrieveMock.mockReset();
     unwrapMock.mockReset();
+    findClaimByIdMock.mockResolvedValue({ bidCents: 401 });
+    retrieveMock.mockResolvedValue({
+      amount: 401,
+      metadata: { claim_id: "claim-1" },
+      status: "succeeded",
+    });
   });
 
   it("rejects an empty body", async () => {
@@ -34,6 +50,19 @@ describe("Dodo sponsor webhook", () => {
 
   it("acknowledges unrelated payment events without activating a claim", async () => {
     unwrapMock.mockReturnValue({ type: "payment.failed", data: {} });
+    const response = await POST(new Request("https://example.com/webhook", {
+      body: "{}",
+      method: "POST",
+    }));
+    expect(response.status).toBe(200);
+    expect(activateClaimMock).not.toHaveBeenCalled();
+  });
+
+  it("acknowledges donation payments without sponsor claim metadata", async () => {
+    unwrapMock.mockReturnValue({
+      type: "payment.succeeded",
+      data: { metadata: { source: "staylokal-donation" }, payment_id: "pay_12345678" },
+    });
     const response = await POST(new Request("https://example.com/webhook", {
       body: "{}",
       method: "POST",
@@ -80,6 +109,8 @@ describe("Dodo sponsor webhook", () => {
     }));
 
     expect(response.status).toBe(200);
+    expect(findClaimByIdMock).toHaveBeenCalledWith("claim-1");
+    expect(retrieveMock).toHaveBeenCalledWith("pay_12345678", { signal: expect.any(AbortSignal) });
     expect(activateClaimMock).toHaveBeenCalledWith("claim-1", "pay_12345678");
   });
 });

@@ -20,7 +20,7 @@ export default function BackgroundRemovalEditor({ file }: BackgroundRemovalEdito
   return (
     <section className="image-background-editor" aria-label="Background removal preview">
       <div className="image-background-preview">
-        {url && <img src={url} alt="Image ready for background removal" />}
+        {url && <img src={url} alt="Image ready for background removal" />} {/* eslint-disable-line @next/next/no-img-element */}
       </div>
       <div>
         <p className="eyebrow">Local segmentation</p>

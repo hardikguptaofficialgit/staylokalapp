@@ -1,0 +1,107 @@
+/* The Layout Engine (Fixed grid layout) */
+.uploaded-layout {
+  display: grid;
+  grid-template-columns: minmax(14rem, 18vw) 2rem minmax(0, 1fr);
+  align-items: start;
+  min-height: calc(100vh - 8rem);
+}
+
+.workspace-sidebar {
+  grid-column: 1;
+  padding-right: clamp(1rem, 1.5vw, 2rem);
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 120px);
+}
+
+.workspace-tools {
+  grid-column: 3;
+}
+.tool-selected-layout {
+  grid-template-columns: 190px minmax(0, 1fr);
+  column-gap: clamp(1rem, 2vw, 1.75rem);
+}
+.tool-selected-layout .workspace-sidebar {
+  border-right: 0;
+  padding-right: 0;
+}
+.tool-selected-layout .workspace-divider {
+  display: none;
+}
+.tool-selected-layout .workspace-tools {
+  grid-column: 2;
+  min-width: 0;
+}
+
+/* The Draggable Divider */
+.workspace-divider {
+  grid-column: 2;
+  display: flex;
+  justify-content: center;
+  cursor: col-resize;
+  position: relative;
+  min-height: 100%;
+  user-select: none;
+  touch-action: none;
+}
+.workspace-divider::before {
+  content: "";
+  position: absolute;
+  top: 1rem;
+  bottom: 1rem;
+  width: 1px;
+  background: var(--line);
+  transition: background-color 200ms ease;
+}
+.divider-handle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 3rem;
+  width: 4px;
+  border-radius: 999px;
+  background: var(--muted);
+  opacity: 0;
+  transition: opacity 200ms ease, background-color 200ms ease;
+  z-index: 10;
+}
+.workspace-divider:hover::before {
+  background: var(--muted);
+}
+.workspace-divider:hover .divider-handle,
+.workspace-divider:active .divider-handle {
+  opacity: 1;
+  background: var(--foreground);
+}
+
+/* File Chips */
+.file-chip {
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  transition: border-color 200ms ease, background-color 200ms ease, transform 200ms ease;
+}
+.file-chip:hover {
+  border-color: var(--muted);
+  transform: translateX(2px);
+}
+.file-chip > div:first-child {
+  border-radius: 0.55rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.file-chip > div:nth-child(2) {
+  gap: 0.15rem;
+}
+.file-chip-type,
+.file-chip-meta {
+  color: var(--muted);
+  font-size: 0.65rem;
+  line-height: 1.2;
+}

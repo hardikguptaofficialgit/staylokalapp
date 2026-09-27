@@ -1,0 +1,204 @@
+/* Focused PDF editor layout */
+.pdf-selected-layout .workspace-tools {
+  padding-bottom: 1.5rem;
+  padding-top: 0;
+}
+.pdf-selected-layout .selected-tool-panel {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  max-width: none;
+  padding: 0;
+}
+.pdf-selected-layout .selected-tool-panel > button:first-child {
+  margin-bottom: 0.55rem;
+}
+.pdf-selected-layout .selected-tool-panel > div:first-of-type {
+  margin-top: 0;
+}
+.pdf-editor-layout {
+  grid-template-columns: minmax(16.25rem, 17.5rem) minmax(0, 1fr);
+}
+.pdf-editor-layout > .workspace-inline {
+  padding-right: 1.25rem;
+}
+.pdf-editor-main {
+  padding-left: 1.25rem;
+}
+.pdf-editor-main .pdf-workspace {
+  margin-top: 0;
+}
+.pdf-toolbar {
+  border-top: 0;
+  min-height: 2.75rem;
+  padding: 0 0 0.65rem;
+}
+.pdf-toolbar-actions {
+  gap: 0.35rem;
+}
+.editor-toolbar-item {
+  min-height: 2rem;
+  padding: 0.35rem 0.55rem;
+}
+.pdf-workspace-body {
+  min-height: 0;
+}
+.pdf-page-controls {
+  border-bottom: 1px solid var(--line);
+  padding: 0.6rem 0 0.7rem;
+}
+.pdf-page-controls-heading {
+  margin-bottom: 0.45rem;
+}
+.pdf-page-list {
+  gap: 0.65rem;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.1rem 0 0.35rem;
+  scrollbar-width: thin;
+}
+.pdf-file-card {
+  border-radius: 0.45rem;
+  flex: 0 0 9.25rem;
+  padding: 0.25rem;
+  width: 9.25rem;
+}
+.pdf-file-card-preview {
+  border-radius: 0.25rem;
+  height: 10.75rem;
+  overflow: hidden;
+  width: 100%;
+}
+.pdf-file-card-label {
+  padding: 0.35rem 0.2rem 0.2rem;
+}
+.pdf-file-card-label strong {
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+.pdf-canvas {
+  min-height: min(64vh, 46rem);
+  overflow: hidden;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+.pdf-canvas-document {
+  height: min(64vh, 46rem);
+  min-height: 28rem;
+  width: min(100%, 50rem);
+}
+.pdf-editor-footer {
+  padding: 0.7rem 0 0;
+}
+.pdf-editor-footer .action-button,
+.pdf-editor-footer .control-pill {
+  min-height: 2.25rem;
+}
+
+@media (max-width: 700px) {
+  .pdf-editor-layout {
+    grid-template-columns: 1fr;
+  }
+  .pdf-editor-layout > .workspace-inline {
+    border-bottom: 1px solid var(--line);
+    border-right: 0;
+    padding: 0 0 0.85rem;
+  }
+  .pdf-editor-main {
+    padding-left: 0;
+  }
+  .pdf-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  .pdf-toolbar-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+  .pdf-file-card {
+    flex-basis: 7.5rem;
+    width: 7.5rem;
+  }
+  .pdf-file-card-preview {
+    height: 8.75rem;
+  }
+  .pdf-canvas {
+    min-height: 24rem;
+    padding: 1rem 0;
+  }
+  .pdf-canvas-document {
+    height: min(64vh, 34rem);
+    min-height: 22rem;
+    width: 100%;
+  }
+  .pdf-editor-footer {
+    padding-top: 0.65rem;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+  .pdf-split-options {
+    flex: 1 1 100%;
+  }
+}
+
+/* Keep pages inside the editor instead of creating a third column. */
+.pdf-workspace-body {
+  display: flex;
+  flex-direction: column;
+  min-height: min(58vh, 36rem);
+}
+.pdf-page-controls {
+  border-bottom: 1px solid var(--line);
+  border-right: 0;
+  padding: 0.55rem 0;
+}
+.pdf-page-controls-heading {
+  margin-bottom: 0.45rem;
+}
+.pdf-page-list {
+  display: flex;
+  gap: 0.55rem;
+  max-height: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.1rem 0 0.35rem;
+}
+.pdf-file-card {
+  flex: 0 0 7.25rem;
+  width: 7.25rem;
+}
+.pdf-file-card-preview {
+  height: 4.5rem;
+}
+.pdf-file-card-label {
+  padding: 0.35rem 0.25rem 0.2rem;
+}
+.pdf-canvas {
+  flex: 1;
+  min-height: min(42vh, 26rem);
+}
+
+@media (max-width: 760px) {
+  .floating-file-layer {
+    display: none;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .floating-file-card {
+    height: 5.25rem;
+    width: 5.25rem;
+  }
+  .floating-file-pdf { left: 1.5%; }
+  .floating-file-image { left: 1.5%; }
+  .floating-file-doc { left: 1.5%; }
+  .floating-file-ppt { right: 1.5%; }
+  .floating-file-png { right: 1.5%; }
+  .floating-file-txt { right: 1.5%; }
+  .floating-file-video { left: 12%; }
+  .floating-file-audio { right: 12%; }
+  .floating-file-xls { left: 27%; }
+  .floating-file-zip { right: 27%; }
+}

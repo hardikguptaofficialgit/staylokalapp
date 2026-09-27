@@ -1,4 +1,4 @@
-import { rankSponsors } from "./ranking";
+import { activationOutcome } from "./ranking";
 import type { SponsorRecord, SponsorStatus } from "./types";
 
 function hasBaseConfig(): boolean {
@@ -290,11 +290,7 @@ export async function activateClaim(claimId: string, paymentId: string) {
       paidAt,
       status: "active",
     };
-    const ranked = rankSponsors([...activeSponsors, newSponsor]);
-    const visibleIds = new Set(ranked.map((sponsor) => sponsor.id));
-    const displacedIds = activeSponsors
-      .filter((sponsor) => !visibleIds.has(sponsor.id))
-      .map((sponsor) => sponsor.id);
+    const { displacedIds, newSponsorStatus } = activationOutcome(activeSponsors, newSponsor);
 
     await tables.createRow({
       tableId: process.env.APPWRITE_SPONSORS_TABLE_ID!,
@@ -311,7 +307,7 @@ export async function activateClaim(claimId: string, paymentId: string) {
         logoUrl: newSponsor.logoUrl ?? "",
         paidAt,
         paymentId,
-        status: "active",
+        status: newSponsorStatus,
       },
       transactionId: transaction.$id,
     });

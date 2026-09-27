@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isBidEnoughForRank, minimumBidForRank, rankSponsors } from "../lib/sponsors/ranking";
+import { activationOutcome, isBidEnoughForRank, minimumBidForRank, rankSponsors } from "../lib/sponsors/ranking";
 import { validateSponsorClaim } from "../lib/sponsors/validation";
 import type { SponsorRecord } from "../lib/sponsors/types";
 
@@ -34,6 +34,14 @@ describe("sponsor ranking", () => {
 
   it("uses the one dollar opening bid for empty positions", () => {
     expect(minimumBidForRank([], 5)).toBe(100);
+  });
+
+  it("marks a sixth-place payment as outbid instead of leaving a stray active row", () => {
+    const current = Array.from({ length: 5 }, (_, index) => sponsor(String(index), (5 - index) * 100, `2026-01-0${index + 1}`));
+    const newcomer = sponsor("new", 50, "2026-02-01");
+    const outcome = activationOutcome(current, newcomer);
+    expect(outcome.newSponsorStatus).toBe("outbid");
+    expect(outcome.displacedIds).toEqual([]);
   });
 });
 

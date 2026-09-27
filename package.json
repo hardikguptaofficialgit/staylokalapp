@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "node scripts/next-dev.mjs",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run tests/tools.test.ts tests/pdf.test.ts tests/donations.test.ts tests/sponsors.test.ts tests/document.test.ts tests/spreadsheet.test.ts tests/archive.test.ts tests/ffmpeg-commands.test.ts tests/webhooks.test.ts",
+    "test": "vitest run tests/tools.test.ts tests/pdf.test.ts tests/donations.test.ts tests/dodo-payments.test.ts tests/image-formats.test.ts tests/ico-tiff-encode.test.ts tests/sponsors.test.ts tests/document.test.ts tests/spreadsheet.test.ts tests/archive.test.ts tests/ffmpeg-commands.test.ts tests/webhooks.test.ts tests/sponsor-email.test.ts tests/sponsor-confirm.test.ts tests/fetch-json.test.ts",
     "test:browser": "playwright test",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && node scripts/prepare-cloudflare-assets.mjs && opennextjs-cloudflare deploy",

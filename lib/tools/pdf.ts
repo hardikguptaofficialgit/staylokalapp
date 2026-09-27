@@ -1,13 +1,40 @@
 import { PDFCheckBox, PDFDocument, PDFDropdown, PDFOptionList, PDFRadioGroup, PDFTextField, StandardFonts, degrees, rgb } from "pdf-lib";
+import { exportCanvasToBlob, imageExtensionForMime, resolvePdfRasterExportFormat } from "./image-formats";
 import { ProcessingError, type ProcessedFile, type ToolProcessor } from "./types";
 import { runPdfWorker } from "./pdf-worker-client";
+
+async function rasterizeImageFileToPngBytes(file: File) {
+  const url = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new ProcessingError("This image could not be decoded for PDF export.", "invalid"));
+      element.src = url;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, image.naturalWidth);
+    canvas.height = Math.max(1, image.naturalHeight);
+    const context = canvas.getContext("2d");
+    if (!context) throw new ProcessingError("Your browser could not prepare this image for PDF export.", "unsupported");
+    context.drawImage(image, 0, 0);
+    const blob = await exportCanvasToBlob(canvas, "image/png", 0.92);
+    return {
+      bytes: new Uint8Array(await blob.arrayBuffer()),
+      height: canvas.height,
+      width: canvas.width,
+    };
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
 
 function blobFromBytes(bytes: Uint8Array, type: string) {
   const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
   return new Blob([buffer], { type });
 }
 
-async function renderPdfPages(file: File, context: Parameters<ToolProcessor>[2], format: "image/png" | "image/jpeg" = "image/png", pageNumbers?: number[], redact?: { pageNumber: number; x: number; y: number; width: number; height: number }) {
+async function renderPdfPages(file: File, context: Parameters<ToolProcessor>[2], format = "image/png", pageNumbers?: number[], redact?: { pageNumber: number; x: number; y: number; width: number; height: number }) {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/legacy/build/pdf.worker.min.mjs", import.meta.url).toString();
   const pdfDocument = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
@@ -40,7 +67,7 @@ async function renderPdfPages(file: File, context: Parameters<ToolProcessor>[2],
         canvas.height * Math.max(0, Math.min(100, redact.height)) / 100,
       );
     }
-    const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((value) => value ? resolve(value) : reject(new Error("Canvas export failed")), format, 0.92));
+    const blob = await exportCanvasToBlob(canvas, format, 0.92);
     pages.push({ bytes: new Uint8Array(await blob.arrayBuffer()), index, width: viewport.width, height: viewport.height, blank });
     context.onProgress({ ratio: pages.length / requestedPages.length, label: `Rendered page ${index} of ${pdfDocument.numPages}` });
   }
@@ -299,14 +326,15 @@ const pdfProcessor: ToolProcessor = async (files, options, context) => {
       name: operation === "pdf-watermark" ? "watermarked.pdf" : operation === "pdf-add-text" ? "text-added.pdf" : operation === "pdf-header-footer" ? "header-footer-added.pdf" : "numbered-pages.pdf",
     }];
   }
-  if (operation === "pdf-to-png" || operation === "pdf-to-jpg") {
-    const format = operation === "pdf-to-jpg" ? "image/jpeg" : "image/png";
+  const rasterFormat = resolvePdfRasterExportFormat(operation, options as Record<string, unknown>);
+  if (rasterFormat) {
+    const format = rasterFormat;
     const mode = String(options.exportMode || "individual");
     const pageNumber = Number(options.pageNumber || 1);
     const requestedPages = mode === "single" ? [pageNumber] : undefined;
     const pages = await renderPdfPages(files[0], context, format, requestedPages);
     const baseName = files[0].name.replace(/\.pdf$/i, "").replace(/[<>:"/\\|?*]+/g, "-").trim() || "document";
-    const extension = format === "image/jpeg" ? "jpg" : "png";
+    const extension = imageExtensionForMime(format);
     const outputs = pages.map((page) => ({
       blob: blobFromBytes(page.bytes, format),
       type: format,
@@ -392,13 +420,15 @@ const pdfProcessor: ToolProcessor = async (files, options, context) => {
     const output = await PDFDocument.create();
     for (const [index, file] of files.entries()) {
       if (context.signal.aborted) throw new ProcessingError("Processing cancelled.", "cancelled");
-      const bytes = await file.arrayBuffer();
-      const image = file.type === "image/png" || /\.png$/i.test(file.name)
-        ? await output.embedPng(bytes)
-        : file.type === "image/jpeg" || /\.(jpe?g)$/i.test(file.name)
-          ? await output.embedJpg(bytes)
-          : null;
-      if (!image) throw new ProcessingError("JPG and PNG images are supported for PDF conversion.", "unsupported");
+      let image;
+      if (file.type === "image/png" || /\.png$/i.test(file.name)) {
+        image = await output.embedPng(await file.arrayBuffer());
+      } else if (file.type === "image/jpeg" || /\.(jpe?g)$/i.test(file.name)) {
+        image = await output.embedJpg(await file.arrayBuffer());
+      } else {
+        const raster = await rasterizeImageFileToPngBytes(file);
+        image = await output.embedPng(raster.bytes);
+      }
       const page = output.addPage([image.width, image.height]);
       page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
       context.onProgress({ ratio: (index + 1) / files.length, label: `Added image ${index + 1} of ${files.length}` });

@@ -6,6 +6,7 @@ import { formatMediaTime, type MediaEditorProgress, type MediaSource } from "./t
 const frameStep = (fps: number) => 1 / Math.max(1, fps);
 
 export type VideoEditorOperation = "trim" | "cut" | "split" | "frames" | "speed";
+export type VideoEditorToolId = "trim" | "cut" | "speed" | "frames";
 
 export type VideoEditorAction = {
   operation: VideoEditorOperation;
@@ -28,6 +29,8 @@ export type VideoEditorProps = {
   onCancel?: () => void;
   disabled?: boolean;
   maxFileSizeBytes?: number;
+  /** Registry tool id — scopes controls to one operation. */
+  activeTool?: VideoEditorToolId;
 };
 
 function useMediaUrl(source: MediaSource, blocked: boolean) {
@@ -68,11 +71,13 @@ function mediaErrorMessage(state: Exclude<MediaState, "loading" | "ready" | "too
  * `onAction`. This keeps the editor a real control surface rather than a
  * second media processor.
  */
-export function VideoEditor({ source, fileName, onAction, onReplace, progress, onCancel, disabled, maxFileSizeBytes }: VideoEditorProps) {
+export function VideoEditor({ source, fileName, onAction, onReplace, progress, onCancel, disabled, maxFileSizeBytes, activeTool = "trim" }: VideoEditorProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const filmstripRef = useRef<HTMLDivElement>(null);
   const activeUrlRef = useRef<string | null>(null);
+  const playheadRafRef = useRef<number | null>(null);
+  const playheadTimeRef = useRef(0);
   const tooLarge = typeof source !== "string" && maxFileSizeBytes !== undefined && source.size > maxFileSizeBytes;
   const url = useMediaUrl(source, Boolean(tooLarge));
   const [duration, setDuration] = useState(0);
@@ -299,8 +304,17 @@ export function VideoEditor({ source, fileName, onAction, onReplace, progress, o
       video.currentTime = inPoint;
       setPlaying(false);
     }
-    setCurrent(video.currentTime);
+    playheadTimeRef.current = video.currentTime;
+    if (playheadRafRef.current !== null) return;
+    playheadRafRef.current = requestAnimationFrame(() => {
+      setCurrent(playheadTimeRef.current);
+      playheadRafRef.current = null;
+    });
   }
+
+  useEffect(() => () => {
+    if (playheadRafRef.current !== null) cancelAnimationFrame(playheadRafRef.current);
+  }, []);
 
   const range = duration ? ((outPoint - inPoint) / duration) * 100 : 0;
   const inPosition = duration ? (inPoint / duration) * 100 : 0;
@@ -321,15 +335,24 @@ export function VideoEditor({ source, fileName, onAction, onReplace, progress, o
     await onAction(action(operation));
   }
 
+  const primaryAction = activeTool === "cut"
+    ? { operation: "cut" as const, label: "Cut selection", aria: "Cut selection" }
+    : activeTool === "speed"
+      ? { operation: "speed" as const, label: `Apply ${speed}× speed`, aria: `Apply ${speed}× speed` }
+      : activeTool === "frames"
+        ? { operation: "frames" as const, label: "Extract frames", aria: "Extract frames" }
+        : { operation: "trim" as const, label: `Trim video · ${formatMediaTime(outPoint - inPoint)}`, aria: "Trim selection" };
+
   return (
-    <section className="video-editor space-y-3" tabIndex={0} aria-busy={mediaState === "loading"} aria-label={fileName ? `Video editor for ${fileName}` : "Video editor"} data-media-state={mediaState} onKeyDown={(event) => {
+    <section className="video-editor space-y-3" tabIndex={0} aria-busy={mediaState === "loading"} aria-label={fileName ? `Video editor for ${fileName}` : "Video editor"} data-media-state={mediaState} data-active-tool={activeTool} onKeyDown={(event) => {
       if (event.key === "Escape" && progress) onCancel?.();
     }}>
+      <div className="media-preview video-preview-stage">
       <video
         ref={videoRef}
         key={url ?? "video-source-loading"}
         src={url ?? undefined}
-        className="video-preview max-h-[min(32vh,20rem)] w-full border border-line bg-black object-contain"
+        className="video-preview media-preview-video"
         controls={false}
         preload="metadata"
         playsInline
@@ -348,21 +371,31 @@ export function VideoEditor({ source, fileName, onAction, onReplace, progress, o
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
       />
-      {mediaState === "loading" && <p className="text-xs text-muted" role="status">Loading video metadata…</p>}
+      {mediaState === "loading" && <p className="video-preview-status text-xs text-muted" role="status">Loading video metadata…</p>}
+      </div>
       {mediaError && <p className="text-xs text-red-500" role="alert">{mediaError}</p>}
       {mediaState !== "ready" && mediaState !== "loading" && mediaState !== "too-large" && <p className="text-xs text-muted" role="status">Timeline controls are unavailable until this video can be previewed.</p>}
       {mediaState !== "ready" ? null : <div className="video-editor-workspace space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-2">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <button type="button" className="control-pill" onClick={togglePlayback} disabled={disabled || !duration} aria-label={playing ? "Pause preview" : "Play selected range"}>{playing ? "Pause" : "Play"}</button>
-          <button type="button" className="control-pill" onClick={() => seek(current - frameStep(fps))} disabled={disabled || !duration} aria-label="Previous frame">Previous frame</button>
+      <div className="media-transport">
+        <div className="media-transport-primary">
+          <button type="button" className="control-pill media-transport-play" onClick={togglePlayback} disabled={disabled || !duration} aria-label={playing ? "Pause preview" : "Play selected range"}>{playing ? "Pause" : "Play"}</button>
+          <button type="button" className="control-pill" onClick={() => seek(current - frameStep(fps))} disabled={disabled || !duration} aria-label="Previous frame">Prev frame</button>
           <button type="button" className="control-pill" onClick={() => seek(current + frameStep(fps))} disabled={disabled || !duration} aria-label="Next frame">Next frame</button>
+          <button type="button" className="control-pill" onClick={() => setInPoint(Math.min(outPoint, current))} disabled={disabled || !duration} aria-label="Set in point at playhead">Set in</button>
+          <button type="button" className="control-pill" onClick={() => setOutPoint(Math.max(inPoint, current))} disabled={disabled || !duration} aria-label="Set out point at playhead">Set out</button>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted">
-          <label>FPS <input aria-label="Frames per second" className="field media-compact-field ml-1 font-mono" type="number" min={1} max={240} step={1} value={fps} onChange={(event) => setFps(Math.max(1, Number(event.target.value) || 30))} /></label>
-          <label>Speed <select aria-label="Playback speed" className="field media-compact-field ml-1" value={speed} onChange={(event) => setSpeed(Number(event.target.value))}>{[0.5, 0.75, 1, 1.5, 2].map((value) => <option key={value} value={value}>{value}×</option>)}</select></label>
+        <div className="media-transport-meta">
+          {activeTool === "frames" && (
+            <label className="media-transport-field">Export FPS <input aria-label="Frames per second" className="field media-compact-field ml-1 font-mono" type="number" min={1} max={60} step={1} value={Math.min(60, fps)} onChange={(event) => setFps(Math.max(1, Math.min(60, Number(event.target.value) || 1)))} /></label>
+          )}
+          {activeTool === "speed" && (
+            <label className="media-transport-field">Speed <select aria-label="Speed" className="field media-compact-field ml-1" value={speed} onChange={(event) => setSpeed(Number(event.target.value))}>{[0.5, 0.75, 1, 1.5, 2].map((value) => <option key={value} value={value}>{value}×</option>)}</select></label>
+          )}
+          {activeTool !== "speed" && activeTool !== "frames" && (
+            <label className="media-transport-field">Scrub FPS <input aria-label="Frames per second" className="field media-compact-field ml-1 font-mono" type="number" min={1} max={240} step={1} value={fps} onChange={(event) => setFps(Math.max(1, Number(event.target.value) || 30))} /></label>
+          )}
+          <span className="media-transport-clock font-mono text-xs text-muted" aria-live="polite">{formatMediaTime(current)} / {formatMediaTime(duration)}</span>
         </div>
-        <span className="font-mono text-xs text-muted" aria-live="polite">{formatMediaTime(current)} / {formatMediaTime(duration)}</span>
       </div>
       <div ref={trackRef} className="video-timeline relative touch-none select-none border border-line bg-panel" onPointerDown={(event) => {
         if (!disabled && mediaState === "ready" && !(event.target as HTMLElement).dataset.handle) updateFromPointer(event);
@@ -375,14 +408,18 @@ export function VideoEditor({ source, fileName, onAction, onReplace, progress, o
           }
         }}>
           <div className="timeline-filmstrip-content" style={{ width: `${Math.max(100, thumbnails.length * 140)}px` }}>
-            {thumbnails.map((thumbnail, index) => <button type="button" key={thumbnail.time} className="timeline-thumbnail" style={{ left: `${((index + 0.5) / Math.max(1, thumbnails.length)) * 100}%`, width: `${100 / Math.max(1, thumbnails.length)}%` }} onClick={() => seek(thumbnail.time)} aria-label={`Seek to ${formatMediaTime(thumbnail.time)}`}><img src={thumbnail.src} alt="" /></button>)}
+            {thumbnails.map((thumbnail, index) => (
+              <button type="button" key={thumbnail.time} className="timeline-thumbnail" style={{ left: `${((index + 0.5) / Math.max(1, thumbnails.length)) * 100}%`, width: `${100 / Math.max(1, thumbnails.length)}%` }} onClick={() => seek(thumbnail.time)} aria-label={`Seek to ${formatMediaTime(thumbnail.time)}`}>
+                <img src={thumbnail.src} alt="" /> {/* eslint-disable-line @next/next/no-img-element */}
+              </button>
+            ))}
           </div>
         </div>
         {thumbnails.length > 1 && <>
           <button type="button" className="timeline-scroll-button timeline-scroll-left" aria-label="Scroll frames left" onClick={() => filmstripRef.current?.scrollBy({ left: -280, behavior: "smooth" })}>‹</button>
           <button type="button" className="timeline-scroll-button timeline-scroll-right" aria-label="Scroll frames right" onClick={() => filmstripRef.current?.scrollBy({ left: 280, behavior: "smooth" })}>›</button>
         </>}
-        <div className="absolute inset-y-0 rounded bg-foreground/10" style={{ left: `${inPosition}%`, width: `${range}%` }} />
+        <div className="timeline-selection" style={{ left: `${inPosition}%`, width: `${range}%` }} />
         <div className="timeline-playhead" style={{ left: `${duration ? (current / duration) * 100 : 0}%` }} aria-label={`Current position ${formatMediaTime(current)}`} />
         {(["in", "out"] as const).map((handle) => {
           const position = handle === "in" ? inPosition : outPosition;
@@ -396,7 +433,7 @@ export function VideoEditor({ source, fileName, onAction, onReplace, progress, o
               aria-valuemin={0}
               aria-valuemax={duration}
               aria-valuenow={handle === "in" ? inPoint : outPoint}
-              className="timeline-handle absolute top-1/2 z-10 h-12 w-5 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize border-2 border-foreground bg-background"
+              className="timeline-handle"
               style={{ left: `${position}%` }}
               onPointerDown={(event) => {
                 if (disabled) return;
@@ -428,14 +465,16 @@ export function VideoEditor({ source, fileName, onAction, onReplace, progress, o
       )}
       {onAction && (
         <div className="video-action-footer">
-          <div className="flex flex-wrap gap-1.5">
-            <button type="button" className="control-pill" disabled={disabled || !duration || inPoint === outPoint} onClick={() => void emit("cut")}>Cut</button>
-            <button type="button" className="control-pill" disabled={disabled || !duration} onClick={() => void emit("split")}>Split</button>
-            <button type="button" className="control-pill" disabled={disabled || !duration} onClick={() => void emit("frames")}>Extract frames</button>
-            <button type="button" aria-label={`Apply ${speed}× speed`} className="control-pill" disabled={disabled || !duration || speed === 1} onClick={() => void emit("speed")}>Speed {speed}×</button>
-            {onReplace && <button type="button" className="control-pill" onClick={onReplace}>Replace file</button>}
-          </div>
-          <button type="button" aria-label="Trim selection" className="action-button justify-center" disabled={disabled || !duration || inPoint === outPoint} onClick={() => void emit("trim")}>Trim video · {formatMediaTime(outPoint - inPoint)}</button>
+          {onReplace && <button type="button" className="control-pill" onClick={onReplace}>Replace file</button>}
+          <button
+            type="button"
+            aria-label={primaryAction.aria}
+            className="action-button justify-center"
+            disabled={disabled || !duration || (primaryAction.operation !== "speed" && inPoint === outPoint) || (primaryAction.operation === "speed" && speed === 1)}
+            onClick={() => void emit(primaryAction.operation)}
+          >
+            {primaryAction.label}
+          </button>
         </div>
       )}
       </div>}

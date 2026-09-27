@@ -1,9 +1,12 @@
-import DodoPayments from "dodopayments";
-import { activateClaim } from "../../../../lib/sponsors/appwrite";
+import { activateClaim, findClaimById } from "../../../../lib/sponsors/appwrite";
+import {
+  assertSponsorPaymentMatchesClaim,
+  createDodoClient,
+} from "../../../../lib/sponsors/dodo-payments";
 import {
   sendSponsorActivatedEmail,
   sendSponsorPaymentFailedEmail,
-} from "../../../../lib/notifications/resend";
+} from "../../../../lib/notifications/sponsor-email";
 
 export const runtime = "nodejs";
 
@@ -20,9 +23,8 @@ type DodoEvent = {
 };
 
 export async function POST(request: Request) {
-  const apiKey = process.env.DODO_PAYMENTS_API_KEY;
   const webhookKey = process.env.DODO_PAYMENTS_WEBHOOK_KEY;
-  if (!apiKey || !webhookKey) {
+  if (!process.env.DODO_PAYMENTS_API_KEY || !webhookKey) {
     return Response.json({ error: "Webhook is not configured." }, { status: 503 });
   }
 
@@ -33,10 +35,7 @@ export async function POST(request: Request) {
 
   let event: DodoEvent;
   try {
-    const client = new DodoPayments({
-      bearerToken: apiKey,
-      environment: process.env.DODO_PAYMENTS_ENVIRONMENT === "test_mode" ? "test_mode" : "live_mode",
-    });
+    const client = createDodoClient();
     event = client.webhooks.unwrap(rawBody, {
       headers: Object.fromEntries(request.headers.entries()),
       key: webhookKey,
@@ -51,25 +50,30 @@ export async function POST(request: Request) {
 
   const claimId = event.data?.metadata?.claim_id;
   const paymentId = event.data?.payment_id ?? event.data?.paymentId;
-  if (event.type === "payment.failed" && !claimId) {
-    return Response.json({ received: true });
-  }
+  const metadataSource = event.data?.metadata?.source;
   if (!claimId) {
+    if (event.type === "payment.failed" || metadataSource === "staylokal-donation") {
+      return Response.json({ received: true });
+    }
     return Response.json({ error: "Webhook is missing sponsor claim metadata." }, { status: 400 });
   }
   if (!paymentId || !/^pay_[A-Za-z0-9_-]{8,128}$/.test(paymentId)) {
     return Response.json({ error: "Webhook is missing payment metadata." }, { status: 400 });
   }
 
-  const email = event.data?.customer?.email;
+  const email = event.data?.customer?.email?.trim() ?? "";
   const emailDetails = {
-    email: email ?? "",
+    email,
     rank: event.data?.metadata?.target_rank,
     bid: event.data?.metadata?.bid,
     paymentId,
   };
 
   if (event.type === "payment.failed") {
+    if (!email) {
+      console.warn("Sponsor payment failed without customer email; skipping notification.");
+      return Response.json({ received: true });
+    }
     try {
       await sendSponsorPaymentFailedEmail(emailDetails);
       return Response.json({ received: true });
@@ -80,11 +84,33 @@ export async function POST(request: Request) {
   }
 
   try {
+    const claim = await findClaimById(claimId);
+    const claimData = claim as unknown as Record<string, unknown>;
+    const bidCents = Number(claimData.bidCents);
+    if (!Number.isSafeInteger(bidCents)) {
+      return Response.json({ error: "Sponsor claim is invalid." }, { status: 400 });
+    }
+
+    const client = createDodoClient();
+    const payment = await client.payments.retrieve(paymentId, { signal: AbortSignal.timeout(10_000) });
+    const targetRank = Number(claimData.targetRank);
+    try {
+      assertSponsorPaymentMatchesClaim(payment, claimId, bidCents, {
+        targetRank: Number.isInteger(targetRank) ? targetRank : undefined,
+      });
+    } catch {
+      return Response.json({ error: "Sponsor payment verification failed." }, { status: 400 });
+    }
+
     await activateClaim(claimId, paymentId);
-    await sendSponsorActivatedEmail({
-      ...emailDetails,
-      companyName: event.data?.metadata?.company_name,
-    });
+    if (email) {
+      await sendSponsorActivatedEmail({
+        ...emailDetails,
+        companyName: event.data?.metadata?.company_name,
+      });
+    } else {
+      console.warn("Sponsor payment succeeded without customer email; activation email skipped.");
+    }
     return Response.json({ received: true });
   } catch (error) {
     console.error("Sponsor activation or notification failed:", error);

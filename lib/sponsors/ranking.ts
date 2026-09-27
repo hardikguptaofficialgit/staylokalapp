@@ -3,6 +3,7 @@ import {
   SPONSOR_SLOT_COUNT,
   type RankedSponsor,
   type SponsorRecord,
+  type SponsorStatus,
 } from "./types";
 
 export function sortSponsors(sponsors: SponsorRecord[]): SponsorRecord[] {
@@ -43,4 +44,16 @@ export function formatBid(cents: number): string {
     minimumFractionDigits: 2,
     style: "currency",
   }).format(cents / 100);
+}
+
+/** After a successful payment, decide leaderboard visibility and who gets outbid. */
+export function activationOutcome(activeSponsors: SponsorRecord[], newSponsor: SponsorRecord) {
+  const ranked = rankSponsors([...activeSponsors, newSponsor]);
+  const visibleIds = new Set(ranked.map((sponsor) => sponsor.id));
+  return {
+    displacedIds: activeSponsors
+      .filter((sponsor) => !visibleIds.has(sponsor.id))
+      .map((sponsor) => sponsor.id),
+    newSponsorStatus: (visibleIds.has(newSponsor.id) ? "active" : "outbid") as SponsorStatus,
+  };
 }

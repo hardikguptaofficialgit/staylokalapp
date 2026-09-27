@@ -1,5 +1,5 @@
-import DodoPayments from "dodopayments";
 import { donationAmountToCents } from "../../../../lib/donations";
+import { createDodoClient } from "../../../../lib/sponsors/dodo-payments";
 
 export const runtime = "nodejs";
 
@@ -24,12 +24,8 @@ export async function POST(request: Request) {
 
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
   const returnUrl = process.env.DODO_PAYMENTS_RETURN_URL ?? `${origin}/donate?success=1`;
-  const client = new DodoPayments({
-    bearerToken: apiKey,
-    environment: process.env.DODO_PAYMENTS_ENVIRONMENT === "test_mode" ? "test_mode" : "live_mode",
-  });
-
   try {
+    const client = createDodoClient();
     const session = await client.checkoutSessions.create({
       billing_currency: "USD",
       metadata: { source: "staylokal-donation" },

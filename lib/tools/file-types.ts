@@ -26,6 +26,9 @@ const extensionKinds: Record<string, DetectedFileType> = {
   svg: { kind: "image", label: "SVG image" },
   bmp: { kind: "image", label: "BMP image" },
   avif: { kind: "image", label: "AVIF image" },
+  ico: { kind: "image", label: "ICO image" },
+  tif: { kind: "image", label: "TIFF image" },
+  tiff: { kind: "image", label: "TIFF image" },
   doc: { kind: "document", label: "Word document" },
   docx: { kind: "document", label: "Word document" },
   ppt: { kind: "presentation", label: "Legacy PowerPoint presentation" },
@@ -51,6 +54,8 @@ function typeFromMime(mime: string): DetectedFileType | undefined {
   if (mime === "image/svg+xml") return extensionKinds.svg;
   if (mime === "image/bmp" || mime === "image/x-ms-bmp") return extensionKinds.bmp;
   if (mime === "image/avif") return extensionKinds.avif;
+  if (mime === "image/x-icon" || mime === "image/vnd.microsoft.icon") return extensionKinds.ico;
+  if (mime === "image/tiff") return extensionKinds.tiff;
   if (mime.startsWith("image/")) return { kind: "image", label: "Image" };
   if (mime.startsWith("video/")) return { kind: "video", label: "Video" };
   if (mime.startsWith("audio/")) return { kind: "audio", label: "Audio" };

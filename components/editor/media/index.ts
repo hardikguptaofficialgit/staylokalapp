@@ -1,5 +1,5 @@
 export { AudioEditor } from "./AudioEditor";
-export { VideoEditor, type VideoEditorAction, type VideoEditorOperation, type VideoEditorProps } from "./VideoEditor";
+export { VideoEditor, type VideoEditorAction, type VideoEditorOperation, type VideoEditorProps, type VideoEditorToolId } from "./VideoEditor";
 export {
   formatMediaTime,
   rangeAction,

@@ -1,0 +1,93 @@
+/* Composable tool workspace */
+.tool-workspace {
+  --tool-workspace-sidebar: clamp(16.25rem, 26vw, 18.75rem);
+  background: var(--background);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  display: grid;
+  grid-template-columns: var(--tool-workspace-sidebar) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 36rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tool-workspace-header {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 1rem;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  min-height: 4.25rem;
+  min-width: 0;
+  padding: 0.85rem 1.25rem;
+}
+
+.tool-workspace-sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.tool-workspace-main {
+  display: grid;
+  grid-column: 2;
+  grid-row: 2;
+  grid-template-rows: minmax(18rem, 1fr) auto auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tool-workspace-main > * {
+  min-width: 0;
+}
+
+.tool-workspace-controls {
+  border-top: 1px solid var(--line);
+  min-width: 0;
+  padding: 1rem 1.25rem;
+}
+
+.tool-workspace-action-bar {
+  align-items: center;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  min-width: 0;
+  padding: 1rem 1.25rem;
+}
+
+.tool-workspace button,
+.tool-workspace a,
+.tool-workspace input,
+.tool-workspace select {
+  min-height: 2.75rem;
+}
+
+.tool-workspace button,
+.tool-workspace a,
+.tool-workspace input,
+.tool-workspace select,
+.tool-workspace textarea {
+  max-width: 100%;
+}
+
+.tool-workspace button,
+.tool-workspace a,
+.tool-workspace input,
+.tool-workspace select,
+.tool-workspace textarea,
+.tool-workspace [role="button"] {
+  overflow-wrap: anywhere;
+}

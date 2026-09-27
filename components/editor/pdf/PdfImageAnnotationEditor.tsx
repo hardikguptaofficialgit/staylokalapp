@@ -37,7 +37,7 @@ export default function PdfImageAnnotationEditor({ file, processing, onProcess }
           <span>Image</span>
           <input type="file" accept="image/png,image/jpeg" onChange={(event) => void chooseImage(event.target.files?.[0])} disabled={processing} />
         </label>
-        {imageData && <div className="pdf-image-annotation-preview"><img src={imageData} alt="Selected annotation preview" /></div>}
+        {imageData && <div className="pdf-image-annotation-preview"><img src={imageData} alt="Selected annotation preview" /> {/* eslint-disable-line @next/next/no-img-element */}</div>}
         <div className="pdf-annotation-precision">
           <label><span>Page</span><input type="number" min={1} value={region.pageNumber} onChange={(event) => setRegion({ ...region, pageNumber: Math.max(1, Number(event.target.value) || 1) })} disabled={processing} /></label>
           {(["x", "y", "width", "height"] as const).map((field) => (

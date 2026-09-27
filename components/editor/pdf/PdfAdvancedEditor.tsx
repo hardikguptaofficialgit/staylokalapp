@@ -2,18 +2,18 @@
 
 import { FileArrowDown, FilePdf, Images, Scan } from "@phosphor-icons/react";
 import { useState } from "react";
+import { imageFormatSelectOptions } from "@/lib/tools/image-formats";
 import PdfAnnotationEditor from "./PdfAnnotationEditor";
 
 type PdfAdvancedEditorProps = {
-  operation: "pdf-to-jpg" | "pdf-to-png" | "pdf-contact-sheet" | "pdf-crop" | "pdf-page-size" | "pdf-ocr" | "pdf-compress" | "pdf-watermark" | "pdf-page-numbers" | "pdf-add-text" | "pdf-header-footer" | "pdf-flatten" | "pdf-privacy" | "pdf-redact" | "pdf-highlight" | "pdf-shape" | "pdf-remove-blank" | "pdf-duplicate-page";
+  operation: "pdf-to-image" | "pdf-contact-sheet" | "pdf-crop" | "pdf-page-size" | "pdf-ocr" | "pdf-compress" | "pdf-watermark" | "pdf-page-numbers" | "pdf-add-text" | "pdf-header-footer" | "pdf-flatten" | "pdf-privacy" | "pdf-redact" | "pdf-highlight" | "pdf-shape" | "pdf-remove-blank" | "pdf-duplicate-page";
   file?: File;
   processing: boolean;
   onProcess: (options?: Record<string, string | number | boolean>) => void;
 };
 
 const details = {
-  "pdf-to-jpg": { icon: Images, label: "Export JPG pages", description: "Each PDF page becomes a separate JPG download." },
-  "pdf-to-png": { icon: Images, label: "Export PNG pages", description: "Each PDF page becomes a separate PNG download." },
+  "pdf-to-image": { icon: Images, label: "Export PDF pages", description: "Render each page to JPEG, PNG, WebP, GIF, BMP, AVIF, ICO, or TIFF." },
   "pdf-contact-sheet": { icon: Images, label: "Create contact sheet", description: "Arrange every PDF page into a visual overview locally." },
   "pdf-crop": { icon: Images, label: "Crop PDF pages", description: "Crop every page to a selected region without rasterizing the document." },
   "pdf-page-size": { icon: Images, label: "Resize PDF pages", description: "Fit every page to a standard paper size without rasterizing." },
@@ -34,6 +34,7 @@ const details = {
 
 export default function PdfAdvancedEditor({ operation, file, processing, onProcess }: PdfAdvancedEditorProps) {
   const [exportMode, setExportMode] = useState<"single" | "individual" | "zip">("individual");
+  const [exportFormat, setExportFormat] = useState("image/png");
   const [columns, setColumns] = useState(3);
   const [pageSize, setPageSize] = useState("a4");
   const [pageNumber, setPageNumber] = useState(1);
@@ -45,7 +46,7 @@ export default function PdfAdvancedEditor({ operation, file, processing, onProce
   const [redaction, setRedaction] = useState({ pageNumber: 1, x: 0, y: 0, width: 20, height: 20 });
   const detail = details[operation];
   const Icon = detail.icon;
-  const isRasterExport = operation === "pdf-to-jpg" || operation === "pdf-to-png";
+  const isRasterExport = operation === "pdf-to-image";
   const isContactSheet = operation === "pdf-contact-sheet";
   const isCrop = operation === "pdf-crop";
   const isPageSize = operation === "pdf-page-size";
@@ -66,6 +67,14 @@ export default function PdfAdvancedEditor({ operation, file, processing, onProce
         {file && <small>{file.name}</small>}
         {isRasterExport && (
           <div className="pdf-export-options" aria-label="Page export options">
+            <label>
+              <span>Image format</span>
+              <select value={exportFormat} onChange={(event) => setExportFormat(event.target.value)} disabled={processing}>
+                {imageFormatSelectOptions().map((item) => (
+                  <option key={item.value} value={item.value}>{item.label}</option>
+                ))}
+              </select>
+            </label>
             <label>
               <span>Export</span>
               <select value={exportMode} onChange={(event) => setExportMode(event.target.value as typeof exportMode)} disabled={processing}>
@@ -179,7 +188,7 @@ export default function PdfAdvancedEditor({ operation, file, processing, onProce
           </div>
         )}
       </div>
-      <button type="button" className="action-button" onClick={() => onProcess(isRasterExport ? { exportMode, pageNumber } : isContactSheet ? { columns } : isPageSize ? { size: pageSize } : isWatermark ? { text, fontSize } : isTextOverlay ? { text, pageNumber: textRegion.pageNumber, fontSize, x: textRegion.x, y: textRegion.y } : isHeaderFooter ? { header: text, footer, fontSize } : (isCrop || isRedact || isHighlight || isShape) ? redaction : isDuplicatePage ? { pageNumber } : { fontSize })} disabled={processing}>
+      <button type="button" className="action-button" onClick={() => onProcess(isRasterExport ? { exportMode, pageNumber, format: exportFormat } : isContactSheet ? { columns } : isPageSize ? { size: pageSize } : isWatermark ? { text, fontSize } : isTextOverlay ? { text, pageNumber: textRegion.pageNumber, fontSize, x: textRegion.x, y: textRegion.y } : isHeaderFooter ? { header: text, footer, fontSize } : (isCrop || isRedact || isHighlight || isShape) ? redaction : isDuplicatePage ? { pageNumber } : { fontSize })} disabled={processing}>
         <FilePdf size={17} /> {processing ? "Processing..." : "Run tool"}
       </button>
     </section>

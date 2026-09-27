@@ -1,0 +1,78 @@
+/* Tool browse: search, filters, empty states */
+.search-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.7rem 1.2rem;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+.search-box:focus-within {
+  border-color: var(--foreground);
+  box-shadow: 0 0 0 1px var(--foreground);
+}
+.search-box input {
+  background: transparent;
+  border: none;
+  color: var(--foreground);
+  outline: none;
+  width: 100%;
+  font-size: 0.9rem;
+}
+.search-box input::placeholder {
+  color: var(--muted);
+}
+
+.category-pill {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  transition: all 200ms ease;
+}
+.category-pill:hover {
+  border-color: var(--foreground);
+  color: var(--foreground);
+}
+.category-pill.category-pill-active {
+  background: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--background);
+}
+
+.tool-browser > div:first-child h2 {
+  font-size: 0;
+}
+.tool-browser > div:first-child h2::after {
+  content: "What do you want to do?";
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+}
+
+/* Optional hooks for the dynamic detected-category status. */
+.workflow-detected-state {
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--foreground);
+  border-radius: 0.85rem;
+  color: var(--foreground);
+  display: flex;
+  gap: 0.65rem;
+  margin-bottom: 1.5rem;
+  padding: 0.85rem 1rem;
+}
+.workflow-detected-state strong { font-weight: 650; }
+.workflow-detected-state span { color: var(--muted); }
+.workflow-file-type,
+.workflow-file-meta {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+.workflow-empty-state {
+  border-style: solid;
+  padding: 3rem 1.5rem;
+}

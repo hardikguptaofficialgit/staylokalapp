@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { getTool, processors, tools } from "@/lib/tools/registry";
 import { ProcessingError, type ProcessedFile, type ToolDescriptor } from "@/lib/tools/types";
 import { matchesAcceptedFile, maxInputBytes, validateToolInput } from "@/lib/tools/validation";
 import { detectFileType, hasUnsupportedDetectedType } from "@/lib/tools/file-types";
 import type { VideoEditorAction } from "@/components/editor/media";
+import { applyTheme, persistTheme, resolveTheme, subscribeTheme, type Theme } from "@/lib/app/theme";
 
 export type Category = "All" | "PDF" | "Image" | "Video" | "Audio" | "Other";
-export type Theme = "dark" | "light";
+export type { Theme };
 export type ViewMode = "smart" | "all";
 
 export function formatBytes(bytes: number) {
@@ -21,7 +22,7 @@ export function useFileWorkflow() {
   const replacePickerRef = useRef(false);
   const controller = useRef<AbortController | null>(null);
   const pendingToolId = useRef<string | null>(null);
-  const [theme, setTheme] = useState<Theme>("dark");
+  const theme = useSyncExternalStore(subscribeTheme, resolveTheme, () => "dark" as Theme);
   const [viewMode, setViewMode] = useState<ViewMode>("smart");
   const [category, setCategory] = useState<Category>("All");
   const [query, setQuery] = useState("");
@@ -55,6 +56,10 @@ export function useFileWorkflow() {
   }), [browseTools, category, query]);
   const resultUrls = useMemo(() => result.map((item) => ({ ...item, url: URL.createObjectURL(item.blob) })), [result]);
 
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
+
   useEffect(() => () => {
     resultUrls.forEach((item) => URL.revokeObjectURL(item.url));
   }, [resultUrls]);
@@ -81,6 +86,8 @@ export function useFileWorkflow() {
     };
     window.addEventListener("paste", handlePaste);
     return () => window.removeEventListener("paste", handlePaste);
+  // addFiles is stable enough for paste; listing it re-subscribes every render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- paste handler only needs latest addFiles behavior via closure refresh on mount
   }, []);
 
   function clearWorkspace() {
@@ -181,7 +188,8 @@ export function useFileWorkflow() {
     setResult([]);
     controller.current = new AbortController();
     try {
-      const output = await processors[selected.kind](selected.batch ? accepted : accepted.slice(0, 1), { ...nextOptions, operation: selected.id }, {
+      const operation = String((nextOptions as Record<string, unknown>).operation ?? selected.id);
+      const output = await processors[selected.kind](selected.batch ? accepted : accepted.slice(0, 1), { ...nextOptions, operation }, {
         signal: controller.current.signal,
         onProgress: setProgress,
       });
@@ -211,14 +219,21 @@ export function useFileWorkflow() {
 
   function processVideoAction(action: VideoEditorAction) {
     const actionOptions: Record<string, string | number | boolean> = action.operation === "trim"
-      ? { start: action.start, duration: action.duration }
+      ? { start: action.start, duration: action.duration, operation: action.operation }
       : action.operation === "cut"
-        ? { startSeconds: action.startSeconds, durationSeconds: action.durationSeconds }
+        ? { startSeconds: action.startSeconds, durationSeconds: action.durationSeconds, operation: action.operation }
         : action.operation === "split"
-          ? { segmentDuration: action.segmentDuration }
+          ? { segmentDuration: action.segmentDuration, operation: action.operation }
           : action.operation === "speed"
-            ? { speed: action.speed ?? 1 }
-            : {};
+            ? { speed: action.speed ?? 1, operation: action.operation }
+            : action.operation === "frames"
+              ? {
+                  startSeconds: action.startSeconds,
+                  durationSeconds: action.durationSeconds,
+                  fps: action.fps ?? 1,
+                  operation: action.operation,
+                }
+              : { operation: action.operation };
     return processWithOptions(actionOptions);
   }
 
@@ -243,15 +258,15 @@ export function useFileWorkflow() {
   function toggleTheme() {
     const next = theme === "dark" ? "light" : "dark";
     setThemeChanging(true);
-    const applyTheme = () => {
-      setTheme(next);
-      document.documentElement.dataset.theme = next;
+    const commitTheme = () => {
+      applyTheme(next);
+      persistTheme(next);
     };
     const startViewTransition = (
       document as Document & { startViewTransition?: (update: () => void) => unknown }
     ).startViewTransition;
-    if (startViewTransition) startViewTransition.call(document, applyTheme);
-    else applyTheme();
+    if (startViewTransition) startViewTransition.call(document, commitTheme);
+    else commitTheme();
     window.setTimeout(() => setThemeChanging(false), 260);
   }
 

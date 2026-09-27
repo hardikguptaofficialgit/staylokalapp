@@ -10,17 +10,25 @@ import BackgroundRemovalEditor from "@/components/editor/image/BackgroundRemoval
 import DocumentEditor from "@/components/editor/document/DocumentEditor";
 import SpreadsheetEditor from "@/components/editor/spreadsheet/SpreadsheetEditor";
 import ArchiveEditor from "@/components/editor/archive/ArchiveEditor";
-import { AudioEditor, VideoEditor, type VideoEditorAction } from "@/components/editor/media";
+import { AudioEditor, VideoEditor, type VideoEditorAction, type VideoEditorToolId } from "@/components/editor/media";
 import type { AppWorkflow } from "./types";
 import { matchesAcceptedFile } from "@/lib/tools/validation";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 
+const videoEditorToolIds = ["trim", "cut", "speed", "frames"] as const;
+const audioEditorToolIds = ["audio-trim", "normalize-audio", "metadata-audio", "convert-audio"] as const;
+
+function usesInlineMediaProgress(toolId: string) {
+  return (videoEditorToolIds as readonly string[]).includes(toolId) || (audioEditorToolIds as readonly string[]).includes(toolId);
+}
+
 export default function SelectedToolPanel({ workflow, inputRef }: { workflow: AppWorkflow; inputRef: React.RefObject<HTMLInputElement | null> }) {
   const selected = workflow.selected;
   if (!selected) return null;
+  const inlineMediaProgress = usesInlineMediaProgress(selected.id);
 
   return (
-    <div className="selected-tool-panel mx-auto w-full max-w-[1000px] rounded-xl border border-line bg-panel p-3 sm:p-4">
+    <div className="selected-tool-panel animate-fade-in mx-auto w-full max-w-[1000px] rounded-xl border border-line bg-panel p-3 sm:p-4">
       <button type="button" onClick={workflow.clearSelectedTool} className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-background px-3 py-1 text-xs font-medium text-muted transition hover:border-foreground hover:text-foreground shadow-sm" aria-label="Back to compatible tools">
         <ArrowLeft size={16} /> Back to tools
       </button>
@@ -46,9 +54,9 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
                 processing={workflow.status === "processing"}
                 onProcess={(options) => void workflow.processWithOptions(options)}
               />
-            ) : ["pdf-to-jpg", "pdf-to-png", "pdf-contact-sheet", "pdf-crop", "pdf-page-size", "pdf-ocr", "pdf-compress", "pdf-watermark", "pdf-page-numbers", "pdf-add-text", "pdf-header-footer", "pdf-flatten", "pdf-privacy", "pdf-redact", "pdf-highlight", "pdf-shape", "pdf-remove-blank", "pdf-duplicate-page"].includes(selected.id) && !workflow.oversizedInput ? (
+            ) : ["pdf-to-image", "pdf-contact-sheet", "pdf-crop", "pdf-page-size", "pdf-ocr", "pdf-compress", "pdf-watermark", "pdf-page-numbers", "pdf-add-text", "pdf-header-footer", "pdf-flatten", "pdf-privacy", "pdf-redact", "pdf-highlight", "pdf-shape", "pdf-remove-blank", "pdf-duplicate-page"].includes(selected.id) && !workflow.oversizedInput ? (
               <PdfAdvancedEditor
-                operation={selected.id as "pdf-to-jpg" | "pdf-to-png" | "pdf-contact-sheet" | "pdf-crop" | "pdf-page-size" | "pdf-ocr" | "pdf-compress" | "pdf-watermark" | "pdf-page-numbers" | "pdf-add-text" | "pdf-header-footer" | "pdf-flatten" | "pdf-privacy" | "pdf-redact" | "pdf-highlight" | "pdf-shape" | "pdf-remove-blank" | "pdf-duplicate-page"}
+                operation={selected.id as "pdf-to-image" | "pdf-contact-sheet" | "pdf-crop" | "pdf-page-size" | "pdf-ocr" | "pdf-compress" | "pdf-watermark" | "pdf-page-numbers" | "pdf-add-text" | "pdf-header-footer" | "pdf-flatten" | "pdf-privacy" | "pdf-redact" | "pdf-highlight" | "pdf-shape" | "pdf-remove-blank" | "pdf-duplicate-page"}
                 file={workflow.activeFile}
                 processing={workflow.status === "processing"}
                 onProcess={(options) => void workflow.processWithOptions(options)}
@@ -116,24 +124,28 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
         />
       )}
 
-      {selected.id === "audio-trim" && workflow.activeFile && !workflow.oversizedInput && (
+      {(audioEditorToolIds as readonly string[]).includes(selected.id) && workflow.activeFile && !workflow.oversizedInput && (
         <AudioEditor
           key={selected.id}
           source={workflow.activeFile}
           fileName={workflow.activeFile.name}
-          onAction={(action) => workflow.processWithOptions({ start: action.start, duration: action.duration })}
+          mode={selected.id === "audio-trim" ? "trim" : "preview"}
+          onAction={selected.id === "audio-trim"
+            ? (action) => workflow.processWithOptions({ start: action.start, duration: action.duration, operation: "audio-trim" })
+            : undefined}
           onReplace={workflow.replaceActiveFile}
-          progress={workflow.status === "processing" ? { ...workflow.progress, operation: "audio-trim" } : undefined}
+          progress={workflow.status === "processing" ? { ...workflow.progress, operation: selected.id } : undefined}
           onCancel={workflow.cancelProcessing}
           disabled={workflow.status === "processing"}
         />
       )}
 
-      {["trim", "cut", "split", "speed", "frames"].includes(selected.id) && workflow.activeFile && !workflow.oversizedInput && (
+      {(videoEditorToolIds as readonly string[]).includes(selected.id) && workflow.activeFile && !workflow.oversizedInput && (
         <VideoEditor
           key={selected.id}
           source={workflow.activeFile}
           fileName={workflow.activeFile.name}
+          activeTool={selected.id as VideoEditorToolId}
           onAction={(action: VideoEditorAction) => workflow.processVideoAction(action)}
           onReplace={workflow.replaceActiveFile}
           progress={workflow.status === "processing" ? { ...workflow.progress, operation: selected.id as VideoEditorAction["operation"] } : undefined}
@@ -149,7 +161,7 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
         </div>
       )}
 
-      {!workflow.oversizedInput && selected.kind !== "image" && selected.kind !== "pdf" && selected.id !== "audio-trim" && !["trim", "cut", "split", "speed", "frames"].includes(selected.id) && selected.options.length > 0 && (
+      {!workflow.oversizedInput && selected.kind !== "image" && selected.kind !== "pdf" && !(audioEditorToolIds as readonly string[]).includes(selected.id) && !(videoEditorToolIds as readonly string[]).includes(selected.id) && selected.options.length > 0 && (
         <div className="mb-10 grid gap-6 sm:grid-cols-2">
           {selected.options.map((option) => (
             <label key={option.id} className="block text-sm font-medium text-foreground">
@@ -170,7 +182,7 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
         </div>
       )}
 
-      {selected.kind !== "pdf" && !["audio-trim", "trim", "cut", "split", "speed", "frames"].includes(selected.id) && <div className="flex flex-col sm:flex-row gap-3">
+      {selected.kind !== "pdf" && !inlineMediaProgress && <div className="flex flex-col sm:flex-row gap-3">
         <button type="button" onClick={() => void workflow.processWithOptions()} disabled={workflow.status === "processing"} className="action-button flex-1 justify-center disabled:cursor-not-allowed disabled:opacity-50">
           {workflow.status === "processing"
             ? "Processing File..."
@@ -184,7 +196,36 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
         {workflow.status === "processing" && <button type="button" onClick={workflow.cancelProcessing} className="control-pill justify-center sm:w-32" aria-label="Cancel processing">Cancel</button>}
       </div>}
 
-      {workflow.status === "processing" && (
+      {(audioEditorToolIds as readonly string[]).includes(selected.id) && selected.id !== "audio-trim" && !workflow.oversizedInput && selected.options.length > 0 && (
+        <div className="mb-8 grid gap-6 sm:grid-cols-2">
+          {selected.options.map((option) => (
+            <label key={option.id} className="block text-sm font-medium text-foreground">
+              {option.label}
+              <div className="mt-2.5">
+                {option.type === "select" ? (
+                  <select value={String(workflow.options[option.id] ?? option.options?.[0]?.value ?? "")} onChange={(event) => workflow.setOptions({ ...workflow.options, [option.id]: event.target.value })} className="field cursor-pointer">
+                    {option.options?.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                  </select>
+                ) : (
+                  <input type={option.type === "number" ? "number" : "text"} value={String(workflow.options[option.id] ?? "")} placeholder={option.placeholder} min={option.min} max={option.max} step={option.step} onChange={(event) => workflow.setOptions({ ...workflow.options, [option.id]: option.type === "number" ? Number(event.target.value) : event.target.value })} className="field" />
+                )}
+              </div>
+            </label>
+          ))}
+        </div>
+      )}
+
+      {selected.kind !== "pdf" && (audioEditorToolIds as readonly string[]).includes(selected.id) && selected.id !== "audio-trim" && !workflow.oversizedInput && (
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button type="button" onClick={() => void workflow.processWithOptions()} disabled={workflow.status === "processing"} className="action-button flex-1 justify-center disabled:cursor-not-allowed disabled:opacity-50">
+            {workflow.status === "processing" ? "Processing File..." : selected.id === "normalize-audio" ? "Normalize audio" : selected.id === "metadata-audio" ? "Remove metadata" : "Convert audio"}
+            {workflow.status !== "processing" && <ArrowUp size={18} weight="bold" />}
+          </button>
+          {workflow.status === "processing" && <button type="button" onClick={workflow.cancelProcessing} className="control-pill justify-center sm:w-32" aria-label="Cancel processing">Cancel</button>}
+        </div>
+      )}
+
+      {workflow.status === "processing" && !inlineMediaProgress && (
         <div className="mt-6 animate-fade-in rounded-xl border border-line bg-background p-4" role="status">
           <div className="mb-3 flex justify-between text-sm font-medium text-foreground">
             <span>{workflow.progress.label || "Preparing media engine…"}</span>

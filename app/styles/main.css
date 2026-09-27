@@ -1,0 +1,20 @@
+/* Global styles entry (import from app/layout.tsx). */
+@import "tailwindcss";
+
+@import "./tokens.css";
+@import "./shell.css";
+@import "./motion.css";
+@import "./landing/index.css";
+@import "./upload.css";
+@import "./controls.css";
+@import "./workspace-layout.css";
+@import "./tools-browse.css";
+@import "./forms.css";
+@import "./editors-shared.css";
+@import "./editors-media.css";
+@import "./editors-pdf.css";
+@import "./tool-workspace.css";
+@import "./responsive.css";
+@import "./workspace-ui.css";
+@import "./selected-tool.css";
+@import "./pdf-layout.css";

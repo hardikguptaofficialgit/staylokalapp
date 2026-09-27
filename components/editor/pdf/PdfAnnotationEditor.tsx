@@ -102,7 +102,7 @@ export default function PdfAnnotationEditor({ file, region, disabled, onRegionCh
         {overlayText && <span className="pdf-watermark-preview" aria-hidden="true">{overlayText}</span>}
         {headerText && <span className="pdf-header-preview" aria-hidden="true">{headerText}</span>}
         {footerText && <span className="pdf-footer-preview" aria-hidden="true">{footerText}</span>}
-        {imageOverlay && <img className="pdf-image-overlay" src={imageOverlay} alt="" style={{ left: `${region.x}%`, top: `${region.y}%`, width: `${region.width}%`, height: `${region.height}%` }} />}
+        {imageOverlay && <img className="pdf-image-overlay" src={imageOverlay} alt="" style={{ left: `${region.x}%`, top: `${region.y}%`, width: `${region.width}%`, height: `${region.height}%` }} />} {/* eslint-disable-line @next/next/no-img-element */}
         {rendering && <span className="pdf-annotation-status">Rendering page…</span>}
         {error && <span className="pdf-annotation-status" role="alert">{error}</span>}
       </div>

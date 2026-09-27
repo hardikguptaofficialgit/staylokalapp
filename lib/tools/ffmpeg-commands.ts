@@ -91,8 +91,16 @@ export function mediaArgs(operation: string, options: MediaOptions, input: strin
       return ["-i", input, "-vf", "fps=12,scale=640:-1:flags=lanczos", output.pattern];
     case "from-gif":
       return ["-i", input, "-movflags", "faststart", "-pix_fmt", "yuv420p", output.pattern];
-    case "frames":
-      return ["-i", input, "-vf", "fps=1", output.pattern];
+    case "frames": {
+      const start = Number(value("startSeconds", 0));
+      const segmentDuration = Number(value("durationSeconds", 0));
+      const fps = Number(value("fps", 1));
+      const frameRate = Number.isFinite(fps) && fps > 0 ? fps : 1;
+      if (Number.isFinite(start) && start >= 0 && Number.isFinite(segmentDuration) && segmentDuration > 0) {
+        return ["-ss", String(start), "-i", input, "-t", String(segmentDuration), "-vf", `fps=${frameRate}`, output.pattern];
+      }
+      return ["-i", input, "-vf", `fps=${frameRate}`, output.pattern];
+    }
     case "thumbnail":
       return ["-ss", "00:00:01", "-i", input, "-frames:v", "1", output.pattern];
     case "rotate":

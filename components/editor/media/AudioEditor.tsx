@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { formatMediaTime, rangeAction, type MediaEditorProps } from "./types";
 
-type AudioProps = MediaEditorProps;
+type AudioProps = MediaEditorProps & {
+  /** When preview, waveform/transport only — parent supplies Run Tool. */
+  mode?: "trim" | "preview";
+};
 
 function useAudioUrl(source: MediaEditorProps["source"]) {
   const url = useMemo(() => typeof source === "string" ? source : URL.createObjectURL(source), [source]);
@@ -14,11 +17,14 @@ function useAudioUrl(source: MediaEditorProps["source"]) {
 export function AudioEditor({
   source, fileName, onAction, progress: externalProgress, onCancel: externalCancel, disabled,
   onReplace,
+  mode = "trim",
 }: AudioProps) {
   const url = useAudioUrl(source);
   const audioRef = useRef<HTMLAudioElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const playheadRafRef = useRef<number | null>(null);
+  const playheadTimeRef = useRef(0);
   const [duration, setDuration] = useState(0);
   const [current, setCurrent] = useState(0);
   const [inPoint, setInPoint] = useState(0);
@@ -117,8 +123,17 @@ export function AudioEditor({
     const audio = audioRef.current;
     if (!audio) return;
     if (audio.currentTime >= outPoint && !audio.paused) { audio.pause(); audio.currentTime = inPoint; setPlaying(false); }
-    setCurrent(audio.currentTime);
+    playheadTimeRef.current = audio.currentTime;
+    if (playheadRafRef.current !== null) return;
+    playheadRafRef.current = requestAnimationFrame(() => {
+      setCurrent(playheadTimeRef.current);
+      playheadRafRef.current = null;
+    });
   }
+
+  useEffect(() => () => {
+    if (playheadRafRef.current !== null) cancelAnimationFrame(playheadRafRef.current);
+  }, []);
   async function trimSelection() {
     if (!duration || inPoint === outPoint || !onAction) return;
     const action = rangeAction("trim", inPoint, outPoint);
@@ -160,30 +175,41 @@ export function AudioEditor({
   const activeProgress = externalProgress;
 
   return (
-    <section className="video-editor space-y-3" tabIndex={0} aria-label={fileName ? `Audio editor for ${fileName}` : "Audio editor"} onKeyDown={(event) => { if (event.key === "Escape" && activeProgress) cancel(); }}>
+    <section className="video-editor audio-editor space-y-3" data-editor-mode={mode} tabIndex={0} aria-label={fileName ? `Audio editor for ${fileName}` : "Audio editor"} onKeyDown={(event) => { if (event.key === "Escape" && activeProgress) cancel(); }}>
       <audio ref={audioRef} src={url} preload="metadata" onLoadedMetadata={loadMetadata} onDurationChange={loadMetadata} onLoadedData={loadMetadata} onTimeUpdate={handleTimeUpdate} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} />
-      <div ref={trackRef} className="video-timeline relative h-28 touch-none select-none overflow-hidden border border-line bg-panel" onPointerDown={(event) => { if (!(event.target as HTMLElement).dataset.handle) updateFromPointer(event); }} role="group" aria-label="Audio waveform timeline">
-        <canvas ref={canvasRef} className="absolute inset-0 size-full" aria-hidden="true" />
-        <div className="absolute inset-y-0 bg-foreground/10" style={{ left: `${inPosition}%`, width: `${Math.max(0, outPosition - inPosition)}%` }} />
-        <div className="absolute inset-y-0 w-0.5 bg-muted" style={{ left: `${duration ? (current / duration) * 100 : 0}%` }} />
-        {(["in", "out"] as const).map((handle) => {
+      <div className="video-editor-workspace space-y-3">
+      <div ref={trackRef} className="video-timeline audio-timeline touch-none select-none" onPointerDown={(event) => { if (!(event.target as HTMLElement).dataset.handle) updateFromPointer(event); }} role="group" aria-label="Audio waveform timeline">
+        <canvas ref={canvasRef} className="audio-waveform-canvas" aria-hidden="true" />
+        <div className="timeline-selection" style={{ left: `${inPosition}%`, width: `${Math.max(0, outPosition - inPosition)}%` }} />
+        <div className="timeline-playhead" style={{ left: `${duration ? (current / duration) * 100 : 0}%` }} aria-hidden="true" />
+        {mode === "trim" && (["in", "out"] as const).map((handle) => {
           const position = handle === "in" ? inPosition : outPosition;
-          return <div key={handle} data-handle={handle} role="slider" tabIndex={disabled ? -1 : 0} aria-label={handle === "in" ? "In point" : "Out point"} aria-valuemin={0} aria-valuemax={duration} aria-valuenow={handle === "in" ? inPoint : outPoint} className="absolute inset-y-2 z-10 w-11 -translate-x-1/2 cursor-ew-resize rounded border-2 border-foreground bg-background shadow" style={{ left: `${position}%` }} onPointerDown={(event) => { if (disabled) return; event.stopPropagation(); event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) updateFromPointer(event); }} onKeyDown={(event) => moveHandle(handle, event)} />;
+          return <div key={handle} data-handle={handle} role="slider" tabIndex={disabled ? -1 : 0} aria-label={handle === "in" ? "In point" : "Out point"} aria-valuemin={0} aria-valuemax={duration} aria-valuenow={handle === "in" ? inPoint : outPoint} className="timeline-handle" style={{ left: `${position}%` }} onPointerDown={(event) => { if (disabled) return; event.stopPropagation(); event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) updateFromPointer(event); }} onKeyDown={(event) => moveHandle(handle, event)} />;
         })}
       </div>
       {decodeError && <p className="text-xs text-muted">{decodeError}</p>}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-2"><button type="button" className="control-pill" onClick={togglePlayback} disabled={disabled || !duration}>{playing ? "Pause" : "Play"}</button><span className="font-mono text-xs text-muted" aria-live="polite">{formatMediaTime(current)} / {formatMediaTime(duration)}</span></div>
-      <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
+      <div className="media-transport">
+        <div className="media-transport-primary">
+          <button type="button" className="control-pill media-transport-play" onClick={togglePlayback} disabled={disabled || !duration}>{playing ? "Pause" : "Play"}</button>
+          {mode === "trim" && <>
+            <button type="button" className="control-pill" onClick={() => setInPoint(Math.min(outPoint, current))} disabled={disabled || !duration}>Set in</button>
+            <button type="button" className="control-pill" onClick={() => setOutPoint(Math.max(inPoint, current))} disabled={disabled || !duration}>Set out</button>
+          </>}
+        </div>
+        <span className="media-transport-clock font-mono text-xs text-muted" aria-live="polite">{formatMediaTime(current)} / {formatMediaTime(duration)}</span>
+      </div>
+      {mode === "trim" && <div className="media-range-fields flex flex-wrap items-center gap-3 text-xs text-muted">
         <label>In <input aria-label="In point" className="field media-compact-field ml-1 font-mono" type="number" min={0} max={outPoint} step={0.001} value={inPoint.toFixed(3)} onChange={(event) => setInPoint(Math.min(outPoint, Math.max(0, Number(event.target.value) || 0)))} /></label>
         <label>Out <input aria-label="Out point" className="field media-compact-field ml-1 font-mono" type="number" min={inPoint} max={duration} step={0.001} value={outPoint.toFixed(3)} onChange={(event) => setOutPoint(Math.max(inPoint, Math.min(duration, Number(event.target.value) || 0)))} /></label>
         <span className="font-mono text-xs text-foreground">Selected {formatMediaTime(outPoint - inPoint)}</span>
         <span className="text-[11px]">Space play · ←/→ seek · I/O set points · R reset</span>
-      </div>
+      </div>}
       {error && <p className="text-xs text-red-500" role="alert">{error}</p>}
       {activeProgress && <div className="space-y-2" aria-live="polite"><div className="flex justify-between text-xs text-muted"><span>{activeProgress.label}</span><span>{Math.round(activeProgress.ratio * 100)}%</span></div><progress className="w-full" max={1} value={activeProgress.ratio} /><button type="button" className="control-pill min-h-11" onClick={cancel}>Cancel</button></div>}
-      <div className="video-action-footer">
+      {mode === "trim" && <div className="video-action-footer">
         {onReplace && <button type="button" className="control-pill" onClick={onReplace}>Replace file</button>}
         <button type="button" aria-label="Trim selection" className="action-button" disabled={disabled || Boolean(activeProgress) || !duration || inPoint === outPoint} onClick={trimSelection}>Trim audio · {formatMediaTime(outPoint - inPoint)}</button>
+      </div>}
       </div>
     </section>
   );

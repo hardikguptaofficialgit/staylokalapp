@@ -19,6 +19,12 @@ describe("video command validation", () => {
     expect(mediaArgs("cut", { startSeconds: 1, durationSeconds: 2 }, "fixture.mp4", mediaOutput("cut", {}, "fixture.mp4"))).toContain("aac");
   });
 
+  it("limits frame export to the selected time range when provided", () => {
+    expect(mediaArgs("frames", { startSeconds: 2, durationSeconds: 5, fps: 2 }, "fixture.mp4", mediaOutput("frames", {}, "fixture.mp4"))).toEqual([
+      "-ss", "2", "-i", "fixture.mp4", "-t", "5", "-vf", "fps=2", "ihatefiles-frame-%03d.jpg",
+    ]);
+  });
+
   it("uses an audio-only codec for normalized WAV output", () => {
     const output = mediaOutput("normalize-audio", {}, "fixture.wav");
     expect(mediaArgs("normalize-audio", { audioOnly: true }, "fixture.wav", output)).toEqual([

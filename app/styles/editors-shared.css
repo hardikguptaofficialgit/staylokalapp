@@ -1,0 +1,65 @@
+/* Shared visual-editor primitives */
+.editor-shell {
+  background: var(--background);
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+  overflow: hidden;
+}
+.editor-shell-header {
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+}
+.editor-shell-title {
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+.editor-shell-subtitle,
+.editor-panel-description {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin-top: 0.35rem;
+}
+.editor-shell-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem);
+  min-height: 32rem;
+}
+.editor-shell-preview {
+  min-width: 0;
+  padding: 1.5rem;
+}
+.editor-shell-inspector {
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.media-preview {
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  display: flex;
+  justify-content: center;
+  min-height: 20rem;
+  overflow: hidden;
+  position: relative;
+}
+.media-preview-image,
+.media-preview-video {
+  display: block;
+  height: 100%;
+  max-height: 70vh;
+  max-width: 100%;
+  object-fit: contain;
+  width: 100%;
+}
+.media-preview-audio { max-width: min(28rem, 90%); width: 100%; }
+.media-preview-empty { color: var(--muted); font-size: 0.85rem; }

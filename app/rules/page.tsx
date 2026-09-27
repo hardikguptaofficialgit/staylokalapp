@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function RulesPage() {
@@ -5,7 +6,7 @@ export default function RulesPage() {
     <main className="rules-page">
       <header className="rules-header">
         <Link className="rules-brand" href="/">
-          <img src="/images/logo.png" alt="" />
+          <Image src="/images/logo.png" alt="" width={34} height={30} className="brand-logo" />
           <span>StayLokal</span>
         </Link>
         <Link className="rules-back" href="/">← Back to StayLokal</Link>

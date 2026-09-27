@@ -1,3 +1,4 @@
+import { exportCanvasToBlob, imageExtensionForMime, normalizeImageMime } from "./image-formats";
 import { ProcessingError, type ProcessedFile, type ToolProcessor } from "./types";
 
 function loadImage(file: File) {
@@ -52,11 +53,10 @@ const imageProcessor: ToolProcessor = async (files, options, context) => {
       canvasContext.fillText(`Image ${index + 1}`, x + 10, y + cardHeight - 10);
       context.onProgress({ ratio: 0.4 + ((index + 1) / images.length) * 0.5, label: `Placed image ${index + 1} of ${images.length}` });
     });
-    const format = String(options.format || "image/png");
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, format, 0.92));
-    if (!blob) throw new ProcessingError("Contact sheet export failed.", "runtime");
+    const format = normalizeImageMime(options.format, "image/png");
+    const blob = await exportCanvasToBlob(canvas, format, 0.92);
     context.onProgress({ ratio: 1, label: "Contact sheet ready" });
-    const extension = format === "image/jpeg" ? "jpg" : format.split("/")[1] || "png";
+    const extension = imageExtensionForMime(format);
     const baseName = files.length === 1 ? files[0].name.replace(/\.[^.]+$/, "") : "images";
     return [{ blob, type: format, name: `${baseName}-contact-sheet.${extension}` }];
   }
@@ -216,7 +216,7 @@ const imageProcessor: ToolProcessor = async (files, options, context) => {
   const quality = requestedQuality > 1
     ? Math.min(1, Math.max(0.1, (100 - requestedQuality) / 100))
     : Math.min(1, Math.max(0.1, requestedQuality || 0.85));
-  const format = String(options.format || "image/jpeg");
+  const format = normalizeImageMime(options.format, "image/jpeg");
   const outputs: ProcessedFile[] = [];
 
   for (const [index, file] of files.entries()) {
@@ -295,9 +295,8 @@ const imageProcessor: ToolProcessor = async (files, options, context) => {
       ctx.textBaseline = "alphabetic";
     }
     ctx.restore();
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, format, quality));
-    if (!blob) throw new ProcessingError("The image could not be encoded.", "runtime");
-    const extension = format.split("/")[1].replace("jpeg", "jpg");
+    const blob = await exportCanvasToBlob(canvas, format, quality);
+    const extension = imageExtensionForMime(format);
     outputs.push({
       blob,
       type: format,

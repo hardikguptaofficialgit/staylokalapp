@@ -2,6 +2,7 @@
 
 import { Crown } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
+import { readJsonResponse } from "@/lib/app/fetch-json";
 import type { RankedSponsor } from "@/lib/sponsors/types";
 import SponsorModal from "./SponsorModal";
 
@@ -22,7 +23,7 @@ export default function SponsorRail() {
     };
     const refreshLeaderboard = () => {
       fetch("/api/sponsors/leaderboard")
-        .then(async (response) => (await response.json()) as { configured?: boolean; sponsors?: RankedSponsor[] })
+        .then((response) => readJsonResponse<{ configured?: boolean; sponsors?: RankedSponsor[] }>(response))
         .then((result) => {
           if (!active) return;
           setConfigured(Boolean(result.configured));

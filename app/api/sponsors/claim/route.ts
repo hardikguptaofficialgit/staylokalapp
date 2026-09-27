@@ -1,4 +1,5 @@
-import DodoPayments from "dodopayments";
+import { appOriginFromRequest } from "../../../../lib/sponsors/app-origin";
+import { createDodoClient } from "../../../../lib/sponsors/dodo-payments";
 import {
   appwriteClaimsAreConfigured,
   createPendingClaim,
@@ -9,6 +10,14 @@ import { listActiveSponsors } from "../../../../lib/sponsors/appwrite";
 import { validateSponsorClaim } from "../../../../lib/sponsors/validation";
 
 export const runtime = "nodejs";
+
+function buildSponsorCheckoutReturnUrl(appOrigin: string, claimId: string) {
+  const configured = process.env.DODO_SPONSOR_RETURN_URL?.trim();
+  const url = new URL(configured || `${appOrigin.replace(/\/+$/, "")}/`);
+  url.searchParams.set("sponsor", "success");
+  url.searchParams.set("claim_id", claimId);
+  return url.toString();
+}
 
 export async function POST(request: Request) {
   if (!appwriteClaimsAreConfigured() || !process.env.DODO_SPONSOR_PRODUCT_ID || !process.env.DODO_PAYMENTS_API_KEY) {
@@ -50,12 +59,21 @@ export async function POST(request: Request) {
       }, { status: 409 });
     }
 
-    const claimId = crypto.randomUUID();
+    const logoSeed = crypto.randomUUID();
     const logoUrl = claim.logoDataUrl
-      ? await uploadSponsorLogo(claim.logoDataUrl, claimId)
+      ? await uploadSponsorLogo(claim.logoDataUrl, logoSeed)
       : undefined;
-    const destinationUrl = new URL(claim.destinationUrl);
-    const fallbackLogoUrl = logoUrl ?? `${destinationUrl.origin}/favicon.ico`;
+    const appOrigin = appOriginFromRequest(request);
+    const fallbackLogoUrl = logoUrl ?? `${appOrigin}/images/logo.png`;
+    const latestSponsors = await listActiveSponsors();
+    if (!isBidEnoughForRank(latestSponsors, targetRank, claim.bidCents)) {
+      const minimumBid = minimumBidForRank(latestSponsors, targetRank);
+      return Response.json({
+        error: `That rank now requires at least ${(minimumBid / 100).toFixed(2)} USD. Refresh and try again.`,
+        minimumBidCents: minimumBid,
+      }, { status: 409 });
+    }
+
     const pendingClaim = await createPendingClaim({
       bidCents: claim.bidCents,
       category: claim.category,
@@ -68,10 +86,7 @@ export async function POST(request: Request) {
       targetRank,
     });
 
-    const client = new DodoPayments({
-      bearerToken: process.env.DODO_PAYMENTS_API_KEY,
-      environment: process.env.DODO_PAYMENTS_ENVIRONMENT === "test_mode" ? "test_mode" : "live_mode",
-    });
+    const client = createDodoClient();
     const session = await client.checkoutSessions.create({
       billing_currency: "USD",
       metadata: {
@@ -85,10 +100,10 @@ export async function POST(request: Request) {
         product_id: process.env.DODO_SPONSOR_PRODUCT_ID,
         quantity: 1,
       }],
-      return_url: process.env.DODO_SPONSOR_RETURN_URL ?? `${new URL(request.url).origin}/?sponsor=success`,
+      return_url: buildSponsorCheckoutReturnUrl(appOrigin, pendingClaim.$id),
     });
 
-    return Response.json({ checkoutUrl: session.checkout_url });
+    return Response.json({ checkoutUrl: session.checkout_url, claimId: pendingClaim.$id });
   } catch (error) {
     console.error("Sponsor checkout failed:", error);
     return Response.json({ error: "Unable to create sponsor checkout." }, { status: 502 });

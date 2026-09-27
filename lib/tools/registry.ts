@@ -1,5 +1,6 @@
 import ffmpegProcessor from "./ffmpeg";
 import imageProcessor from "./image";
+import { imageFormatSelectOptions } from "./image-formats";
 import pdfProcessor from "./pdf";
 import documentProcessor from "./document";
 import type { ToolDescriptor, ToolProcessor } from "./types";
@@ -77,7 +78,7 @@ function descriptor(
     id: option,
     label: option === "start" ? "Start time" : option === "duration" ? "Duration" : option === "startSeconds" ? "Start (seconds)" : option === "durationSeconds" ? "Remove (seconds)" : option === "segmentDuration" ? "Segment length (seconds)" : option === "topText" ? "Top text" : option === "bottomText" ? "Bottom text" : option === "fontSize" ? "Font size" : option[0].toUpperCase() + option.slice(1),
     type: (["format", "direction", "angle", "speed", "position"].includes(option) ? "select" : ["quality", "width", "height", "fps", "fontSize", "opacity", "pageNumber", "x", "y"].includes(option) ? "number" : option === "removeMetadata" ? "checkbox" : "text") as "text" | "number" | "select" | "checkbox",
-    defaultValue: option === "quality" ? 28 : option === "speed" ? "1" : option === "angle" ? "90" : option === "direction" ? "hflip" : option === "format" ? (category === "Image" ? "image/jpeg" : category === "Audio" ? "mp3" : "mp4") : option === "width" ? (id === "pdf-redact" ? 20 : id === "image-thumbnail" ? 320 : id === "image-crop" ? 800 : 1280) : option === "height" ? (id === "pdf-redact" ? 20 : 600) : option === "x" || option === "y" ? 0 : option === "fps" ? 30 : option === "fontSize" ? (id === "image-watermark" || id === "image-meme" ? 36 : 12) : option === "opacity" ? 0.6 : option === "position" ? "bottom-right" : option === "pageNumber" ? 1 : option === "startSeconds" ? 0 : option === "durationSeconds" || option === "segmentDuration" ? 10 : option === "removeMetadata" ? false : undefined,
+    defaultValue: option === "quality" ? 28 : option === "speed" ? "1" : option === "angle" ? "90" : option === "direction" ? "hflip" : option === "format" ? (id === "pdf-to-image" ? "image/png" : category === "Image" ? "image/jpeg" : category === "Audio" ? "mp3" : "mp4") : option === "width" ? (id === "pdf-redact" ? 20 : id === "image-thumbnail" ? 320 : id === "image-crop" ? 800 : 1280) : option === "height" ? (id === "pdf-redact" ? 20 : 600) : option === "x" || option === "y" ? 0 : option === "fps" ? 30 : option === "fontSize" ? (id === "image-watermark" || id === "image-meme" ? 36 : 12) : option === "opacity" ? 0.6 : option === "position" ? "bottom-right" : option === "pageNumber" ? 1 : option === "startSeconds" ? 0 : option === "durationSeconds" || option === "segmentDuration" ? 10 : option === "removeMetadata" ? false : undefined,
     min: ["quality", "width", "height", "fps", "fontSize", "opacity", "pageNumber", "x", "y", "startSeconds", "durationSeconds", "segmentDuration"].includes(option) ? (option === "quality" ? 18 : option === "width" && !["pdf-redact", "pdf-highlight", "pdf-shape"].includes(id) ? 160 : option === "fontSize" ? 8 : option === "pageNumber" ? 1 : 0) : undefined,
     max: option === "quality" ? 40 : option === "width" && id !== "pdf-redact" ? 7680 : ["height", "x", "y", "width"].includes(option) && id === "pdf-redact" ? 100 : option === "fps" ? 120 : option === "fontSize" ? 96 : option === "opacity" ? 1 : undefined,
     step: option === "quality" || option === "fps" ? 1 : undefined,
@@ -87,8 +88,8 @@ function descriptor(
       : option === "speed"
         ? [{ label: "0.5× slower", value: "0.5" }, { label: "0.75×", value: "0.75" }, { label: "Normal", value: "1" }, { label: "1.5× faster", value: "1.5" }, { label: "2× faster", value: "2" }]
         : option === "format"
-      ? category === "Image"
-        ? [{ label: "JPEG", value: "image/jpeg" }, { label: "PNG", value: "image/png" }, { label: "WebP", value: "image/webp" }]
+      ? category === "Image" || id === "pdf-to-image"
+        ? imageFormatSelectOptions()
         : category === "Audio"
           ? [{ label: "MP3", value: "mp3" }, { label: "WAV", value: "wav" }]
           : [{ label: "MP4", value: "mp4" }, { label: "WebM", value: "webm" }, { label: "MOV", value: "mov" }]
@@ -106,7 +107,7 @@ export const tools: ToolDescriptor[] = [
   descriptor("image-thumbnail", "Create thumbnail", "Create a smaller thumbnail image locally.", "photo", "Image", ["image/*"], ["width", "format"], "image"),
   descriptor("image-gif", "Create animated GIF", "Turn multiple local images into an animated GIF.", "photo", "Image", ["image/*"], [], "image"),
   descriptor("image-background-remove", "Remove background", "Cut out the foreground locally with an in-browser segmentation model.", "scissors", "Image", ["image/*"], [], "image"),
-  descriptor("image-convert", "Convert image", "Convert images between JPEG, PNG, and WebP locally.", "view-reload", "Image", ["image/*"], ["format"], "image"),
+  descriptor("image-convert", "Convert image", "Convert images between common raster formats (JPEG, PNG, WebP, GIF, BMP, AVIF, ICO, TIFF) locally.", "view-reload", "Image", ["image/*"], ["format"], "image"),
   descriptor("image-upscale", "Upscale image", "Enlarge an image locally with a 2× ESRGAN super-resolution model.", "expand", "Image", ["image/*"], [], "image"),
   descriptor("image-watermark", "Watermark image", "Place local text over an image with adjustable opacity and position.", "text-aa", "Image", ["image/*"], ["text", "fontSize", "opacity", "position", "format"], "image"),
   descriptor("image-meme", "Meme generator", "Add classic top and bottom captions to an image locally.", "text-aa", "Image", ["image/*"], ["topText", "bottomText", "fontSize", "format"], "image"),
@@ -128,10 +129,9 @@ export const tools: ToolDescriptor[] = [
   descriptor("pdf-extract", "Extract selected pages", "Export selected pages as a new PDF.", "grid", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-delete-pages", "Delete pages", "Remove selected pages from a PDF.", "cut", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-reorder", "Reorder pages", "Arrange PDF pages in a new order.", "transfer-horizontal", "PDF", ["application/pdf"], [], "pdf"),
-  descriptor("pdf-image-to-pdf", "JPG/PNG → PDF", "Combine JPG or PNG images into a PDF.", "image", "PDF", ["image/jpeg", "image/png"], [], "pdf"),
+  descriptor("pdf-image-to-pdf", "Images → PDF", "Combine local images into one PDF.", "image", "PDF", ["image/*"], [], "pdf"),
   descriptor("pdf-metadata", "PDF metadata viewer/remover", "Inspect or remove PDF document metadata.", "privacy", "PDF", ["application/pdf"], ["removeMetadata"], "pdf"),
-  descriptor("pdf-to-jpg", "PDF → JPG", "Render each PDF page as a JPG image locally.", "image", "PDF", ["application/pdf"], [], "pdf"),
-  descriptor("pdf-to-png", "PDF → PNG", "Render each PDF page as a PNG image locally.", "image", "PDF", ["application/pdf"], [], "pdf"),
+  descriptor("pdf-to-image", "PDF → images", "Render PDF pages to JPEG, PNG, WebP, GIF, BMP, AVIF, ICO, or TIFF locally.", "image", "PDF", ["application/pdf"], ["format"], "pdf"),
   descriptor("pdf-contact-sheet", "PDF contact sheet", "Arrange every PDF page into a visual contact sheet locally.", "image", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-crop", "Crop PDF pages", "Crop every PDF page to a selected region locally.", "crop", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-page-size", "Resize PDF pages", "Fit every PDF page to A4, Letter, or its original size locally.", "resize", "PDF", ["application/pdf"], [], "pdf"),

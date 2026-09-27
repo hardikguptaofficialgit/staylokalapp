@@ -1,0 +1,584 @@
+.sponsor-stack {
+  position: absolute;
+  left: -1.25rem;
+  bottom: 2.4rem;
+  width: 11.5rem;
+  height: 23rem;
+  z-index: 3;
+  text-align: left;
+}
+
+.how-it-works {
+  margin: 0 auto;
+  max-width: 66rem;
+  padding: 5rem 0 3rem;
+}
+
+/* ==========================================================================
+   Heading Banner
+   ========================================================================== */
+
+.how-it-works-heading {
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  border: 1px solid var(--line);
+  box-shadow: 
+    inset 0 0 0 1px rgb(255 255 255 / 0.08),
+    0 0.7rem 2rem rgb(0 0 0 / 0.16);
+  border-radius: 0.85rem;
+  margin: 0 auto 2rem;
+  max-width: 34rem;
+  padding: 0.85rem 1.25rem;
+  text-align: center;
+}
+
+.how-it-works-heading h2 {
+  color: var(--foreground);
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  letter-spacing: -0.05em;
+  margin: 0.45rem 0 0;
+}
+
+.how-it-works-heading > p:last-child {
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0.8rem auto 0;
+}
+
+.how-it-works-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* ==========================================================================
+   Dark Theme (Default)
+   - Double border: outer border + inner inset box-shadow
+   - Directional mask: Frosted on left for text, completely unblurred on right
+   ========================================================================== */
+
+.how-it-works-card,
+.bidding-explainer {
+  background-color: #071312;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  box-shadow: 
+    inset 0 0 0 1px rgb(255 255 255 / 0.08),
+    0 0.8rem 2.2rem rgb(0 0 0 / 0.4);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.how-it-works-card:hover {
+  transform: translateY(-2px);
+  border-color: rgb(255 255 255 / 0.24);
+  box-shadow: 
+    inset 0 0 0 1px rgb(255 255 255 / 0.15),
+    0 1rem 2.5rem rgb(0 0 0 / 0.5);
+}
+
+.how-it-works-card {
+  min-height: 11rem;
+  padding: 1.5rem 1.25rem 1.25rem;
+  text-align: left;
+}
+
+/* Dark Mode Directional Overlay: Left frosted, Right crisp artwork */
+.how-it-works-card::before {
+  background: linear-gradient(
+    90deg,
+    rgb(3 10 10 / 0.88) 0%,
+    rgb(3 10 10 / 0.65) 45%,
+    rgb(3 10 10 / 0) 100%
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0) 78%);
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0) 78%);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.how-it-works-card:nth-child(1) {
+  background: url("/images/dropyourfiles.png") center / cover no-repeat;
+}
+
+.how-it-works-card:nth-child(2) {
+  background: url("/images/chooseatool.png") center / cover no-repeat;
+}
+
+.how-it-works-card:nth-child(3) {
+  background: url("/images/downloadbg.png") center / cover no-repeat;
+}
+
+.how-it-works-card > *,
+.bidding-explainer > * {
+  position: relative;
+  z-index: 1;
+}
+
+.how-it-works-number {
+  color: rgb(255 255 255 / 0.72);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+
+.how-it-works-card h3 {
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 1.8rem 0 0;
+}
+
+.how-it-works-card p {
+  color: rgb(255 255 255 / 0.85);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  margin: 0.35rem 0 0;
+}
+
+/* Dark Mode Bidding Explainer */
+.bidding-explainer {
+  background-color: #071312;
+  background-image: url("/images/howbiddingbg.png");
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+  display: grid;
+  gap: 1.5rem 2rem;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  margin-top: 1rem;
+  padding: 1.75rem 1.6rem;
+}
+
+.bidding-explainer::before {
+  background: linear-gradient(
+    90deg,
+    rgb(3 10 10 / 0.99) 0%,
+    rgb(3 10 10 / 0.92) 45%,
+    rgb(3 10 10 / 0.65) 68%,
+    rgb(3 10 10 / 0) 94%
+  );
+  backdrop-filter: blur(52px) saturate(1.15);
+  -webkit-backdrop-filter: blur(52px) saturate(1.15);
+  -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 72%, rgba(0, 0, 0, 0) 92%);
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 72%, rgba(0, 0, 0, 0) 92%);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+/* Extra frosted pass — left column only */
+.bidding-explainer::after {
+  backdrop-filter: blur(36px);
+  -webkit-backdrop-filter: blur(36px);
+  background: linear-gradient(90deg, rgb(3 10 10 / 0.35) 0%, rgb(3 10 10 / 0) 58%);
+  content: "";
+  inset: 0 auto 0 0;
+  pointer-events: none;
+  position: absolute;
+  width: 52%;
+  z-index: 0;
+  -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 55%, rgba(0, 0, 0, 0) 100%);
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 55%, rgba(0, 0, 0, 0) 100%);
+}
+
+.bidding-explainer h2 {
+  color: #ffffff;
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  letter-spacing: -0.05em;
+  margin: 0.45rem 0 0;
+}
+
+.bidding-explainer > div > p:last-child {
+  color: rgb(255 255 255 / 0.85);
+  line-height: 1.6;
+  margin: 0.8rem auto 0;
+}
+
+.bidding-explainer ol {
+  counter-reset: bidding-step;
+  display: grid;
+  gap: 0.9rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bidding-explainer li {
+  counter-increment: bidding-step;
+  display: grid;
+  gap: 0.15rem 0.75rem;
+  grid-template-columns: 1.5rem 1fr;
+}
+
+.bidding-explainer li::before {
+  color: rgb(255 255 255 / 0.7);
+  content: counter(bidding-step, decimal-leading-zero);
+  font-size: 0.7rem;
+  font-weight: 750;
+  grid-row: span 2;
+  padding-top: 0.15rem;
+}
+
+.bidding-explainer li strong {
+  color: #ffffff;
+  font-size: 0.86rem;
+}
+
+.bidding-explainer li span {
+  color: rgb(255 255 255 / 0.85);
+  font-size: 0.78rem;
+}
+
+.bidding-explainer-steps {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.rules-link,
+.rules-cta {
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.25rem;
+}
+
+.rules-link {
+  margin-top: 1.25rem;
+  display: inline-block;
+}
+
+/* ==========================================================================
+   Light Theme
+   - Double border with luminous inner edge
+   - Directional mask: Frosted on left for text, completely unblurred on right
+   ========================================================================== */
+
+html[data-theme="light"] .how-it-works-heading {
+  background: rgb(255 255 255 / 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgb(0 0 0 / 0.12);
+  box-shadow: 
+    inset 0 0 0 1px rgb(255 255 255 / 0.9),
+    0 0.8rem 2.2rem rgb(0 0 0 / 0.08);
+}
+
+html[data-theme="light"] .how-it-works-heading h2,
+html[data-theme="light"] .how-it-works-heading > p:last-child {
+  color: #121f1e;
+}
+
+html[data-theme="light"] .how-it-works-card,
+html[data-theme="light"] .bidding-explainer {
+  background-color: #f7faf7;
+  border: 1px solid rgb(0 0 0 / 0.1);
+  box-shadow: 
+    inset 0 0 0 1px rgb(255 255 255 / 0.9),
+    0 0.75rem 2rem rgb(14 36 28 / 0.08);
+}
+
+html[data-theme="light"] .how-it-works-card:hover {
+  border-color: rgb(0 0 0 / 0.2);
+  box-shadow: 
+    inset 0 0 0 1px rgb(255 255 255 / 1),
+    0 1rem 2.5rem rgb(14 36 28 / 0.13);
+}
+
+html[data-theme="light"] .how-it-works-card:nth-child(1) {
+  background-image: url("/images/dropyourfileslight.png");
+}
+
+html[data-theme="light"] .how-it-works-card:nth-child(2) {
+  background-image: url("/images/chooseatoollight.png");
+}
+
+html[data-theme="light"] .how-it-works-card:nth-child(3) {
+  background-image: url("/images/downloadbglight.png");
+}
+
+/* Light Mode Directional Overlay: Frosted left side, crisp right artwork */
+html[data-theme="light"] .how-it-works-card::before {
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0.96) 0%,
+    rgb(255 255 255 / 0.85) 45%,
+    rgb(255 255 255 / 0) 100%
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 45%, rgba(0, 0, 0, 0) 80%);
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 45%, rgba(0, 0, 0, 0) 80%);
+  display: block;
+}
+
+html[data-theme="light"] .bidding-explainer {
+  background-color: #f6f8f5;
+  background-image: url("/images/howbiddingbglight.png");
+  background-position: right center;
+  background-size: auto 100%;
+}
+
+/* Light Mode Explainer Directional Blur */
+html[data-theme="light"] .bidding-explainer::before {
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0.99) 0%,
+    rgb(255 255 255 / 0.94) 45%,
+    rgb(255 255 255 / 0.7) 68%,
+    rgb(255 255 255 / 0) 94%
+  );
+  backdrop-filter: blur(52px) saturate(1.1);
+  -webkit-backdrop-filter: blur(52px) saturate(1.1);
+  -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 72%, rgba(0, 0, 0, 0) 92%);
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 72%, rgba(0, 0, 0, 0) 92%);
+  display: block;
+}
+
+html[data-theme="light"] .bidding-explainer::after {
+  backdrop-filter: blur(36px);
+  -webkit-backdrop-filter: blur(36px);
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.45) 0%, rgb(255 255 255 / 0) 58%);
+}
+
+html[data-theme="light"] .how-it-works-number {
+  color: #1e3b33;
+  font-weight: 800;
+}
+
+html[data-theme="light"] .how-it-works-card h3 {
+  color: #0b1c18;
+  font-weight: 700;
+}
+
+html[data-theme="light"] .how-it-works-card p {
+  color: #2e443f;
+  font-weight: 550;
+}
+
+html[data-theme="light"] .bidding-explainer h2 {
+  color: #0b1c18;
+}
+
+html[data-theme="light"] .bidding-explainer > div > p:last-child {
+  color: #273e38;
+}
+
+html[data-theme="light"] .bidding-explainer li::before {
+  color: #1e3b33;
+  font-weight: 800;
+}
+
+html[data-theme="light"] .bidding-explainer li strong {
+  color: #0b1c18;
+  font-weight: 700;
+}
+
+html[data-theme="light"] .bidding-explainer li span {
+  color: #273e38;
+  font-weight: 550;
+}
+
+html[data-theme="light"] .rules-link {
+  color: #081a16;
+}
+
+/* ==========================================================================
+   Rules & Global Pages
+   ========================================================================== */
+
+.rules-page {
+  background: var(--background) url("/chatbg.png") center / cover fixed;
+  color: var(--foreground);
+  min-height: 100vh;
+  padding: 1.25rem clamp(1rem, 5vw, 5rem) 4rem;
+}
+
+.rules-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin: 0 auto 4rem;
+  max-width: 58rem;
+}
+
+.rules-brand,
+.rules-back {
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.rules-brand {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
+}
+
+.rules-brand img {
+  height: 1.45rem;
+  object-fit: contain;
+  width: 1.65rem;
+}
+
+.rules-card {
+  background: color-mix(in srgb, var(--panel) 91%, transparent);
+  border: 1px solid var(--line);
+  box-shadow: 
+    inset 0 0 0 1px rgb(255 255 255 / 0.07),
+    0 1.5rem 4rem rgb(0 0 0 / 0.24);
+  border-radius: 1.4rem;
+  margin: 0 auto;
+  max-width: 58rem;
+  padding: clamp(1.5rem, 5vw, 3.5rem);
+}
+
+.rules-card h1 {
+  font-size: clamp(2.4rem, 6vw, 4.4rem);
+  letter-spacing: -0.07em;
+  line-height: 0.98;
+  margin: 0.5rem 0 1rem;
+}
+
+.rules-intro {
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.65;
+  max-width: 40rem;
+}
+
+.rules-card section {
+  border-top: 1px solid var(--line);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+}
+
+.rules-card h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.65rem;
+}
+
+.rules-card p,
+.rules-card li {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.rules-card ol,
+.rules-card ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.rules-note {
+  border-left: 2px solid var(--line);
+  margin: 2rem 0;
+  padding-left: 1rem;
+}
+
+.rules-cta {
+  display: inline-block;
+  text-decoration: none;
+}
+
+html[data-theme="light"] .rules-page {
+  background-image: url("/images/bglightland.png");
+}
+
+/* ==========================================================================
+   Mobile Responsive
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  .how-it-works {
+    padding-top: 3rem;
+  }
+
+  .how-it-works-grid,
+  .bidding-explainer {
+    grid-template-columns: 1fr;
+  }
+
+  .bidding-explainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.35rem;
+    background-position: center;
+    background-size: cover;
+  }
+
+  .how-it-works-card::before {
+    background: linear-gradient(90deg, rgb(4 14 13 / 0.88), rgb(4 14 13 / 0.6));
+    display: block;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .bidding-explainer::before {
+    background: linear-gradient(90deg, rgb(4 14 13 / 0.97) 0%, rgb(4 14 13 / 0.82) 50%, rgb(4 14 13 / 0.45) 100%);
+    backdrop-filter: blur(40px) saturate(1.15);
+    -webkit-backdrop-filter: blur(40px) saturate(1.15);
+    display: block;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .bidding-explainer::after {
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    width: 100%;
+  }
+  
+  html[data-theme="light"] .how-it-works-card::before {
+    background: linear-gradient(90deg, rgb(255 255 255 / 0.96) 0%, rgb(255 255 255 / 0.85) 60%, rgb(255 255 255 / 0.3) 100%);
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  html[data-theme="light"] .bidding-explainer::before {
+    background: linear-gradient(90deg, rgb(255 255 255 / 0.99) 0%, rgb(255 255 255 / 0.9) 50%, rgb(255 255 255 / 0.5) 100%);
+    backdrop-filter: blur(40px) saturate(1.1);
+    -webkit-backdrop-filter: blur(40px) saturate(1.1);
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  html[data-theme="light"] .bidding-explainer::after {
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    width: 100%;
+  }
+
+  .bidding-explainer h2 {
+    font-size: 2rem;
+  }
+
+  .bidding-explainer ol {
+    margin-top: 0.25rem;
+  }
+
+  .rules-link {
+    align-self: flex-start;
+  }
+
+  .rules-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .rules-back {
+    font-size: 0.72rem;
+  }
+}

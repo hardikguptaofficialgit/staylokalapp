@@ -1,0 +1,40 @@
+/* Shared Button Styles */
+.control-pill, .category-pill, .action-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.4rem;
+  white-space: nowrap;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.control-pill {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  padding: 0.45rem 0.85rem;
+  transition: all 200ms ease;
+}
+.control-pill:hover {
+  border-color: var(--foreground);
+  color: var(--foreground);
+  background: var(--panel);
+}
+
+.action-button {
+  border: 1px solid var(--foreground);
+  border-radius: 999px;
+  background: var(--foreground);
+  color: var(--background);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.8rem 1.5rem;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+.action-button:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.action-button:active:not(:disabled) {
+  transform: translateY(0);
+}

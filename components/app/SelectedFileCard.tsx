@@ -56,7 +56,7 @@ export default function SelectedFileCard({ workflow, file, index }: { workflow: 
               <button type="button" className="control-pill" onClick={() => setPreviewOpen(false)} aria-label="Close preview"><X size={16} /> Close</button>
             </header>
             <div className="file-preview-body">
-              {previewUrl && detected.kind === "image" && <img src={previewUrl} alt={`Preview of ${file.name}`} className="file-preview-image" />}
+              {previewUrl && detected.kind === "image" && <img src={previewUrl} alt={`Preview of ${file.name}`} className="file-preview-image" />} {/* eslint-disable-line @next/next/no-img-element */}
               {previewUrl && detected.kind === "pdf" && <iframe src={previewUrl} title={`Preview of ${file.name}`} className="file-preview-frame" />}
               {previewUrl && detected.kind === "video" && <video src={previewUrl} controls className="file-preview-media" />}
               {previewUrl && detected.kind === "audio" && <audio src={previewUrl} controls className="file-preview-audio" />}
