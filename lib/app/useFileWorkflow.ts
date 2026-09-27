@@ -257,17 +257,42 @@ export function useFileWorkflow() {
 
   function toggleTheme() {
     const next = theme === "dark" ? "light" : "dark";
+    const root = document.documentElement;
+    const durationMs = 520;
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
     setThemeChanging(true);
+    root.classList.add("theme-transition");
+
+    const restoreScroll = () => {
+      window.scrollTo(scrollX, scrollY);
+    };
+
+    const finish = () => {
+      restoreScroll();
+      window.setTimeout(() => {
+        root.classList.remove("theme-transition");
+        setThemeChanging(false);
+        restoreScroll();
+      }, durationMs);
+    };
+
     const commitTheme = () => {
       applyTheme(next);
       persistTheme(next);
+      restoreScroll();
     };
+
     const startViewTransition = (
-      document as Document & { startViewTransition?: (update: () => void) => unknown }
+      document as Document & { startViewTransition?: (update: () => void) => { finished: Promise<void> } }
     ).startViewTransition;
-    if (startViewTransition) startViewTransition.call(document, commitTheme);
-    else commitTheme();
-    window.setTimeout(() => setThemeChanging(false), 260);
+
+    if (startViewTransition) {
+      startViewTransition.call(document, commitTheme).finished.then(finish).catch(finish);
+    } else {
+      commitTheme();
+      finish();
+    }
   }
 
   function startDividerDrag(event: React.PointerEvent<HTMLDivElement>) {

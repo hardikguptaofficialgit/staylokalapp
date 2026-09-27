@@ -1,3 +1,4 @@
+import { normalizeBidCents } from "./ranking";
 import {
   MINIMUM_SPONSOR_BID_CENTS,
   SPONSOR_CATEGORIES,
@@ -8,6 +9,15 @@ import {
 
 const HANDLE_PATTERN = /^@?[a-zA-Z0-9._-]{2,64}$/;
 const MAX_LOGO_BYTES = 512 * 1024;
+const STAYLOKAL_PLACEHOLDER_LOGO = /\/images\/logo\.png(?:\?|$)/i;
+
+/** No logo when empty or legacy StayLokal placeholder stored on old claims. */
+export function normalizeSponsorLogoUrl(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  if (!trimmed || STAYLOKAL_PLACEHOLDER_LOGO.test(trimmed)) return undefined;
+  return trimmed;
+}
 
 function text(value: unknown, maxLength: number): string | null {
   if (typeof value !== "string") return null;
@@ -50,12 +60,12 @@ function logoDataUrl(value: unknown): string | undefined {
 export function validateSponsorClaim(input: SponsorClaimInput): ValidatedSponsorClaim | null {
   const companyName = text(input.companyName, 80);
   const description = text(input.description, 160);
-  const bidCents = typeof input.bidCents === "number" ? input.bidCents : Number(input.bidCents);
+  const bidCents = normalizeBidCents(input.bidCents);
   const target = destination(input.destination);
   const selectedCategory = category(input.category);
 
   if (!companyName || !description || !target || !selectedCategory) return null;
-  if (!Number.isSafeInteger(bidCents) || bidCents < MINIMUM_SPONSOR_BID_CENTS || bidCents > 2_147_483_647) {
+  if (bidCents === null || bidCents < MINIMUM_SPONSOR_BID_CENTS || bidCents > 2_147_483_647) {
     return null;
   }
 

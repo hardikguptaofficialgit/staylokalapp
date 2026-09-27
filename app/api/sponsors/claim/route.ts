@@ -1,4 +1,5 @@
 import { appOriginFromRequest } from "../../../../lib/sponsors/app-origin";
+import { buildSponsorCheckoutReturnUrl } from "../../../../lib/sponsors/checkout-return-url";
 import { createDodoClient } from "../../../../lib/sponsors/dodo-payments";
 import {
   appwriteClaimsAreConfigured,
@@ -10,14 +11,6 @@ import { listActiveSponsors } from "../../../../lib/sponsors/appwrite";
 import { validateSponsorClaim } from "../../../../lib/sponsors/validation";
 
 export const runtime = "nodejs";
-
-function buildSponsorCheckoutReturnUrl(appOrigin: string, claimId: string) {
-  const configured = process.env.DODO_SPONSOR_RETURN_URL?.trim();
-  const url = new URL(configured || `${appOrigin.replace(/\/+$/, "")}/`);
-  url.searchParams.set("sponsor", "success");
-  url.searchParams.set("claim_id", claimId);
-  return url.toString();
-}
 
 export async function POST(request: Request) {
   if (!appwriteClaimsAreConfigured() || !process.env.DODO_SPONSOR_PRODUCT_ID || !process.env.DODO_PAYMENTS_API_KEY) {
@@ -63,8 +56,6 @@ export async function POST(request: Request) {
     const logoUrl = claim.logoDataUrl
       ? await uploadSponsorLogo(claim.logoDataUrl, logoSeed)
       : undefined;
-    const appOrigin = appOriginFromRequest(request);
-    const fallbackLogoUrl = logoUrl ?? `${appOrigin}/images/logo.png`;
     const latestSponsors = await listActiveSponsors();
     if (!isBidEnoughForRank(latestSponsors, targetRank, claim.bidCents)) {
       const minimumBid = minimumBidForRank(latestSponsors, targetRank);
@@ -74,6 +65,7 @@ export async function POST(request: Request) {
       }, { status: 409 });
     }
 
+    const appOrigin = appOriginFromRequest(request);
     const pendingClaim = await createPendingClaim({
       bidCents: claim.bidCents,
       category: claim.category,
@@ -81,7 +73,7 @@ export async function POST(request: Request) {
       description: claim.description,
       destinationUrl: claim.destinationUrl,
       handle: claim.handle ?? "",
-      logoUrl: fallbackLogoUrl,
+      logoUrl: logoUrl ?? "",
       status: "pending",
       targetRank,
     });

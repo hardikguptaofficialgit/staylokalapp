@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, 
 import { formatMediaTime, rangeAction, type MediaEditorProps } from "./types";
 
 type AudioProps = MediaEditorProps & {
-  /** When preview, waveform/transport only — parent supplies Run Tool. */
+  /** When preview, waveform/transport only - parent supplies Run Tool. */
   mode?: "trim" | "preview";
 };
 

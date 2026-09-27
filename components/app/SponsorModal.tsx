@@ -315,6 +315,7 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
 
   async function submitClaim(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSubmitting) return;
     setError("");
     const bidCents = Math.round(Number(form.bid) * 100);
     if (!termsAccepted) {

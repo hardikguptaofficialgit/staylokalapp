@@ -27,7 +27,7 @@ const modules = [
 ];
 
 if (!fs.existsSync(sourcePath)) {
-  console.error("Missing app/globals.monolith.css — keep a backup monolith before re-splitting.");
+  console.error("Missing app/globals.monolith.css - keep a backup monolith before re-splitting.");
   process.exit(1);
 }
 const lines = fs.readFileSync(sourcePath, "utf8").split(/\r?\n/);

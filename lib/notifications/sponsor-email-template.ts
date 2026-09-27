@@ -85,12 +85,12 @@ export function buildSponsorEmailHtml(
   const logo = options?.logoUrl ?? sponsorEmailLogoUrl();
 
   const companyName = details.companyName ? escapeHtml(details.companyName) : "Your company";
-  const rankLabel = details.rank ? `#${escapeHtml(details.rank)}` : "—";
-  const bidLabel = details.bid ? escapeHtml(details.bid) : "—";
+  const rankLabel = details.rank ? `#${escapeHtml(details.rank)}` : "-";
+  const bidLabel = details.bid ? escapeHtml(details.bid) : "-";
   const title = failed ? "Payment needs attention" : "Your placement is live";
   const statusLabel = failed ? "Action required" : "Confirmed";
   const intro = failed
-    ? "We couldn't complete your sponsor payment. Try checkout again — your listing stays inactive until payment succeeds."
+    ? "We couldn't complete your sponsor payment. Try checkout again - your listing stays inactive until payment succeeds."
     : "Your sponsor card is now on the StayLokal leaderboard.";
   const summary = failed
     ? "No charge completed for this attempt."

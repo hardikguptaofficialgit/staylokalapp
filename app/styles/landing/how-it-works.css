@@ -175,7 +175,7 @@
   z-index: 0;
 }
 
-/* Extra frosted pass — left column only */
+/* Extra frosted pass - left column only */
 .bidding-explainer::after {
   backdrop-filter: blur(36px);
   -webkit-backdrop-filter: blur(36px);

@@ -1,9 +1,9 @@
-# StayLokal — Marketing Brief
+# StayLokal - Marketing Brief
 
 ## The product in one sentence
 
 StayLokal is a private, browser-first workspace for turning annoying PDF, image,
-video, and audio tasks into quick local actions — without uploading files, creating
+video, and audio tasks into quick local actions - without uploading files, creating
 an account, or opening a heavyweight editor.
 
 ## The core idea
@@ -74,7 +74,7 @@ from your browser.
 ### 1. “Your files stay yours”
 
 Short videos show a file entering the browser, being transformed, and leaving as a
-download — with no upload spinner, account screen, or cloud dashboard.
+download - with no upload spinner, account screen, or cloud dashboard.
 
 CTA: **Try a private file tool**
 
@@ -129,7 +129,7 @@ can create a repeatable launch moment when a new company claims a position.
 
 Best for the initial launch story:
 
-- Product name: **StayLokal — Private file tools that run in your browser**
+- Product name: **StayLokal - Private file tools that run in your browser**
 - Maker comment: explain the personal frustration that led to the product.
 - Show a 20–30 second GIF of the complete flow.
 - Lead with local processing and no account friction.
@@ -164,7 +164,7 @@ Ask a specific question at the end.
 
 Position it as a technical and privacy project:
 
-**Show HN: StayLokal — local PDF, image, video, and audio tools in the browser**
+**Show HN: StayLokal - local PDF, image, video, and audio tools in the browser**
 
 Include:
 
@@ -366,7 +366,7 @@ Every promoted tool page should include:
 
 Example CTA:
 
-**Rotate a PDF privately — choose a file and start locally.**
+**Rotate a PDF privately - choose a file and start locally.**
 
 ## Growth loops
 

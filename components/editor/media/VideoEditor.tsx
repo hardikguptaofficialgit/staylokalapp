@@ -29,7 +29,7 @@ export type VideoEditorProps = {
   onCancel?: () => void;
   disabled?: boolean;
   maxFileSizeBytes?: number;
-  /** Registry tool id — scopes controls to one operation. */
+  /** Registry tool id - scopes controls to one operation. */
   activeTool?: VideoEditorToolId;
 };
 

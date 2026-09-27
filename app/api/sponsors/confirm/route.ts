@@ -1,4 +1,9 @@
-import { activateClaim, appwriteClaimsAreConfigured, findClaimById } from "../../../../lib/sponsors/appwrite";
+import {
+  activateClaim,
+  appwriteClaimsAreConfigured,
+  findClaimById,
+  isAppwriteRowNotFound,
+} from "../../../../lib/sponsors/appwrite";
 import {
   assertSponsorPaymentMatchesClaim,
   claimBidCents,
@@ -6,6 +11,7 @@ import {
   dodoApiErrorStatus,
   isRetryableDodoLookupError,
   isSponsorVerificationError,
+  paymentMetadataClaimId,
 } from "../../../../lib/sponsors/dodo-payments";
 
 export const runtime = "nodejs";
@@ -20,7 +26,7 @@ function verificationFailureResponse(error: unknown) {
   return Response.json({ error: message }, { status: 409 });
 }
 
-async function confirmPaymentId(paymentId: string, fallbackClaimId?: string) {
+async function confirmPaymentId(paymentId: string, fallbackClaimId?: string): Promise<Response> {
   const client = createDodoClient();
   let payment;
   try {
@@ -44,14 +50,22 @@ async function confirmPaymentId(paymentId: string, fallbackClaimId?: string) {
     }, { status: 202 });
   }
 
-  const claimId = String(payment.metadata?.claim_id ?? "").trim();
+  const claimId = paymentMetadataClaimId(payment);
   if (!CLAIM_ID_PATTERN.test(claimId)) {
     return Response.json({ error: "This payment is not linked to a sponsor claim." }, { status: 409 });
+  }
+  if (fallbackClaimId && fallbackClaimId !== claimId) {
+    return Response.json({
+      error: "This payment return does not match the sponsor claim in the payment record.",
+    }, { status: 409 });
   }
 
   try {
     const claim = await findClaimById(claimId);
     const claimData = claim as unknown as Record<string, unknown>;
+    if (claimData.status === "activated") {
+      return Response.json({ activated: true });
+    }
     const bidCents = claimBidCents(claimData);
     if (bidCents === null) {
       return Response.json({ error: "This sponsor claim is invalid." }, { status: 409 });
@@ -60,12 +74,14 @@ async function confirmPaymentId(paymentId: string, fallbackClaimId?: string) {
     assertSponsorPaymentMatchesClaim(payment, claimId, bidCents, {
       targetRank: Number.isInteger(targetRank) ? targetRank : undefined,
     });
-    if (claimData.status === "activated" && claimData.paymentId === paymentId) {
-      return Response.json({ activated: true });
-    }
     await activateClaim(claimId, paymentId);
     return Response.json({ activated: true });
   } catch (error) {
+    if (isAppwriteRowNotFound(error)) {
+      return Response.json({
+        error: "This sponsor claim could not be found in storage. Start a new sponsor checkout or check Appwrite claims table configuration.",
+      }, { status: 409 });
+    }
     if (isSponsorVerificationError(error)) {
       return verificationFailureResponse(error);
     }
@@ -76,8 +92,18 @@ async function confirmPaymentId(paymentId: string, fallbackClaimId?: string) {
   }
 }
 
-async function confirmClaimId(claimId: string) {
-  const claim = await findClaimById(claimId);
+async function confirmClaimId(claimId: string): Promise<Response> {
+  let claim;
+  try {
+    claim = await findClaimById(claimId);
+  } catch (error) {
+    if (isAppwriteRowNotFound(error)) {
+      return Response.json({
+        error: "This sponsor claim could not be found in storage. Start a new sponsor checkout or check Appwrite claims table configuration.",
+      }, { status: 409 });
+    }
+    throw error;
+  }
   const claimData = claim as unknown as Record<string, unknown>;
 
   if (claimData.status === "activated") {
@@ -98,7 +124,7 @@ function dodoLookupFailureResponse(error: unknown) {
   const status = dodoApiErrorStatus(error);
   if (status === 404) {
     return Response.json({
-      error: "We could not find this payment record. If checkout succeeded, wait a moment and refresh — activation may still complete via webhook.",
+      error: "We could not find this payment record. If checkout succeeded, wait a moment and refresh - activation may still complete via webhook.",
     }, { status: 409 });
   }
   if (status === 401 || status === 403) {

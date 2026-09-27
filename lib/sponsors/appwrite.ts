@@ -1,4 +1,5 @@
-import { activationOutcome } from "./ranking";
+import { activationOutcome, normalizeBidCents } from "./ranking";
+import { normalizeSponsorLogoUrl } from "./validation";
 import type { SponsorRecord, SponsorStatus } from "./types";
 
 function hasBaseConfig(): boolean {
@@ -23,6 +24,18 @@ type AppwriteRow = {
   $id: string;
   [key: string]: unknown;
 };
+
+type AppwriteRequestError = Error & {
+  appwriteStatus?: number;
+  appwriteType?: string;
+};
+
+export function isAppwriteRowNotFound(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const typed = error as AppwriteRequestError;
+  if (typed.appwriteStatus === 404 && typed.appwriteType === "row_not_found") return true;
+  return error.message.includes("row_not_found");
+}
 
 type QueryValue = {
   method: string;
@@ -64,7 +77,13 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     body = text;
   }
   if (!response.ok) {
-    throw new Error(`Appwrite request failed (${response.status}): ${typeof body === "string" ? body : JSON.stringify(body)}`);
+    const detail = typeof body === "string" ? body : JSON.stringify(body);
+    const error = new Error(`Appwrite request failed (${response.status}): ${detail}`);
+    (error as AppwriteRequestError).appwriteStatus = response.status;
+    (error as AppwriteRequestError).appwriteType = typeof body === "object" && body !== null
+      ? String((body as { type?: string }).type ?? "")
+      : "";
+    throw error;
   }
   return body as T;
 }
@@ -158,14 +177,14 @@ function services() {
 function fromRow(row: AppwriteRow): SponsorRecord {
   const data = row as Record<string, unknown>;
   return {
-    bidCents: Number(data.bidCents),
+    bidCents: normalizeBidCents(data.bidCents) ?? 0,
     category: data.category as SponsorRecord["category"],
     companyName: String(data.companyName),
     description: String(data.description),
     destinationUrl: String(data.destinationUrl),
     handle: data.handle ? String(data.handle) : undefined,
     id: row.$id,
-    logoUrl: data.logoUrl ? String(data.logoUrl) : undefined,
+    logoUrl: normalizeSponsorLogoUrl(data.logoUrl),
     paidAt: String(data.paidAt),
     status: data.status as SponsorStatus,
   };
@@ -198,6 +217,17 @@ export async function findClaimById(claimId: string) {
     databaseId: process.env.APPWRITE_DATABASE_ID!,
     rowId: claimId,
   });
+}
+
+async function findSponsorRowByClaimId(claimId: string, transactionId?: string) {
+  const { tables } = services();
+  const result = await tables.listRows({
+    tableId: process.env.APPWRITE_SPONSORS_TABLE_ID!,
+    databaseId: process.env.APPWRITE_DATABASE_ID!,
+    queries: [Query.equal("claimId", claimId), Query.limit(1)],
+    transactionId,
+  });
+  return result.rows[0];
 }
 
 export async function markClaimPaid(claimId: string, paymentId: string) {
@@ -248,6 +278,9 @@ export async function activateClaim(claimId: string, paymentId: string) {
     }
     return;
   }
+  if (claimData.status === "cancelled" || claimData.status === "expired") {
+    throw new Error("Claim is not eligible for activation.");
+  }
   if (claimData.status !== "pending" && claimData.status !== "paid") {
     throw new Error("Claim is not eligible for activation.");
   }
@@ -269,6 +302,23 @@ export async function activateClaim(claimId: string, paymentId: string) {
       return;
     }
 
+    const existingSponsorRow = await findSponsorRowByClaimId(claimId, transaction.$id);
+    if (existingSponsorRow) {
+      await tables.updateRow({
+        tableId: process.env.APPWRITE_CLAIMS_TABLE_ID!,
+        databaseId: process.env.APPWRITE_DATABASE_ID!,
+        rowId: claimId,
+        data: {
+          paymentId,
+          sponsorId: existingSponsorRow.$id,
+          status: "activated",
+        },
+        transactionId: transaction.$id,
+      });
+      await databases.updateTransaction({ commit: true, transactionId: transaction.$id });
+      return;
+    }
+
     const activeRows = await tables.listRows({
       tableId: process.env.APPWRITE_SPONSORS_TABLE_ID!,
       databaseId: process.env.APPWRITE_DATABASE_ID!,
@@ -276,17 +326,21 @@ export async function activateClaim(claimId: string, paymentId: string) {
       transactionId: transaction.$id,
     });
     const activeSponsors = activeRows.rows.map(fromRow);
+    const bidCents = normalizeBidCents(claimData.bidCents);
+    if (bidCents === null) {
+      throw new Error("Claim is not eligible for activation.");
+    }
     const sponsorId = uniqueId();
     const paidAt = new Date().toISOString();
     const newSponsor: SponsorRecord = {
-      bidCents: Number(claimData.bidCents),
+      bidCents,
       category: claimData.category as SponsorRecord["category"],
       companyName: String(claimData.companyName),
       description: String(claimData.description),
       destinationUrl: String(claimData.destinationUrl),
       handle: claimData.handle ? String(claimData.handle) : undefined,
       id: sponsorId,
-      logoUrl: claimData.logoUrl ? String(claimData.logoUrl) : undefined,
+      logoUrl: normalizeSponsorLogoUrl(claimData.logoUrl),
       paidAt,
       status: "active",
     };

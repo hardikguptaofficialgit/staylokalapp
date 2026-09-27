@@ -20,7 +20,7 @@ const rubikDoodleShadow = Rubik_Doodle_Shadow({
 });
 
 export const metadata: Metadata = {
-  title: "StayLokal — Private file tools that run on your device.",
+  title: "StayLokal - Private file tools that run on your device.",
   description: "StayLokal is a local-first file utility desk for PDFs, images, video, audio, and more.",
   icons: {
     icon: [

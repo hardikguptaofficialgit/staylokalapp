@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { assertSponsorPaymentMatchesClaim, paymentAmountCents } from "../lib/sponsors/dodo-payments";
+import {
+  assertSponsorPaymentMatchesClaim,
+  claimBidCents,
+  paymentAmountCents,
+  paymentBidCents,
+  resolvedSponsorBidCents,
+} from "../lib/sponsors/dodo-payments";
 
 describe("dodo sponsor payment verification", () => {
   it("accepts matching successful payments", () => {
@@ -43,5 +49,26 @@ describe("dodo sponsor payment verification", () => {
 
   it("reads total_amount when present", () => {
     expect(paymentAmountCents({ total_amount: 500 })).toBe(500);
+  });
+
+  it("reads bid cents from claim rows with numeric strings", () => {
+    expect(claimBidCents({ bidCents: "401" })).toBe(401);
+    expect(claimBidCents({ bidCents: 100.9 })).toBe(101);
+  });
+
+  it("subtracts tax when matching sponsor bid", () => {
+    const payment = {
+      metadata: { bid: "$1.00", claim_id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11" },
+      status: "succeeded",
+      tax: 18,
+      total_amount: 118,
+    };
+    expect(paymentBidCents(payment)).toBe(100);
+    expect(resolvedSponsorBidCents(payment)).toBe(100);
+    expect(() => assertSponsorPaymentMatchesClaim(
+      payment,
+      "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      100,
+    )).not.toThrow();
   });
 });

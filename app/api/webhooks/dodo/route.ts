@@ -1,6 +1,7 @@
 import { activateClaim, findClaimById } from "../../../../lib/sponsors/appwrite";
 import {
   assertSponsorPaymentMatchesClaim,
+  claimBidCents,
   createDodoClient,
 } from "../../../../lib/sponsors/dodo-payments";
 import {
@@ -86,8 +87,11 @@ export async function POST(request: Request) {
   try {
     const claim = await findClaimById(claimId);
     const claimData = claim as unknown as Record<string, unknown>;
-    const bidCents = Number(claimData.bidCents);
-    if (!Number.isSafeInteger(bidCents)) {
+    if (claimData.status === "activated") {
+      return Response.json({ received: true });
+    }
+    const bidCents = claimBidCents(claimData);
+    if (bidCents === null) {
       return Response.json({ error: "Sponsor claim is invalid." }, { status: 400 });
     }
 

@@ -4,10 +4,12 @@ import {
   CloudArrowUp, Crown, FileJpg, FilePdf, FilePng, FilePpt, FileText, FileTxt, FileXls, FileZip,
   FilmStrip, Folder, Waveform, type IconProps,
 } from "@phosphor-icons/react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import SponsorModal from "./SponsorModal";
 import { readJsonResponse } from "@/lib/app/fetch-json";
+import { formatSponsorCardAmount } from "@/lib/sponsors/ranking";
 import type { RankedSponsor } from "@/lib/sponsors/types";
 import type { AppWorkflow } from "./types";
 
@@ -47,6 +49,11 @@ const categoryAccept: Record<string, string> = {
 };
 
 const previewColors = ["#f44336", "#a259ff", "#4d7cff", "#777", "#82b9a8"];
+
+function sponsorMarkStyle(index: number, logoUrl?: string) {
+  if (logoUrl) return { backgroundImage: `url("${logoUrl}")` };
+  return { backgroundColor: previewColors[index % previewColors.length] };
+}
 
 function MaskedText({ text, className = "" }: { text: string; className?: string }) {
   return (
@@ -144,15 +151,15 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
           {!sponsorsLoading && displaySponsors.map((sponsor, index) => (
             <div className={`sponsor-card sponsor-card-rank-${sponsor.rank} ${index === 0 ? "sponsor-card-featured" : ""}`} key={sponsor.id}>
               <button className="sponsor-card-main" type="button" onClick={() => setSelectedSponsor(sponsor)}>
-                <span className={`sponsor-mark ${sponsor.logoUrl ? "has-sponsor-logo" : ""}`} style={{ backgroundColor: previewColors[index % previewColors.length], backgroundImage: sponsor.logoUrl ? `url("${sponsor.logoUrl}")` : undefined }}>
-                  {index === 0 && <Crown className="sponsor-crown" size={11} weight="fill" />}
+                <span className={`sponsor-mark ${sponsor.logoUrl ? "has-sponsor-logo" : ""}`} style={sponsorMarkStyle(index, sponsor.logoUrl)}>
+                  {index === 0 && !sponsor.logoUrl && <Crown className="sponsor-crown" size={11} weight="fill" />}
                   {sponsor.companyName.slice(0, 1)}
                 </span>
                 <span className="sponsor-card-copy">
                   <strong>{sponsor.companyName}</strong>
-                  <small>#{index + 1}</small>
+                  <small>#{sponsor.rank}</small>
                 </span>
-                <strong className="sponsor-amount">${(sponsor.bidCents / 100).toFixed(0)}</strong>
+                <strong className="sponsor-amount">{formatSponsorCardAmount(sponsor.bidCents)}</strong>
               </button>
               <button className="sponsor-card-action" type="button" onClick={() => setSponsorModalRank(sponsor.rank)}>Outbid #{sponsor.rank}</button>
             </div>
@@ -232,11 +239,8 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
                 ×
               </button>
               <span
-                className="sponsor-details-mark"
-                style={{
-                  backgroundColor: previewColors[(selectedSponsor.rank - 1) % previewColors.length],
-                  backgroundImage: selectedSponsor.logoUrl ? `url("${selectedSponsor.logoUrl}")` : undefined,
-                }}
+                className={`sponsor-details-mark ${selectedSponsor.logoUrl ? "has-sponsor-logo" : ""}`}
+                style={sponsorMarkStyle(selectedSponsor.rank - 1, selectedSponsor.logoUrl)}
               >
                 {!selectedSponsor.logoUrl && selectedSponsor.companyName.slice(0, 1)}
               </span>
@@ -293,6 +297,30 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
           </div>
         </div>
       </section>
+
+      <footer className="landing-footer" aria-label="StayLokal">
+        <p className="landing-footer-line">
+          <span className="landing-footer-brand">
+            <Image alt="" aria-hidden="true" className="landing-footer-logo" height={26} src="/images/logo.png" width={30} />
+            <strong>StayLokal</strong>
+          </span>
+          <span className="landing-footer-dot" aria-hidden="true">·</span>
+          <span>Built from India for the world.</span>
+          <span className="landing-footer-dot" aria-hidden="true">·</span>
+          <span className="landing-footer-credit">
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="landing-footer-avatar"
+              height={22}
+              src="/images/staylokal-founder.png"
+              width={22}
+            />
+            <span>Built by</span>
+            <a href="https://x.com/strykerin" rel="me noreferrer" target="_blank">@strykerin</a>
+          </span>
+        </p>
+      </footer>
     </>
   );
 }

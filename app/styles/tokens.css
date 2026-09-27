@@ -1,10 +1,60 @@
+@property --background {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #080808;
+}
+
+@property --foreground {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f0f0f0;
+}
+
+@property --muted {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #888888;
+}
+
+@property --line {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #222222;
+}
+
+@property --panel {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #111111;
+}
+
+@property --frame-line {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffffff;
+}
+
 :root {
+  --theme-transition-duration: 520ms;
+  --theme-transition-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --background: #080808;
   --foreground: #f0f0f0;
   --muted: #888888;
   --line: #222222;
   --panel: #111111;
   --frame-line: #ffffff;
+}
+
+html {
+  scrollbar-gutter: stable;
+  transition:
+    --background var(--theme-transition-duration) var(--theme-transition-ease),
+    --foreground var(--theme-transition-duration) var(--theme-transition-ease),
+    --muted var(--theme-transition-duration) var(--theme-transition-ease),
+    --line var(--theme-transition-duration) var(--theme-transition-ease),
+    --panel var(--theme-transition-duration) var(--theme-transition-ease),
+    --frame-line var(--theme-transition-duration) var(--theme-transition-ease);
+  view-transition-name: root;
 }
 
 @theme inline {
@@ -30,8 +80,29 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
-  transition: background-color 300ms ease, color 300ms ease;
   overflow-x: hidden;
+}
+
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition-duration: var(--theme-transition-duration) !important;
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, outline-color, text-decoration-color, -webkit-text-fill-color !important;
+  transition-timing-function: var(--theme-transition-ease) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    transition-duration: 1ms;
+  }
+
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition-duration: 1ms !important;
+  }
 }
 
 * {

@@ -1,9 +1,11 @@
 import DodoPayments from "dodopayments";
+import { normalizeBidCents } from "./ranking";
 
 export type DodoPaymentSnapshot = {
   amount?: number;
   metadata?: Record<string, string | number | boolean | undefined>;
   status?: string | null;
+  tax?: number | null;
   total_amount?: number;
 };
 
@@ -28,6 +30,31 @@ export function paymentAmountCents(payment: DodoPaymentSnapshot): number | null 
   return typeof raw === "number" && Number.isSafeInteger(raw) ? raw : null;
 }
 
+/** Sponsor bid before tax; Dodo `total_amount` includes tax when `tax` is set. */
+export function paymentBidCents(payment: DodoPaymentSnapshot): number | null {
+  const total = paymentAmountCents(payment);
+  if (total === null) return null;
+  const tax = typeof payment.tax === "number" && Number.isSafeInteger(payment.tax) ? payment.tax : 0;
+  const subtotal = total - tax;
+  if (!Number.isSafeInteger(subtotal) || subtotal < 0) return null;
+  return subtotal;
+}
+
+export function metadataBidCents(metadata?: DodoPaymentSnapshot["metadata"]): number | null {
+  const bid = metadata?.bid;
+  if (typeof bid !== "string") return null;
+  const match = /^\$(\d+(?:\.\d{2})?)$/.exec(bid.trim());
+  if (!match) return null;
+  const dollars = Number.parseFloat(match[1]);
+  if (!Number.isFinite(dollars)) return null;
+  const cents = Math.round(dollars * 100);
+  return Number.isSafeInteger(cents) ? cents : null;
+}
+
+export function resolvedSponsorBidCents(payment: DodoPaymentSnapshot): number | null {
+  return paymentBidCents(payment) ?? metadataBidCents(payment.metadata);
+}
+
 export function dodoApiErrorStatus(error: unknown): number | undefined {
   const status = (error as { status?: number })?.status;
   return typeof status === "number" ? status : undefined;
@@ -40,8 +67,11 @@ export function isRetryableDodoLookupError(error: unknown): boolean {
 }
 
 export function claimBidCents(claimData: Record<string, unknown>): number | null {
-  const bidCents = Number(claimData.bidCents);
-  return Number.isSafeInteger(bidCents) ? bidCents : null;
+  return normalizeBidCents(claimData.bidCents);
+}
+
+export function paymentMetadataClaimId(payment: DodoPaymentSnapshot): string {
+  return String(payment.metadata?.claim_id ?? "").trim();
 }
 
 export function assertSponsorPaymentMatchesClaim(
@@ -57,8 +87,8 @@ export function assertSponsorPaymentMatchesClaim(
   if (metadataClaimId !== claimId) {
     throw new Error("Payment is not linked to this sponsor claim.");
   }
-  const paidCents = paymentAmountCents(payment);
-  if (paidCents === null || paidCents !== bidCents) {
+  const paidBidCents = resolvedSponsorBidCents(payment);
+  if (paidBidCents === null || paidBidCents !== bidCents) {
     throw new Error("Payment amount does not match the sponsor bid.");
   }
   const rankMetadata = payment.metadata?.target_rank;

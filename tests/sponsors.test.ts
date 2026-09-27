@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { activationOutcome, isBidEnoughForRank, minimumBidForRank, rankSponsors } from "../lib/sponsors/ranking";
-import { validateSponsorClaim } from "../lib/sponsors/validation";
+import {
+  activationOutcome,
+  formatSponsorCardAmount,
+  isBidEnoughForRank,
+  minimumBidForRank,
+  rankSponsors,
+} from "../lib/sponsors/ranking";
+import { normalizeSponsorLogoUrl, validateSponsorClaim } from "../lib/sponsors/validation";
 import type { SponsorRecord } from "../lib/sponsors/types";
 
 const sponsor = (id: string, bidCents: number, paidAt: string): SponsorRecord => ({
@@ -45,6 +51,14 @@ describe("sponsor ranking", () => {
   });
 });
 
+describe("sponsor logo url", () => {
+  it("drops empty values and legacy StayLokal placeholder logos", () => {
+    expect(normalizeSponsorLogoUrl("")).toBeUndefined();
+    expect(normalizeSponsorLogoUrl("https://staylokal.com/images/logo.png")).toBeUndefined();
+    expect(normalizeSponsorLogoUrl("https://cdn.example.com/acme.png")).toBe("https://cdn.example.com/acme.png");
+  });
+});
+
 describe("sponsor claim validation", () => {
   it("accepts HTTPS URLs and handles", () => {
     expect(validateSponsorClaim({
@@ -63,6 +77,23 @@ describe("sponsor claim validation", () => {
     })?.destinationUrl).toBe("https://x.com/example");
   });
 
+  it("normalizes string and decimal bid values", () => {
+    expect(validateSponsorClaim({
+      bidCents: "101",
+      category: "Design & Creative",
+      companyName: "Example",
+      description: "A useful product",
+      destination: "https://example.com",
+    })?.bidCents).toBe(101);
+    expect(validateSponsorClaim({
+      bidCents: 100.4,
+      category: "Design & Creative",
+      companyName: "Example",
+      description: "A useful product",
+      destination: "https://example.com",
+    })?.bidCents).toBe(100);
+  });
+
   it("rejects unsafe destinations and invalid categories", () => {
     expect(validateSponsorClaim({
       bidCents: 100,
@@ -78,5 +109,14 @@ describe("sponsor claim validation", () => {
       description: "A useful product",
       destination: "https://example.com",
     })).toBeNull();
+  });
+});
+
+describe("sponsor amount formatting", () => {
+  it("shows distinct card amounts instead of rounding everything to whole dollars", () => {
+    expect(formatSponsorCardAmount(100)).toBe("$1");
+    expect(formatSponsorCardAmount(101)).toBe("$1.01");
+    expect(formatSponsorCardAmount(250)).toBe("$2.50");
+    expect(formatSponsorCardAmount(401)).toBe("$4.01");
   });
 });

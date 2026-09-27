@@ -97,6 +97,23 @@ describe("Dodo sponsor webhook", () => {
     expect(await response.json()).toEqual({ error: "Sponsor activation will be retried." });
   });
 
+  it("acknowledges duplicate success webhooks when the claim is already activated", async () => {
+    findClaimByIdMock.mockResolvedValue({ bidCents: 401, status: "activated" });
+    unwrapMock.mockReturnValue({
+      type: "payment.succeeded",
+      data: { metadata: { claim_id: "claim-1" }, payment_id: "pay_12345678" },
+    });
+
+    const response = await POST(new Request("https://example.com/webhook", {
+      body: "{}",
+      method: "POST",
+    }));
+
+    expect(response.status).toBe(200);
+    expect(activateClaimMock).not.toHaveBeenCalled();
+    expect(retrieveMock).not.toHaveBeenCalled();
+  });
+
   it("activates a sponsor claim from payment metadata", async () => {
     unwrapMock.mockReturnValue({
       type: "payment.succeeded",

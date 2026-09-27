@@ -3,10 +3,16 @@
 import { Crown } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { readJsonResponse } from "@/lib/app/fetch-json";
+import { formatSponsorCardAmount } from "@/lib/sponsors/ranking";
 import type { RankedSponsor } from "@/lib/sponsors/types";
 import SponsorModal from "./SponsorModal";
 
 const previewColors = ["#f44336", "#a259ff", "#4d7cff", "#777", "#82b9a8"];
+
+function sponsorMarkStyle(index: number, logoUrl?: string) {
+  if (logoUrl) return { backgroundImage: `url("${logoUrl}")` };
+  return { backgroundColor: previewColors[index % previewColors.length] };
+}
 
 export default function SponsorRail() {
   const [sponsors, setSponsors] = useState<RankedSponsor[]>([]);
@@ -65,16 +71,16 @@ export default function SponsorRail() {
             <button className="sponsor-card-main" type="button" onClick={() => setSelected(sponsor)}>
               <span
                 className={`sponsor-mark ${sponsor.logoUrl ? "has-sponsor-logo" : ""}`}
-                style={{ backgroundColor: previewColors[index % previewColors.length], backgroundImage: sponsor.logoUrl ? `url("${sponsor.logoUrl}")` : undefined }}
+                style={sponsorMarkStyle(index, sponsor.logoUrl)}
               >
-                {index === 0 && <Crown className="sponsor-crown" size={11} weight="fill" />}
+                {index === 0 && !sponsor.logoUrl && <Crown className="sponsor-crown" size={11} weight="fill" />}
                 {sponsor.companyName.slice(0, 1)}
               </span>
               <span className="sponsor-card-copy">
                 <strong>{sponsor.companyName}</strong>
-                <small>#{index + 1}</small>
+                <small>#{sponsor.rank}</small>
               </span>
-              <strong className="sponsor-amount">${(sponsor.bidCents / 100).toFixed(0)}</strong>
+              <strong className="sponsor-amount">{formatSponsorCardAmount(sponsor.bidCents)}</strong>
             </button>
             <button className="sponsor-card-action" type="button" onClick={() => setModalRank(sponsor.rank)}>Outbid #{sponsor.rank}</button>
           </div>
@@ -86,11 +92,8 @@ export default function SponsorRail() {
           <section className="sponsor-details-modal" role="dialog" aria-modal="true" aria-labelledby="all-tools-sponsor-details-title">
             <button className="sponsor-details-close" type="button" aria-label="Close sponsor details" onClick={() => setSelected(null)}>×</button>
             <span
-              className="sponsor-details-mark"
-              style={{
-                backgroundColor: previewColors[(selected.rank - 1) % previewColors.length],
-                backgroundImage: selected.logoUrl ? `url("${selected.logoUrl}")` : undefined,
-              }}
+              className={`sponsor-details-mark ${selected.logoUrl ? "has-sponsor-logo" : ""}`}
+              style={sponsorMarkStyle(selected.rank - 1, selected.logoUrl)}
             >
               {!selected.logoUrl && selected.companyName.slice(0, 1)}
             </span>

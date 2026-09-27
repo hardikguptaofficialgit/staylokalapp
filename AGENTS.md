@@ -1,4 +1,4 @@
-# StayLokal — Complete Current-State Project Document
+# StayLokal - Complete Current-State Project Document
 
 Last updated: 2026-09-15
 
@@ -6,23 +6,23 @@ This document is the canonical description of the repository as it exists now. I
 must describe code that exists, not desired behavior. Every major item has one of
 these statuses:
 
-- `WORKING` — implemented and supported by the current code path and available
+- `WORKING` - implemented and supported by the current code path and available
   verification.
-- `PARTIALLY WORKING` — implemented, but limited by known capability, coverage, or
+- `PARTIALLY WORKING` - implemented, but limited by known capability, coverage, or
   integration gaps.
-- `NOT WORKING` — present but currently fails its intended behavior.
-- `IMPLEMENTED BUT UNTESTED` — code exists, but there is not enough reliable
+- `NOT WORKING` - present but currently fails its intended behavior.
+- `IMPLEMENTED BUT UNTESTED` - code exists, but there is not enough reliable
   execution evidence to call it working.
-- `PLANNED` — not exposed as a current feature, or intentionally deferred.
+- `PLANNED` - not exposed as a current feature, or intentionally deferred.
 
 ## V1 Status
 
 StayLokal V1 is **READY TO FREEZE** under the accepted verification criteria:
 
-- `npm test` — **PASS** (58 tests)
-- `npm run lint` — **PASS**
-- `npm run typecheck` — **PASS**
-- `npm run build` — **PASS**
+- `npm test` - **PASS** (58 tests)
+- `npm run lint` - **PASS**
+- `npm run typecheck` - **PASS**
+- `npm run build` - **PASS**
 - Focused/manual smoke verification is the accepted browser validation.
 - The full Playwright/browser suite is **not a V1 acceptance gate**.
 
@@ -153,7 +153,7 @@ Every exposed descriptor points to one of the four processor kinds:
 
 ## 4. Currently working features
 
-### 4.1 Application shell and landing page — `WORKING`
+### 4.1 Application shell and landing page - `WORKING`
 
 Files:
 
@@ -183,7 +183,7 @@ Implemented behavior:
   containers or shadows. ZIP and Folder decorations are hidden.
 - The previous “Files, but better.” footer decoration has been removed.
 
-### 4.2 Upload and queue — `WORKING`
+### 4.2 Upload and queue - `WORKING`
 
 Implemented in `app/page.tsx`:
 
@@ -205,7 +205,7 @@ Implemented in `app/page.tsx`:
 - Queue reset when files are cleared or replaced.
 - Oversized-file error state.
 
-### 4.3 Detection and discovery — `WORKING`
+### 4.3 Detection and discovery - `WORKING`
 
 Implemented in:
 
@@ -243,7 +243,7 @@ The tool picker provides:
 - empty state for unsupported files;
 - deferred-type messaging for recognized formats without an exposed processor.
 
-### 4.4 Shared validation — `WORKING`
+### 4.4 Shared validation - `WORKING`
 
 `lib/tools/validation.ts` provides:
 
@@ -262,7 +262,7 @@ The hard limit is:
 512 * 1024 * 1024 bytes
 ```
 
-### 4.5 Image processing — `WORKING` for exposed operations
+### 4.5 Image processing - `WORKING` for exposed operations
 
 Files:
 
@@ -305,7 +305,7 @@ one-time model cache before the shared Run Tool action starts segmentation.
 
 The page invokes the existing image processor for the final “Run Tool” action.
 
-### 4.6 PDF processing — `WORKING` for exposed operations
+### 4.6 PDF processing - `WORKING` for exposed operations
 
 Files:
 
@@ -383,7 +383,7 @@ export/cancellation stays in the editor footer.
 The visual PDF editor is the page’s active PDF processing path. The generic duplicate
 PDF action is not used for selected PDF tools.
 
-### 4.7 Video processing — `PARTIALLY WORKING`
+### 4.7 Video processing - `PARTIALLY WORKING`
 
 Files:
 
@@ -425,7 +425,7 @@ The page only mounts the video editor for the exposed video IDs. Split action su
 exists in the editor and command layer but split is not currently exposed in the
 registry.
 
-#### Critical video-size rule — `WORKING`
+#### Critical video-size rule - `WORKING`
 
 For videos larger than 512 MB, the current V1 behavior is:
 
@@ -462,7 +462,7 @@ The worker:
 - cleans temporary inputs and generated outputs in `finally`;
 - reports FFmpeg logs with failures.
 
-### 4.8 Audio processing — `PARTIALLY WORKING`
+### 4.8 Audio processing - `PARTIALLY WORKING`
 
 Files:
 
@@ -495,7 +495,7 @@ operations kept in a compact toolbar.
 `audio-processor.ts` maps the selected range into the registered
 `audio-trim` FFmpeg operation.
 
-### 4.9 Results and downloads — `WORKING`
+### 4.9 Results and downloads - `WORKING`
 
 Implemented in `app/page.tsx`:
 
@@ -511,7 +511,7 @@ Implemented in `app/page.tsx`:
 
 ## 5. Added but incomplete, limited, or not user-facing
 
-### 5.1 Image operations now exposed — `WORKING`
+### 5.1 Image operations now exposed - `WORKING`
 
 `lib/tools/image.ts` contains branches for:
 
@@ -523,7 +523,7 @@ These operations are exposed through the current registry and use the existing C
 processor and visual image editor. Focused Chromium coverage passes for rotate, flip,
 and thumbnail output.
 
-### 5.2 Dormant FFmpeg command mappings — `PLANNED`
+### 5.2 Dormant FFmpeg command mappings - `PLANNED`
 
 `lib/tools/ffmpeg-commands.ts` contains command mappings for:
 
@@ -546,19 +546,19 @@ advertised to users. They are **not supported V1 features**. Their command mappi
 must not be surfaced or added to the registry without explicit product approval and
 reliable execution verification.
 
-### 5.3 Subtitle/text overlay command branch — `PLANNED`
+### 5.3 Subtitle/text overlay command branch - `PLANNED`
 
 There is a `subtitle` branch in `ffmpeg-commands.ts` using FFmpeg `drawtext`, but there
 is no exposed subtitle-file workflow and no registry entry. It is not a supported V1
 feature and has no reliable browser execution evidence.
 
-### 5.4 Video merge command path — `NOT WORKING` / `PLANNED`
+### 5.4 Video merge command path - `NOT WORKING` / `PLANNED`
 
 The worker retains a merge branch using a concat list and re-encoding. The operation
 is not in the current registry because browser execution was not reliable enough to
 advertise. It must not be considered a supported feature.
 
-### 5.5 Shared workspace primitives — `CURRENTLY UNUSED / NOT V1 ACCEPTANCE`
+### 5.5 Shared workspace primitives - `CURRENTLY UNUSED / NOT V1 ACCEPTANCE`
 
 Files:
 
@@ -576,7 +576,7 @@ uses the concrete PDF, image, video, and audio editors directly rather than comp
 all of these primitives into one shared rendered workspace. This is an intentional
 current implementation detail; V1 does not require a refactor to use `ToolWorkspace`.
 
-### 5.6 Full browser verification — `IMPLEMENTED BUT UNTESTED`
+### 5.6 Full browser verification - `IMPLEMENTED BUT UNTESTED`
 
 Playwright test files exist, but the full suite is explicitly excluded from V1 freeze
 acceptance:
@@ -592,34 +592,34 @@ The tests must not be described as a complete successful browser matrix.
 
 ### Product features
 
-- Additional image editor effects and AI tools — `PLANNED`
-- Video split exposure — `PLANNED`
+- Additional image editor effects and AI tools - `PLANNED`
+- Video split exposure - `PLANNED`
 - Video compression, conversion, resize, FPS, mute, audio extraction, GIF, thumbnail,
-  rotate, flip, and metadata tools — `PLANNED`
-- Video merge — `PLANNED`, blocked by reliability
-- Subtitle-file workflow — `PLANNED`
-- Image contact sheets, PDF text extraction, and true PDF compression — `PLANNED`;
+  rotate, flip, and metadata tools - `PLANNED`
+- Video merge - `PLANNED`, blocked by reliability
+- Subtitle-file workflow - `PLANNED`
+- Image contact sheets, PDF text extraction, and true PDF compression - `PLANNED`;
   these require additional verified browser paths and are not exposed in the registry.
-- Broader audio-only workflows — `PLANNED`
-- Document editing — `PLANNED`
-- Spreadsheet editing beyond preview and CSV export — `PLANNED`
-- ZIP creation and non-ZIP archive operations — `PLANNED`
-- Persistence/history — `PLANNED`
-- Offline/PWA behavior — `PLANNED`
+- Broader audio-only workflows - `PLANNED`
+- Document editing - `PLANNED`
+- Spreadsheet editing beyond preview and CSV export - `PLANNED`
+- ZIP creation and non-ZIP archive operations - `PLANNED`
+- Persistence/history - `PLANNED`
+- Offline/PWA behavior - `PLANNED`
 
-### Future hardening — `PLANNED`, NOT V1 BLOCKERS
+### Future hardening - `PLANNED`, NOT V1 BLOCKERS
 
 The following are future engineering work and are not blockers for the current V1
 freeze:
 
-- Broader codec/container matrix — `PLANNED`
-- Firefox, Edge, and mobile hardware verification — `PLANNED`
-- Browser capability checks beyond current media element checks — `PLANNED`
-- Large-file memory-pressure improvements — `PLANNED`
-- Global error boundary and runtime fallback UI — `PLANNED`
-- Dedicated typed FFmpeg worker protocol module — `PLANNED`
-- Reusable download-result component — `PLANNED`
-- Reliable end-to-end media fixtures with finite duration in Chromium — `PLANNED`
+- Broader codec/container matrix - `PLANNED`
+- Firefox, Edge, and mobile hardware verification - `PLANNED`
+- Browser capability checks beyond current media element checks - `PLANNED`
+- Large-file memory-pressure improvements - `PLANNED`
+- Global error boundary and runtime fallback UI - `PLANNED`
+- Dedicated typed FFmpeg worker protocol module - `PLANNED`
+- Reusable download-result component - `PLANNED`
+- Reliable end-to-end media fixtures with finite duration in Chromium - `PLANNED`
 
 ## 7. UI structure
 
@@ -819,35 +819,35 @@ PDF export owns a separate local AbortController inside `PdfEditor`.
 
 ## 9. Backend, API, database, authentication, and storage
 
-### Backend/API — `PARTIALLY WORKING`
+### Backend/API - `PARTIALLY WORKING`
 
 Donation and sponsor route handlers exist under `app/api/`. They keep Dodo and
 Appwrite credentials server-only. Sponsor activation is driven by a verified Dodo
 payment webhook, with a server-side Dodo payment retrieval fallback on the browser
 return so local development does not appear to silently lose a successful payment.
 
-### Database — `PARTIALLY WORKING`
+### Database - `PARTIALLY WORKING`
 
 `node-appwrite` provides the server-side persistence adapter for sponsor claims and
 active sponsor records. Collections and attributes are configured externally; see
 `docs/sponsor-leaderboard.md`.
 
-### Authentication — `PLANNED`
+### Authentication - `PLANNED`
 
 There is no authentication or user account system.
 
-### File storage — `PARTIALLY WORKING`
+### File storage - `PARTIALLY WORKING`
 
 Input files remain in browser memory and browser-managed object URLs. Optional sponsor
 logos can be stored in an Appwrite Storage bucket after validation.
 
-### External integrations — `PARTIALLY WORKING`
+### External integrations - `PARTIALLY WORKING`
 
 Dodo Payments provides hosted donation and sponsor checkout. Appwrite provides
 sponsor persistence and optional logo storage. Neither integration is configured in
 the repository environment by default.
 
-### Local runtime dependencies — `WORKING`
+### Local runtime dependencies - `WORKING`
 
 - Browser Canvas for image processing.
 - `pdf-lib` for PDF parsing/export.
@@ -943,7 +943,7 @@ tests/
 
 ## 11. Dependencies and integrations
 
-### Runtime dependencies — `WORKING`
+### Runtime dependencies - `WORKING`
 
 - `next@16.3.5`
 - `react@19.2.8`
@@ -952,24 +952,24 @@ tests/
 - `@ffmpeg/ffmpeg`
 - `@ffmpeg/core`
 - `pdf-lib`
-- `pdfjs-dist` — local PDF page rasterization; PDF.js worker is bundled by the application
-- `jszip` — local packaging of multi-page raster exports
-- `gifenc` — local animated GIF encoding from Canvas frames
-- `pptx-browser` — local PPTX slide rendering for presentation preview/export
-- `ppt` — local legacy PowerPoint 97–2003 text extraction
-- `xlsx` — local XLS/XLSX workbook parsing and CSV export
-- `upscaler` and `@upscalerjs/esrgan-thick` — local ESRGAN Thick 2× image upscaling
-- `@jose.espana/docstream` — browser-compatible local legacy DOC OLE text extraction
-- `@imgly/background-removal` and `onnxruntime-web` — local IS-NET quantized background segmentation
-- `tesseract.js` — local OCR worker runtime
-- `@tesseract.js-data/eng` — English language data copied into `public/tesseract/data`
-- `public/tesseract/` — self-hosted OCR worker, core JavaScript/WASM, and language assets
-- `qpdf-run` — installed for experimental compression; current Next.js worker initialization is not reliable
+- `pdfjs-dist` - local PDF page rasterization; PDF.js worker is bundled by the application
+- `jszip` - local packaging of multi-page raster exports
+- `gifenc` - local animated GIF encoding from Canvas frames
+- `pptx-browser` - local PPTX slide rendering for presentation preview/export
+- `ppt` - local legacy PowerPoint 97–2003 text extraction
+- `xlsx` - local XLS/XLSX workbook parsing and CSV export
+- `upscaler` and `@upscalerjs/esrgan-thick` - local ESRGAN Thick 2× image upscaling
+- `@jose.espana/docstream` - browser-compatible local legacy DOC OLE text extraction
+- `@imgly/background-removal` and `onnxruntime-web` - local IS-NET quantized background segmentation
+- `tesseract.js` - local OCR worker runtime
+- `@tesseract.js-data/eng` - English language data copied into `public/tesseract/data`
+- `public/tesseract/` - self-hosted OCR worker, core JavaScript/WASM, and language assets
+- `qpdf-run` - installed for experimental compression; current Next.js worker initialization is not reliable
 - Browser PKCS#12 signing libraries were researched but are not installed; certificate/signing remains deferred pending round-trip validation and credential UI.
 - `clsx`
 - `tailwind-merge`
 
-### Development dependencies — `WORKING`
+### Development dependencies - `WORKING`
 
 - TypeScript
 - ESLint
@@ -981,7 +981,7 @@ tests/
 - `ts-ebml`
 - React and Node type packages
 
-### Security headers — `PARTIALLY WORKING`
+### Security headers - `PARTIALLY WORKING`
 
 `next.config.ts` adds:
 
@@ -1048,13 +1048,13 @@ Browser tests present:
 - `tests/browser/editors.spec.ts`
 - `tests/browser/a11y-responsive.spec.ts`
 - `tests/browser/hardening.spec.ts`
-- `tests/browser/ocr-focused.spec.ts` — self-hosted OCR and searchable-PDF round trip
-- `tests/browser/image-annotation-focused.spec.ts` — PDF image annotation round trip
-- `tests/browser/forms-focused.spec.ts` — PDF text/date-like, checkbox, and dropdown form round trip
-- `tests/browser/region-annotations-focused.spec.ts` — highlight, rectangle, and redaction round trips
-- `tests/browser/image-tools-focused.spec.ts` — image rotate, flip, and thumbnail round trips
-- `tests/browser/document-focused.spec.ts` — DOCX, TXT, and legacy DOC text extraction round trips
-- `tests/browser/presentation-focused.spec.ts` — PPTX text extraction, legacy PPT extraction, and real PPTX PDF/PNG/JPG export round trips
+- `tests/browser/ocr-focused.spec.ts` - self-hosted OCR and searchable-PDF round trip
+- `tests/browser/image-annotation-focused.spec.ts` - PDF image annotation round trip
+- `tests/browser/forms-focused.spec.ts` - PDF text/date-like, checkbox, and dropdown form round trip
+- `tests/browser/region-annotations-focused.spec.ts` - highlight, rectangle, and redaction round trips
+- `tests/browser/image-tools-focused.spec.ts` - image rotate, flip, and thumbnail round trips
+- `tests/browser/document-focused.spec.ts` - DOCX, TXT, and legacy DOC text extraction round trips
+- `tests/browser/presentation-focused.spec.ts` - PPTX text extraction, legacy PPT extraction, and real PPTX PDF/PNG/JPG export round trips
 
 The browser suites cover image, PDF, audio, video capability states, deferred file
 states, cancellation, file switching, responsive layout, keyboard interaction,
@@ -1077,8 +1077,8 @@ browser/server startup hangs, long FFmpeg runs, and codec capability differences
 
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+This version has breaking changes - APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+This block is written and re-added by `next dev` - verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->

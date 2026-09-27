@@ -8,7 +8,7 @@ fs.writeFileSync(path.join(dir, "sponsors-ui.css"), `${details.trimEnd()}\n\n${b
 fs.unlinkSync(path.join(dir, "sponsors-details.css"));
 fs.unlinkSync(path.join(dir, "sponsors-bid-modal.css"));
 
-const index = `/* Landing styles — import order matters. */
+const index = `/* Landing styles - import order matters. */
 @import "./hero-layout.css";
 @import "./donate.css";
 @import "./how-it-works.css";

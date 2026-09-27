@@ -38,12 +38,29 @@ export function isBidEnoughForRank(
   return Number.isInteger(bidCents) && bidCents >= minimumBidForRank(sponsors, targetRank);
 }
 
+export function normalizeBidCents(value: unknown): number | null {
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  const cents = Math.round(parsed);
+  return Number.isSafeInteger(cents) ? cents : null;
+}
+
 export function formatBid(cents: number): string {
+  const normalized = normalizeBidCents(cents);
+  if (normalized === null) return "$0.00";
   return new Intl.NumberFormat("en-US", {
     currency: "USD",
     minimumFractionDigits: 2,
     style: "currency",
-  }).format(cents / 100);
+  }).format(normalized / 100);
+}
+
+/** Compact leaderboard label: whole dollars without cents, otherwise two decimals. */
+export function formatSponsorCardAmount(cents: number): string {
+  const normalized = normalizeBidCents(cents);
+  if (normalized === null) return "$—";
+  if (normalized % 100 === 0) return `$${normalized / 100}`;
+  return formatBid(normalized);
 }
 
 /** After a successful payment, decide leaderboard visibility and who gets outbid. */
