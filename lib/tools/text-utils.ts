@@ -28,6 +28,19 @@ function outputBaseName(file: File) {
   return file.name.replace(/\.[^.]+$/, "") || "file";
 }
 
+const hashAlgorithms: Record<string, string> = {
+  sha256: "SHA-256",
+  sha1: "SHA-1",
+};
+
+async function digestFile(file: File, algorithm: string) {
+  const subtleName = hashAlgorithms[algorithm];
+  if (!subtleName) throw new ProcessingError("Choose a supported hash algorithm.", "invalid");
+  const bytes = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest(subtleName, bytes);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 const textUtilsProcessor: ToolProcessor = async (files, options, context) => {
   const file = files[0];
   const operation = String(options.operation ?? "");
@@ -69,6 +82,22 @@ const textUtilsProcessor: ToolProcessor = async (files, options, context) => {
       blob: new Blob([bytes], { type: "application/octet-stream" }),
       type: "application/octet-stream",
       name: `${outputBaseName(file)}.decoded.bin`,
+    }];
+  }
+
+  if (operation === "file-hash") {
+    const algorithm = String(options.algorithm ?? "sha256");
+    const subtleName = hashAlgorithms[algorithm];
+    if (!subtleName) throw new ProcessingError("Choose a supported hash algorithm.", "invalid");
+    context.onProgress({ ratio: 0.2, label: `Computing ${subtleName}` });
+    const hex = await digestFile(file, algorithm);
+    if (context.signal.aborted) throw new ProcessingError("Processing cancelled.", "cancelled");
+    const output = `${subtleName}  ${file.name}\n${hex}\n`;
+    context.onProgress({ ratio: 1, label: `${subtleName} ready` });
+    return [{
+      blob: new Blob([output], { type: "text/plain;charset=utf-8" }),
+      type: "text/plain",
+      name: `${outputBaseName(file)}.${algorithm}.txt`,
     }];
   }
 

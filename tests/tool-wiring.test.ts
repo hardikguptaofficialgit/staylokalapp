@@ -62,6 +62,7 @@ describe("exposed tool wiring", () => {
       "json-format",
       "base64-encode",
       "base64-decode",
+      "file-hash",
       "spreadsheet-preview",
       "spreadsheet-csv",
       "archive-list",

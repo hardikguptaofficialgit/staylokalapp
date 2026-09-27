@@ -11,6 +11,15 @@ describe("text utilities", () => {
     expect(result.name).toBe("data-formatted.json");
   });
 
+  it("computes a SHA-256 hash for a local file", async () => {
+    const file = new File(["hash-me"], "sample.txt", { type: "text/plain" });
+    const [result] = await textUtilsProcessor([file], { operation: "file-hash", algorithm: "sha256" }, context);
+    const text = await result.blob.text();
+    expect(text).toContain("SHA-256  sample.txt");
+    expect(text.trim().split("\n")[1]).toMatch(/^[a-f0-9]{64}$/);
+    expect(result.name).toBe("sample.sha256.txt");
+  });
+
   it("encodes and decodes Base64 locally", async () => {
     const source = new File(["hi"], "sample.txt", { type: "text/plain" });
     const [encoded] = await textUtilsProcessor([source], { operation: "base64-encode" }, context);

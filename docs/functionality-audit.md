@@ -2,7 +2,7 @@
 
 Last updated: 2026-09-27
 
-This document compares StayLokal’s **local-first** registry (`lib/tools/registry.ts`, **75 tools**) against common online suites (iLovePDF/iLoveIMG, Smallpdf, PDF24, Sejda, Squoosh, EZGIF, CloudConvert-style converters, etc.). Status meanings:
+This document compares StayLokal’s **local-first** registry (`lib/tools/registry.ts`, **76 tools**) against common online suites (iLovePDF/iLoveIMG, Smallpdf, PDF24, Sejda, Squoosh, EZGIF, CloudConvert-style converters, etc.). Status meanings:
 
 | Status | Meaning |
 |--------|---------|
@@ -117,7 +117,7 @@ All shipped tools run in the browser; optional sponsor/donation APIs never recei
 | JSON prettify/minify | `json-format` | Shipped | Local file in/out |
 | Base64 encode/decode | `base64-encode`, `base64-decode` | Shipped | Full CyberChef scope still N/A |
 | Calculators | N/A | Out of scope |
-| Hash / encode tools | Gap | Could be a future text-utils bundle |
+| File checksum (SHA-256 / SHA-1) | `file-hash` | Shipped | Web Crypto digest; full CyberChef scope still N/A |
 
 ---
 
@@ -139,8 +139,7 @@ All shipped tools run in the browser; optional sponsor/donation APIs never recei
 
 1. **PDF password** — only after standards-compliant browser path  
 2. **Video merge** — re-enable when worker reliability proven  
-3. **Hash / checksum text utilities** — optional CyberChef-lite expansion (SHA-256, etc.)  
-4. **Batch ZIP download** — optional UX for multi-output image/PDF exports  
+3. **Batch ZIP download** — optional UX for multi-output image/PDF exports  
 
 ---
 

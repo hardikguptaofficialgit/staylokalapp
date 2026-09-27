@@ -49,7 +49,7 @@ const documentProcessor: ToolProcessor = async (files, options, context) => {
   if (String(options.operation ?? "").startsWith("archive-")) {
     return archiveProcessor(files, options, context);
   }
-  if (["json-format", "base64-encode", "base64-decode"].includes(String(options.operation ?? ""))) {
+  if (["json-format", "base64-encode", "base64-decode", "file-hash"].includes(String(options.operation ?? ""))) {
     return textUtilsProcessor(files, options, context);
   }
   const outputs: ProcessedFile[] = [];

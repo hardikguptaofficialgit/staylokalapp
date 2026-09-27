@@ -52,6 +52,7 @@ const recentToolIds = new Set([
   "json-format",
   "base64-encode",
   "base64-decode",
+  "file-hash",
   "pdf-redact",
   "pdf-highlight",
   "pdf-shape",
@@ -93,9 +94,9 @@ function descriptor(
 ): ToolDescriptor {
   const options = optionIds.map((option) => ({
     id: option,
-    label: option === "start" ? "Start time" : option === "duration" ? "Duration" : option === "startSeconds" ? "Start (seconds)" : option === "durationSeconds" ? "Remove (seconds)" : option === "segmentDuration" ? "Segment length (seconds)" : option === "topText" ? "Top text" : option === "bottomText" ? "Bottom text" : option === "fontSize" ? "Font size" : option === "archiveName" ? "ZIP file name" : option === "mode" ? "Output style" : option[0].toUpperCase() + option.slice(1),
-    type: (["format", "direction", "angle", "speed", "position", "mode"].includes(option) ? "select" : ["quality", "width", "height", "fps", "fontSize", "opacity", "pageNumber", "x", "y"].includes(option) ? "number" : option === "removeMetadata" ? "checkbox" : "text") as "text" | "number" | "select" | "checkbox",
-    defaultValue: option === "quality" ? 28 : option === "speed" ? "1" : option === "angle" ? "90" : option === "direction" ? "hflip" : option === "mode" ? "prettify" : option === "archiveName" ? "archive.zip" : option === "format" ? (id === "pdf-to-image" ? "image/png" : category === "Image" ? "image/jpeg" : category === "Audio" ? "mp3" : "mp4") : option === "width" ? (id === "pdf-redact" ? 20 : id === "image-thumbnail" ? 320 : id === "image-crop" ? 800 : 1280) : option === "height" ? (id === "pdf-redact" ? 20 : 600) : option === "x" || option === "y" ? 0 : option === "fps" ? 30 : option === "fontSize" ? (id === "image-watermark" || id === "image-meme" ? 36 : 12) : option === "opacity" ? 0.6 : option === "position" ? "bottom-right" : option === "pageNumber" ? 1 : option === "startSeconds" ? 0 : option === "durationSeconds" || option === "segmentDuration" ? 10 : option === "removeMetadata" ? false : undefined,
+    label: option === "start" ? "Start time" : option === "duration" ? "Duration" : option === "startSeconds" ? "Start (seconds)" : option === "durationSeconds" ? "Remove (seconds)" : option === "segmentDuration" ? "Segment length (seconds)" : option === "topText" ? "Top text" : option === "bottomText" ? "Bottom text" : option === "fontSize" ? "Font size" : option === "archiveName" ? "ZIP file name" : option === "mode" ? "Output style" : option === "algorithm" ? "Algorithm" : option[0].toUpperCase() + option.slice(1),
+    type: (["format", "direction", "angle", "speed", "position", "mode", "algorithm"].includes(option) ? "select" : ["quality", "width", "height", "fps", "fontSize", "opacity", "pageNumber", "x", "y"].includes(option) ? "number" : option === "removeMetadata" ? "checkbox" : "text") as "text" | "number" | "select" | "checkbox",
+    defaultValue: option === "quality" ? 28 : option === "speed" ? "1" : option === "angle" ? "90" : option === "direction" ? "hflip" : option === "mode" ? "prettify" : option === "algorithm" ? "sha256" : option === "archiveName" ? "archive.zip" : option === "format" ? (id === "pdf-to-image" ? "image/png" : category === "Image" ? "image/jpeg" : category === "Audio" ? "mp3" : "mp4") : option === "width" ? (id === "pdf-redact" ? 20 : id === "image-thumbnail" ? 320 : id === "image-crop" ? 800 : 1280) : option === "height" ? (id === "pdf-redact" ? 20 : 600) : option === "x" || option === "y" ? 0 : option === "fps" ? 30 : option === "fontSize" ? (id === "image-watermark" || id === "image-meme" ? 36 : 12) : option === "opacity" ? 0.6 : option === "position" ? "bottom-right" : option === "pageNumber" ? 1 : option === "startSeconds" ? 0 : option === "durationSeconds" || option === "segmentDuration" ? 10 : option === "removeMetadata" ? false : undefined,
     min: ["quality", "width", "height", "fps", "fontSize", "opacity", "pageNumber", "x", "y", "startSeconds", "durationSeconds", "segmentDuration"].includes(option) ? (option === "quality" ? 18 : option === "width" && !["pdf-redact", "pdf-highlight", "pdf-shape"].includes(id) ? 160 : option === "fontSize" ? 8 : option === "pageNumber" ? 1 : 0) : undefined,
     max: option === "quality" ? 40 : option === "width" && id !== "pdf-redact" ? 7680 : ["height", "x", "y", "width"].includes(option) && id === "pdf-redact" ? 100 : option === "fps" ? 120 : option === "fontSize" ? 96 : option === "opacity" ? 1 : undefined,
     step: option === "quality" || option === "fps" ? 1 : undefined,
@@ -112,7 +113,8 @@ function descriptor(
           : [{ label: "MP4", value: "mp4" }, { label: "WebM", value: "webm" }, { label: "MOV", value: "mov" }]
       : option === "direction" ? [{ label: "Horizontal", value: "hflip" }, { label: "Vertical", value: "vflip" }]
       : option === "position" ? [{ label: "Top left", value: "top-left" }, { label: "Top right", value: "top-right" }, { label: "Bottom left", value: "bottom-left" }, { label: "Bottom right", value: "bottom-right" }, { label: "Center", value: "center" }]
-        : option === "mode" ? [{ label: "Prettify", value: "prettify" }, { label: "Minify", value: "minify" }] : undefined,
+        : option === "mode" ? [{ label: "Prettify", value: "prettify" }, { label: "Minify", value: "minify" }]
+          : option === "algorithm" ? [{ label: "SHA-256", value: "sha256" }, { label: "SHA-1", value: "sha1" }] : undefined,
   }));
   return {
     id,
@@ -171,6 +173,7 @@ export const tools: ToolDescriptor[] = [
   descriptor("json-format", "Format JSON", "Prettify or minify a JSON file locally.", "brackets-curly", "Other", ["application/json", "text/plain", "text/*"], ["mode"], "document"),
   descriptor("base64-encode", "Encode Base64", "Encode any local file as a Base64 text file.", "binary", "Other", archiveCreateAccept, [], "document"),
   descriptor("base64-decode", "Decode Base64", "Decode a Base64 text file back into binary locally.", "binary", "Other", ["text/plain", "text/*", "application/json"], [], "document"),
+  descriptor("file-hash", "File hash", "Compute a SHA-256 or SHA-1 checksum of any local file.", "fingerprint", "Other", archiveCreateAccept, ["algorithm"], "document"),
   descriptor("spreadsheet-preview", "Preview spreadsheet", "Inspect workbook sheets and cell values locally.", "table", "Other", ["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"], [], "document"),
   descriptor("spreadsheet-csv", "Export CSV", "Export a selected worksheet as CSV locally.", "table", "Other", ["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"], [], "document"),
   descriptor("archive-list", "Inspect ZIP", "List ZIP contents locally.", "archive", "Other", ["application/zip"], [], "document"),

@@ -6,7 +6,7 @@ Local-first browser utilities for PDF, image, video, audio, documents, and archi
 
 ## Features
 
-- **75 exposed tools** across image, PDF, video, audio, presentation, document, spreadsheet, and archive workflows (see `lib/tools/registry.ts` and `docs/functionality-audit.md`).
+- **76 exposed tools** across image, PDF, video, audio, presentation, document, spreadsheet, and archive workflows (see `lib/tools/registry.ts` and `docs/functionality-audit.md`).
 - **Visual editors** for image crop, PDF pages, and media trim timelines where the tool needs them.
 - **512 MB** combined input limit with clear errors before processing starts.
 - **Sponsor leaderboard** — five ranked placements, Dodo Payments checkout, Appwrite persistence, payment return confirmation, and signed webhooks.

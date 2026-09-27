@@ -50,6 +50,7 @@ describe("tool registry", () => {
       "json-format",
       "base64-encode",
       "base64-decode",
+      "file-hash",
       "spreadsheet-preview",
       "spreadsheet-csv",
       "archive-list",
@@ -105,7 +106,7 @@ describe("tool registry", () => {
       "convert-audio",
     ]);
     expect(deferredToolIds).toEqual([]);
-    expect(tools).toHaveLength(75);
+    expect(tools).toHaveLength(76);
   });
 
   it("treats office, archive, and text files as supported types", () => {

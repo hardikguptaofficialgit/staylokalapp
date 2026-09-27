@@ -53,6 +53,7 @@ function primaryRunToolLabel(toolId: string, processing: boolean) {
     "json-format": "Format JSON",
     "base64-encode": "Encode Base64",
     "base64-decode": "Decode Base64",
+    "file-hash": "Compute hash",
     split: "Split video",
     compress: "Compress video",
     convert: "Convert video",
@@ -161,7 +162,7 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
         />
       )}
 
-      {selected.kind === "document" && workflow.activeFile && !workflow.oversizedInput && !selected.id.startsWith("spreadsheet-") && !selected.id.startsWith("archive-") && selected.id !== "json-format" && !selected.id.startsWith("base64-") && (
+      {selected.kind === "document" && workflow.activeFile && !workflow.oversizedInput && !selected.id.startsWith("spreadsheet-") && !selected.id.startsWith("archive-") && selected.id !== "json-format" && !selected.id.startsWith("base64-") && selected.id !== "file-hash" && (
         <DocumentEditor file={workflow.activeFile} />
       )}
 

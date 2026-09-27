@@ -114,7 +114,7 @@ sent to those services.
 
 ## 3. Current exposed registry
 
-The registry in `lib/tools/registry.ts` exposes exactly seventy-five tools. No other tool is
+The registry in `lib/tools/registry.ts` exposes exactly seventy-six tools. No other tool is
 shown by the current tool picker. See `docs/functionality-audit.md` for competitor parity notes.
 
 ### Image
@@ -142,8 +142,8 @@ shown by the current tool picker. See `docs/functionality-audit.md` for competit
 ### Presentation and documents
 `ppt-text`, `pptx-text`, `pptx-pdf`, `pptx-png`, `pptx-jpg`, `docx-text` (DOC/DOCX),
 `txt-preview`, `spreadsheet-preview`, `spreadsheet-csv`, `archive-list`,
-`archive-extract`, `archive-create`, `json-format`, `base64-encode`, and
-`base64-decode`.
+`archive-extract`, `archive-create`, `json-format`, `base64-encode`, `base64-decode`, and
+`file-hash`.
 
 Every exposed descriptor points to one of the four processor kinds:
 
