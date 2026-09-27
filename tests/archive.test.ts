@@ -35,6 +35,16 @@ describe("archive processor", () => {
       .rejects.toMatchObject({ code: "invalid" });
   });
 
+  it("creates a ZIP archive from multiple local files", async () => {
+    const a = new File(["one"], "alpha.txt", { type: "text/plain" });
+    const b = new File(["two"], "beta.txt", { type: "text/plain" });
+    const [result] = await archiveProcessor([a, b], { operation: "archive-create", archiveName: "bundle.zip" }, context);
+    expect(result.type).toBe("application/zip");
+    expect(result.name).toBe("bundle.zip");
+    const archive = await readArchive(new File([await result.blob.arrayBuffer()], "bundle.zip", { type: "application/zip" }), context.signal);
+    expect(archive.entries.map((entry) => entry.name).sort()).toEqual(["alpha.txt", "beta.txt"]);
+  });
+
   it("honors cancellation", async () => {
     const controller = new AbortController();
     controller.abort();

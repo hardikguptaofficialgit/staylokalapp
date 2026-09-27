@@ -3,7 +3,7 @@ import { mediaArgs, mediaOutput } from "../lib/tools/ffmpeg-commands";
 import { deferredToolIds, tools } from "../lib/tools/registry";
 import { matchesAcceptedFile, validateToolInput } from "../lib/tools/validation";
 import { ProcessingError } from "../lib/tools/types";
-import { detectFileType } from "../lib/tools/file-types";
+import { detectFileType, hasUnsupportedDetectedType } from "../lib/tools/file-types";
 
 const context = { onProgress: () => undefined, signal: new AbortController().signal };
 
@@ -26,7 +26,7 @@ describe("tool registry", () => {
     expect(matchesAcceptedFile(new File(["doc"], "letter.doc", { type: "" }), ["application/msword"])).toBe(true);
   });
 
-  it("exposes only the controlled rollout tools", () => {
+  it("exposes the full local media and document tool registry", () => {
     expect(tools.map((tool) => tool.id)).toEqual([
       "image-process",
       "image-crop",
@@ -47,10 +47,14 @@ describe("tool registry", () => {
       "pptx-jpg",
       "docx-text",
       "txt-preview",
+      "json-format",
+      "base64-encode",
+      "base64-decode",
       "spreadsheet-preview",
       "spreadsheet-csv",
       "archive-list",
       "archive-extract",
+      "archive-create",
       "pdf-merge",
       "pdf-rotate",
       "pdf-split",
@@ -59,6 +63,7 @@ describe("tool registry", () => {
       "pdf-reorder",
       "pdf-image-to-pdf",
       "pdf-metadata",
+      "pdf-compress",
       "pdf-to-image",
       "pdf-contact-sheet",
       "pdf-crop",
@@ -79,28 +84,34 @@ describe("tool registry", () => {
       "pdf-ocr",
       "trim",
       "cut",
-      "speed",
-      "frames",
-      "audio-trim",
-      "normalize-audio",
-      "metadata-audio",
-      "convert-audio",
-    ]);
-    expect(deferredToolIds).toEqual([
       "split",
       "compress",
       "convert",
       "resize",
       "fps",
+      "speed",
       "mute",
       "extract-audio",
       "to-gif",
       "from-gif",
+      "frames",
       "thumbnail",
       "rotate",
       "flip",
       "metadata",
+      "audio-trim",
+      "normalize-audio",
+      "metadata-audio",
+      "convert-audio",
     ]);
+    expect(deferredToolIds).toEqual([]);
+    expect(tools).toHaveLength(75);
+  });
+
+  it("treats office, archive, and text files as supported types", () => {
+    expect(hasUnsupportedDetectedType(new File(["doc"], "letter.docx", { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }))).toBe(false);
+    expect(hasUnsupportedDetectedType(new File(["#"], "notes.md", { type: "text/markdown" }))).toBe(false);
+    expect(hasUnsupportedDetectedType(new File(["x"], "mystery.bin", { type: "application/octet-stream" }))).toBe(true);
   });
 
   it("registers every processor with a usable descriptor", () => {
@@ -131,6 +142,13 @@ describe("file validation", () => {
   it("rejects empty files and oversized values before processing", () => {
     const tool = tools.find((item) => item.id === "image-process")!;
     expect(() => validateToolInput([new File([], "empty.jpg", { type: "image/jpeg" })], tool, { width: 1280, quality: 28, format: "image/jpeg" })).toThrow(ProcessingError);
+  });
+
+  it("requires at least two images for animated GIF export", () => {
+    const tool = tools.find((item) => item.id === "image-gif")!;
+    const image = new File(["png"], "frame.png", { type: "image/png" });
+    expect(() => validateToolInput([image], tool, { operation: "image-gif" })).toThrow(ProcessingError);
+    expect(() => validateToolInput([image, image], tool, { operation: "image-gif" })).not.toThrow();
   });
 });
 

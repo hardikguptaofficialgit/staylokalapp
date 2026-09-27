@@ -4,6 +4,7 @@ import { ProcessingError, type ProcessedFile, type ToolProcessor } from "./types
 import presentationProcessor from "./presentation";
 import spreadsheetProcessor from "./spreadsheet";
 import archiveProcessor from "./archive";
+import textUtilsProcessor from "./text-utils";
 
 function decodeXml(value: string) {
   return value
@@ -47,6 +48,9 @@ const documentProcessor: ToolProcessor = async (files, options, context) => {
   }
   if (String(options.operation ?? "").startsWith("archive-")) {
     return archiveProcessor(files, options, context);
+  }
+  if (["json-format", "base64-encode", "base64-decode"].includes(String(options.operation ?? ""))) {
+    return textUtilsProcessor(files, options, context);
   }
   const outputs: ProcessedFile[] = [];
   for (const [index, file] of files.entries()) {

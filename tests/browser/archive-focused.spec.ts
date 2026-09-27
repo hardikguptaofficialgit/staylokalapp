@@ -23,3 +23,18 @@ test("inspects a ZIP and extracts a selected file locally", async ({ page }) => 
   await expect(page.getByText("Completed Locally")).toBeVisible();
   await expect(page.getByRole("link", { name: /bundle-docs-readme\.txt/i })).toHaveAttribute("download", "bundle-docs-readme.txt");
 });
+
+test("creates a ZIP archive from multiple queued files", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/");
+  const input = page.locator('input[aria-label="Choose files"]');
+  await input.setInputFiles([
+    { name: "alpha.txt", mimeType: "text/plain", buffer: Buffer.from("alpha") },
+    { name: "beta.txt", mimeType: "text/plain", buffer: Buffer.from("beta") },
+  ]);
+  await page.getByRole("button", { name: /Create ZIP/ }).click();
+  await expect(page.getByRole("region", { name: "ZIP creation" })).toContainText("2 files");
+  await page.getByRole("button", { name: "Create ZIP" }).click();
+  await expect(page.getByText("Completed Locally")).toBeVisible();
+  await expect(page.getByRole("link", { name: /archive\.zip/i })).toHaveAttribute("download", "archive.zip");
+});

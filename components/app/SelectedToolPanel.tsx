@@ -1,4 +1,5 @@
 import { ArrowLeft, ArrowUp, CloudArrowDown, Sparkle } from "@phosphor-icons/react";
+import { useEffect, useMemo } from "react";
 import PdfEditor from "@/components/editor/pdf/pdf-editor";
 import ImageToPdfEditor from "@/components/editor/pdf/ImageToPdfEditor";
 import PdfMetadataEditor from "@/components/editor/pdf/PdfMetadataEditor";
@@ -14,12 +15,59 @@ import { AudioEditor, VideoEditor, type VideoEditorAction, type VideoEditorToolI
 import type { AppWorkflow } from "./types";
 import { matchesAcceptedFile } from "@/lib/tools/validation";
 import WorkspaceSidebar from "./WorkspaceSidebar";
+import ArchiveCreateEditor from "@/components/editor/archive/ArchiveCreateEditor";
 
 const videoEditorToolIds = ["trim", "cut", "speed", "frames"] as const;
+const genericFfmpegVideoToolIds = [
+  "split", "compress", "convert", "resize", "fps", "mute", "extract-audio", "to-gif", "from-gif", "thumbnail", "rotate", "flip", "metadata",
+] as const;
 const audioEditorToolIds = ["audio-trim", "normalize-audio", "metadata-audio", "convert-audio"] as const;
 
 function usesInlineMediaProgress(toolId: string) {
   return (videoEditorToolIds as readonly string[]).includes(toolId) || (audioEditorToolIds as readonly string[]).includes(toolId);
+}
+
+function FfmpegSourcePreview({ file }: { file: File }) {
+  const url = useMemo(() => URL.createObjectURL(file), [file]);
+  useEffect(() => () => URL.revokeObjectURL(url), [url]);
+  if (file.type.startsWith("video/")) {
+    return <video src={url} controls className="max-h-52 w-full rounded-lg border border-line bg-black/80" />;
+  }
+  if (file.type.startsWith("audio/")) {
+    return <audio src={url} controls className="w-full" />;
+  }
+  if (file.type === "image/gif" || /\.gif$/i.test(file.name)) {
+    return <img src={url} alt="" className="mx-auto max-h-52 rounded-lg border border-line object-contain" />; // eslint-disable-line @next/next/no-img-element
+  }
+  return <p className="text-sm text-muted">Preview is not available for this file type, but local processing is still supported.</p>;
+}
+
+function primaryRunToolLabel(toolId: string, processing: boolean) {
+  if (processing) return "Processing File...";
+  const labels: Record<string, string> = {
+    "spreadsheet-csv": "Export CSV",
+    "spreadsheet-preview": "Download preview",
+    "archive-list": "Download listing",
+    "archive-create": "Create ZIP",
+    "archive-extract": "Extract File",
+    "json-format": "Format JSON",
+    "base64-encode": "Encode Base64",
+    "base64-decode": "Decode Base64",
+    split: "Split video",
+    compress: "Compress video",
+    convert: "Convert video",
+    resize: "Resize video",
+    fps: "Change FPS",
+    mute: "Mute video",
+    "extract-audio": "Extract audio",
+    "to-gif": "Create GIF",
+    "from-gif": "Convert to MP4",
+    thumbnail: "Grab thumbnail",
+    rotate: "Rotate video",
+    flip: "Flip video",
+    metadata: "Remove metadata",
+  };
+  return labels[toolId] ?? "Run Tool";
 }
 
 export default function SelectedToolPanel({ workflow, inputRef }: { workflow: AppWorkflow; inputRef: React.RefObject<HTMLInputElement | null> }) {
@@ -104,7 +152,16 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
         />
       )}
 
-      {selected.kind === "document" && workflow.activeFile && !workflow.oversizedInput && !selected.id.startsWith("spreadsheet-") && !selected.id.startsWith("archive-") && (
+      {selected.id === "archive-create" && !workflow.oversizedInput && (
+        <ArchiveCreateEditor
+          files={workflow.files}
+          tool={selected}
+          archiveName={String(workflow.options.archiveName ?? "archive.zip")}
+          onArchiveNameChange={(value) => workflow.setOptions({ ...workflow.options, archiveName: value })}
+        />
+      )}
+
+      {selected.kind === "document" && workflow.activeFile && !workflow.oversizedInput && !selected.id.startsWith("spreadsheet-") && !selected.id.startsWith("archive-") && selected.id !== "json-format" && !selected.id.startsWith("base64-") && (
         <DocumentEditor file={workflow.activeFile} />
       )}
 
@@ -116,7 +173,7 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
         />
       )}
 
-      {selected.kind === "document" && workflow.activeFile && !workflow.oversizedInput && selected.id.startsWith("archive-") && (
+      {selected.kind === "document" && workflow.activeFile && !workflow.oversizedInput && selected.id.startsWith("archive-") && selected.id !== "archive-create" && (
         <ArchiveEditor
           file={workflow.activeFile}
           options={workflow.options}
@@ -138,6 +195,16 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
           onCancel={workflow.cancelProcessing}
           disabled={workflow.status === "processing"}
         />
+      )}
+
+      {(genericFfmpegVideoToolIds as readonly string[]).includes(selected.id) && workflow.activeFile && !workflow.oversizedInput && (
+        <div className="mb-8 rounded-xl border border-line bg-background p-4">
+          <p className="eyebrow !text-[10px] text-muted">Local source preview</p>
+          <div className="mt-3">
+            <FfmpegSourcePreview file={workflow.activeFile} />
+          </div>
+          <p className="mt-2 text-xs text-muted">Set options below, then run the tool. Your file never leaves this device.</p>
+        </div>
       )}
 
       {(videoEditorToolIds as readonly string[]).includes(selected.id) && workflow.activeFile && !workflow.oversizedInput && (
@@ -184,13 +251,7 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
 
       {selected.kind !== "pdf" && !inlineMediaProgress && <div className="flex flex-col sm:flex-row gap-3">
         <button type="button" onClick={() => void workflow.processWithOptions()} disabled={workflow.status === "processing"} className="action-button flex-1 justify-center disabled:cursor-not-allowed disabled:opacity-50">
-          {workflow.status === "processing"
-            ? "Processing File..."
-            : selected.id === "spreadsheet-csv"
-              ? "Export CSV"
-              : selected.id === "archive-extract"
-                ? "Extract File"
-                : "Run Tool"}
+          {primaryRunToolLabel(selected.id, workflow.status === "processing")}
           {workflow.status !== "processing" && <ArrowUp size={18} weight="bold" />}
         </button>
         {workflow.status === "processing" && <button type="button" onClick={workflow.cancelProcessing} className="control-pill justify-center sm:w-32" aria-label="Cancel processing">Cancel</button>}

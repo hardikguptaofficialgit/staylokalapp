@@ -48,6 +48,10 @@ const recentToolIds = new Set([
   "spreadsheet-csv",
   "archive-list",
   "archive-extract",
+  "archive-create",
+  "json-format",
+  "base64-encode",
+  "base64-decode",
   "pdf-redact",
   "pdf-highlight",
   "pdf-shape",
@@ -62,6 +66,19 @@ const recentToolIds = new Set([
   "normalize-audio",
   "metadata-audio",
   "convert-audio",
+  "split",
+  "compress",
+  "convert",
+  "resize",
+  "fps",
+  "mute",
+  "extract-audio",
+  "to-gif",
+  "from-gif",
+  "thumbnail",
+  "rotate",
+  "flip",
+  "metadata",
 ]);
 
 function descriptor(
@@ -76,9 +93,9 @@ function descriptor(
 ): ToolDescriptor {
   const options = optionIds.map((option) => ({
     id: option,
-    label: option === "start" ? "Start time" : option === "duration" ? "Duration" : option === "startSeconds" ? "Start (seconds)" : option === "durationSeconds" ? "Remove (seconds)" : option === "segmentDuration" ? "Segment length (seconds)" : option === "topText" ? "Top text" : option === "bottomText" ? "Bottom text" : option === "fontSize" ? "Font size" : option[0].toUpperCase() + option.slice(1),
-    type: (["format", "direction", "angle", "speed", "position"].includes(option) ? "select" : ["quality", "width", "height", "fps", "fontSize", "opacity", "pageNumber", "x", "y"].includes(option) ? "number" : option === "removeMetadata" ? "checkbox" : "text") as "text" | "number" | "select" | "checkbox",
-    defaultValue: option === "quality" ? 28 : option === "speed" ? "1" : option === "angle" ? "90" : option === "direction" ? "hflip" : option === "format" ? (id === "pdf-to-image" ? "image/png" : category === "Image" ? "image/jpeg" : category === "Audio" ? "mp3" : "mp4") : option === "width" ? (id === "pdf-redact" ? 20 : id === "image-thumbnail" ? 320 : id === "image-crop" ? 800 : 1280) : option === "height" ? (id === "pdf-redact" ? 20 : 600) : option === "x" || option === "y" ? 0 : option === "fps" ? 30 : option === "fontSize" ? (id === "image-watermark" || id === "image-meme" ? 36 : 12) : option === "opacity" ? 0.6 : option === "position" ? "bottom-right" : option === "pageNumber" ? 1 : option === "startSeconds" ? 0 : option === "durationSeconds" || option === "segmentDuration" ? 10 : option === "removeMetadata" ? false : undefined,
+    label: option === "start" ? "Start time" : option === "duration" ? "Duration" : option === "startSeconds" ? "Start (seconds)" : option === "durationSeconds" ? "Remove (seconds)" : option === "segmentDuration" ? "Segment length (seconds)" : option === "topText" ? "Top text" : option === "bottomText" ? "Bottom text" : option === "fontSize" ? "Font size" : option === "archiveName" ? "ZIP file name" : option === "mode" ? "Output style" : option[0].toUpperCase() + option.slice(1),
+    type: (["format", "direction", "angle", "speed", "position", "mode"].includes(option) ? "select" : ["quality", "width", "height", "fps", "fontSize", "opacity", "pageNumber", "x", "y"].includes(option) ? "number" : option === "removeMetadata" ? "checkbox" : "text") as "text" | "number" | "select" | "checkbox",
+    defaultValue: option === "quality" ? 28 : option === "speed" ? "1" : option === "angle" ? "90" : option === "direction" ? "hflip" : option === "mode" ? "prettify" : option === "archiveName" ? "archive.zip" : option === "format" ? (id === "pdf-to-image" ? "image/png" : category === "Image" ? "image/jpeg" : category === "Audio" ? "mp3" : "mp4") : option === "width" ? (id === "pdf-redact" ? 20 : id === "image-thumbnail" ? 320 : id === "image-crop" ? 800 : 1280) : option === "height" ? (id === "pdf-redact" ? 20 : 600) : option === "x" || option === "y" ? 0 : option === "fps" ? 30 : option === "fontSize" ? (id === "image-watermark" || id === "image-meme" ? 36 : 12) : option === "opacity" ? 0.6 : option === "position" ? "bottom-right" : option === "pageNumber" ? 1 : option === "startSeconds" ? 0 : option === "durationSeconds" || option === "segmentDuration" ? 10 : option === "removeMetadata" ? false : undefined,
     min: ["quality", "width", "height", "fps", "fontSize", "opacity", "pageNumber", "x", "y", "startSeconds", "durationSeconds", "segmentDuration"].includes(option) ? (option === "quality" ? 18 : option === "width" && !["pdf-redact", "pdf-highlight", "pdf-shape"].includes(id) ? 160 : option === "fontSize" ? 8 : option === "pageNumber" ? 1 : 0) : undefined,
     max: option === "quality" ? 40 : option === "width" && id !== "pdf-redact" ? 7680 : ["height", "x", "y", "width"].includes(option) && id === "pdf-redact" ? 100 : option === "fps" ? 120 : option === "fontSize" ? 96 : option === "opacity" ? 1 : undefined,
     step: option === "quality" || option === "fps" ? 1 : undefined,
@@ -94,10 +111,42 @@ function descriptor(
           ? [{ label: "MP3", value: "mp3" }, { label: "WAV", value: "wav" }]
           : [{ label: "MP4", value: "mp4" }, { label: "WebM", value: "webm" }, { label: "MOV", value: "mov" }]
       : option === "direction" ? [{ label: "Horizontal", value: "hflip" }, { label: "Vertical", value: "vflip" }]
-      : option === "position" ? [{ label: "Top left", value: "top-left" }, { label: "Top right", value: "top-right" }, { label: "Bottom left", value: "bottom-left" }, { label: "Bottom right", value: "bottom-right" }, { label: "Center", value: "center" }] : undefined,
+      : option === "position" ? [{ label: "Top left", value: "top-left" }, { label: "Top right", value: "top-right" }, { label: "Bottom left", value: "bottom-left" }, { label: "Bottom right", value: "bottom-right" }, { label: "Center", value: "center" }]
+        : option === "mode" ? [{ label: "Prettify", value: "prettify" }, { label: "Minify", value: "minify" }] : undefined,
   }));
-  return { id, category, name, description, icon, accept, batch: kind === "image" || id === "merge" || id === "pdf-merge" || id === "pdf-rotate" || id === "pdf-image-to-pdf", options, kind, available: true, isNew: recentToolIds.has(id) };
+  return {
+    id,
+    category,
+    name,
+    description,
+    icon,
+    accept,
+    batch: kind === "image" || id === "archive-create" || id === "merge" || id === "pdf-merge" || id === "pdf-rotate" || id === "pdf-image-to-pdf",
+    options,
+    kind,
+    available: true,
+    isNew: recentToolIds.has(id),
+  };
 }
+
+const archiveCreateAccept = [
+  "application/pdf",
+  "image/*",
+  "video/*",
+  "audio/*",
+  "text/*",
+  "text/plain",
+  "application/json",
+  "application/xml",
+  "text/xml",
+  "application/zip",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/msword",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+];
 
 export const tools: ToolDescriptor[] = [
   descriptor("image-process", "Resize & compress", "Resize and re-encode an image locally.", "image", "Image", ["image/*"], ["width", "quality", "format"], "image"),
@@ -118,11 +167,15 @@ export const tools: ToolDescriptor[] = [
   descriptor("pptx-png", "PPTX → PNG", "Export PowerPoint slides as local PNG images.", "image", "Other", ["application/vnd.openxmlformats-officedocument.presentationml.presentation"], [], "document"),
   descriptor("pptx-jpg", "PPTX → JPG", "Export PowerPoint slides as local JPG images.", "image", "Other", ["application/vnd.openxmlformats-officedocument.presentationml.presentation"], [], "document"),
   descriptor("docx-text", "Extract document text", "Extract readable text from DOC or DOCX files locally.", "text-aa", "Other", ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/msword"], [], "document"),
-  descriptor("txt-preview", "Preview text file", "Read and download a text file locally.", "text-aa", "Other", ["text/plain"], [], "document"),
+  descriptor("txt-preview", "Preview text file", "Read and download plain text, Markdown, CSV, JSON, logs, and similar text files locally.", "text-aa", "Other", ["text/*", "text/plain", "application/json", "application/xml", "text/xml"], [], "document"),
+  descriptor("json-format", "Format JSON", "Prettify or minify a JSON file locally.", "brackets-curly", "Other", ["application/json", "text/plain", "text/*"], ["mode"], "document"),
+  descriptor("base64-encode", "Encode Base64", "Encode any local file as a Base64 text file.", "binary", "Other", archiveCreateAccept, [], "document"),
+  descriptor("base64-decode", "Decode Base64", "Decode a Base64 text file back into binary locally.", "binary", "Other", ["text/plain", "text/*", "application/json"], [], "document"),
   descriptor("spreadsheet-preview", "Preview spreadsheet", "Inspect workbook sheets and cell values locally.", "table", "Other", ["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"], [], "document"),
   descriptor("spreadsheet-csv", "Export CSV", "Export a selected worksheet as CSV locally.", "table", "Other", ["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"], [], "document"),
   descriptor("archive-list", "Inspect ZIP", "List ZIP contents locally.", "archive", "Other", ["application/zip"], [], "document"),
   descriptor("archive-extract", "Extract ZIP file", "Extract one file from a ZIP archive locally.", "archive", "Other", ["application/zip"], [], "document"),
+  descriptor("archive-create", "Create ZIP", "Bundle every compatible queued file into one ZIP archive locally.", "archive", "Other", archiveCreateAccept, ["archiveName"], "document"),
   descriptor("pdf-merge", "Merge PDFs", "Combine PDFs into one document.", "pdf", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-rotate", "Rotate PDFs", "Rotate every page in a PDF.", "rotate", "PDF", ["application/pdf"], ["angle"], "pdf"),
   descriptor("pdf-split", "Split PDF", "Export each page as a separate PDF.", "grid", "PDF", ["application/pdf"], [], "pdf"),
@@ -131,6 +184,7 @@ export const tools: ToolDescriptor[] = [
   descriptor("pdf-reorder", "Reorder pages", "Arrange PDF pages in a new order.", "transfer-horizontal", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-image-to-pdf", "Images → PDF", "Combine local images into one PDF.", "image", "PDF", ["image/*"], [], "pdf"),
   descriptor("pdf-metadata", "PDF metadata viewer/remover", "Inspect or remove PDF document metadata.", "privacy", "PDF", ["application/pdf"], ["removeMetadata"], "pdf"),
+  descriptor("pdf-compress", "Compress PDF", "Shrink PDF streams locally when qpdf can produce a smaller file.", "archive", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-to-image", "PDF → images", "Render PDF pages to JPEG, PNG, WebP, GIF, BMP, AVIF, ICO, or TIFF locally.", "image", "PDF", ["application/pdf"], ["format"], "pdf"),
   descriptor("pdf-contact-sheet", "PDF contact sheet", "Arrange every PDF page into a visual contact sheet locally.", "image", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-crop", "Crop PDF pages", "Crop every PDF page to a selected region locally.", "crop", "PDF", ["application/pdf"], [], "pdf"),
@@ -149,29 +203,12 @@ export const tools: ToolDescriptor[] = [
   descriptor("pdf-add-image", "Add image annotation", "Place a JPG or PNG image on a PDF page locally.", "image", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-fill-form", "Fill PDF form", "Fill editable PDF text fields locally.", "textbox", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-ocr", "OCR searchable PDF", "Extract text and create a searchable PDF locally.", "scan", "PDF", ["application/pdf"], [], "pdf"),
-  ...videoTools
-    .filter(([id]) => ["trim", "cut", "speed", "frames"].includes(id))
-    .map(([id, name, description, icon, accept, optionIds]) => descriptor(id, name, description, icon, "Video", accept, optionIds, "ffmpeg")),
-  ...audioTools
-    .filter(([id]) => ["audio-trim", "normalize-audio", "metadata-audio", "convert-audio"].includes(id))
-    .map(([id, name, description, icon, accept, optionIds]) => descriptor(id, name, description, icon, "Audio", accept, optionIds, "ffmpeg")),
+  ...videoTools.map(([id, name, description, icon, accept, optionIds]) => descriptor(id, name, description, icon, "Video", accept, optionIds, "ffmpeg")),
+  ...audioTools.map(([id, name, description, icon, accept, optionIds]) => descriptor(id, name, description, icon, "Audio", accept, optionIds, "ffmpeg")),
 ];
 
-export const deferredToolIds = [
-  "split",
-  "compress",
-  "convert",
-  "resize",
-  "fps",
-  "mute",
-  "extract-audio",
-  "to-gif",
-  "from-gif",
-  "thumbnail",
-  "rotate",
-  "flip",
-  "metadata",
-] as const;
+/** Video merge remains unexposed until browser execution is reliable. */
+export const deferredToolIds = [] as const;
 
 export const processors: Record<ToolDescriptor["kind"], ToolProcessor> = {
   image: imageProcessor,

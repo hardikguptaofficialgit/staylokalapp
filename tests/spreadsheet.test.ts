@@ -25,6 +25,13 @@ describe("spreadsheet processor", () => {
     expect(result.name).toBe("results-Status.csv");
   });
 
+  it("downloads a plain-text preview for spreadsheet-preview", async () => {
+    const [result] = await spreadsheetProcessor([workbookFile()], { operation: "spreadsheet-preview", sheet: "Scores" }, context);
+    await expect(result.blob.text()).resolves.toContain("Ada\t10");
+    expect(result.name).toBe("results-Scores-preview.txt");
+    expect(result.type).toBe("text/plain");
+  });
+
   it("rejects malformed spreadsheets", async () => {
     await expect(spreadsheetProcessor([new File([], "broken.xlsx")], { operation: "spreadsheet-csv" }, context))
       .rejects.toMatchObject({ code: "invalid" });

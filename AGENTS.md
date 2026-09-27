@@ -1,6 +1,6 @@
 # StayLokal - Complete Current-State Project Document
 
-Last updated: 2026-09-15
+Last updated: 2026-09-27
 
 This document is the canonical description of the repository as it exists now. It
 must describe code that exists, not desired behavior. Every major item has one of
@@ -19,7 +19,7 @@ these statuses:
 
 StayLokal V1 is **READY TO FREEZE** under the accepted verification criteria:
 
-- `npm test` - **PASS** (58 tests)
+- `npm test` - **PASS** (138 tests)
 - `npm run lint` - **PASS**
 - `npm run typecheck` - **PASS**
 - `npm run build` - **PASS**
@@ -68,7 +68,7 @@ sent to those services.
 | Legacy DOC text extraction | `WORKING` | Browser-compatible `@jose.espana/docstream` OLE parser extracts body text locally; real fixture unit and focused Chromium round-trip coverage pass. |
 | TXT preview/download | `WORKING` | Plain text is read locally, previewed, and downloadable without upload. |
 | XLS/XLSX preview and CSV export | `WORKING` | Local SheetJS parsing supports worksheet selection, bounded preview, and complete-sheet CSV export; focused Chromium round-trip coverage passes. |
-| ZIP inspection and selected-file extraction | `WORKING` | Local JSZip parsing lists safe archive entries and extracts a selected file; focused Chromium round-trip coverage passes. ZIP creation remains deferred. |
+| ZIP list, extract, and create | `WORKING` | Local JSZip parsing lists safe archive entries, extracts a selected file, and bundles compatible queued files into a ZIP; focused Chromium round-trip coverage passes. |
 | PPTX → PDF | `WORKING` | Local `pptx-browser` canvas rendering and `pdf-lib` raster PDF export pass a real Chromium round-trip with downloadable PDF output. |
 | PPTX → PNG/JPG | `WORKING` | Local slide rendering exports individually named PNG and JPG files; real Chromium round-trip coverage passes. |
 | PDF merge | `WORKING` | Visual PDF export and processor tests exist. |
@@ -77,7 +77,7 @@ sent to those services.
 | PDF page extraction/deletion/reordering | `WORKING` | Visual page workflows and processor coverage exist. |
 | JPG/PNG to PDF | `WORKING` | Local `pdf-lib` image embedding and multi-image export exist. |
 | PDF metadata viewer/remover | `WORKING` | Metadata is read locally and can be removed into a new PDF. |
-| PDF → JPG/PNG | `WORKING` | PDF.js renders selected or all pages locally; pages can download individually or as a ZIP archive. |
+| PDF → images | `WORKING` | `pdf-to-image` renders selected or all pages locally to JPEG/PNG/WebP and related formats; pages can download individually or as a ZIP archive. |
 | PDF contact sheet | `WORKING` | PDF.js renders pages locally into a configurable-column overview PDF; focused Chromium round-trip coverage passes. |
 | PDF page cropping | `WORKING` | Percentage-based page crop boxes preserve PDF content without rasterization; focused Chromium round-trip coverage passes. |
 | PDF page resizing | `WORKING` | Pages can be fitted and centered onto A4, US Letter, or original size without rasterizing; focused Chromium round-trip coverage passes. |
@@ -100,9 +100,9 @@ sent to those services.
 | PDF password encryption/decryption | `PLANNED` | No standards-compliant browser round-trip is currently verified. |
 | PDF forms/signatures/Office conversion | `PLANNED` | No complete local processor and validation path is currently exposed. |
 | OCR/text extraction | `WORKING` | English OCR runs locally with self-hosted Tesseract worker/core/language assets and produces plain text plus a searchable PDF copy. |
-| PDF compression | `PLANNED` | qpdf WASM integration is installed experimentally but does not initialize reliably in the current Next.js worker/CSP setup. |
+| PDF compression | `PARTIALLY WORKING` | `pdf-compress` uses experimental qpdf WASM; initialization can fail in some browser/build setups with a clear unsupported error. |
 | PDF/A conversion | `PLANNED` | Kura WASM was evaluated, but its published package currently pulls a Node `module` fallback during the Next.js client build. |
-| Video trim/cut/speed/frame extraction | `PARTIALLY WORKING` | Real FFmpeg path exists, but browser codec and long-running media limitations remain. |
+| Video FFmpeg tools (trim through metadata) | `PARTIALLY WORKING` | Full video registry is exposed; timeline editor covers trim, cut, speed, and frames. Other video tools use option forms plus FFmpeg. Browser codec and long-running media limitations remain. |
 | Audio trim and conversion tools | `PARTIALLY WORKING` | Waveform/editor and FFmpeg adapters exist; trim, normalization, metadata removal, and conversion are exposed locally, while browser codec/execution coverage remains limited. |
 | 512 MB local input limit | `WORKING` | Validation and UI gating exist before editor processing paths. |
 | Cancellation | `PARTIALLY WORKING` | AbortController and worker termination exist; exhaustive browser verification is incomplete. |
@@ -114,8 +114,8 @@ sent to those services.
 
 ## 3. Current exposed registry
 
-The registry in `lib/tools/registry.ts` exposes exactly fifty-eight tools. No other tool is
-shown by the current tool picker.
+The registry in `lib/tools/registry.ts` exposes exactly seventy-five tools. No other tool is
+shown by the current tool picker. See `docs/functionality-audit.md` for competitor parity notes.
 
 ### Image
 `image-process`, `image-crop`, `image-rotate`, `image-flip`, `image-thumbnail`,
@@ -124,24 +124,26 @@ shown by the current tool picker.
 
 ### PDF
 `pdf-merge`, `pdf-rotate`, `pdf-split`, `pdf-extract`, `pdf-delete-pages`,
-`pdf-reorder`, `pdf-image-to-pdf`, `pdf-metadata`, `pdf-to-jpg`, `pdf-to-png`,
+`pdf-reorder`, `pdf-image-to-pdf`, `pdf-metadata`, `pdf-to-image`,
 `pdf-contact-sheet`,
 `pdf-crop`, `pdf-page-size`,
 `pdf-watermark`, `pdf-page-numbers`, `pdf-add-text`, `pdf-header-footer`,
 `pdf-flatten`, `pdf-privacy`, `pdf-redact`, `pdf-highlight`, `pdf-shape`,
-`pdf-remove-blank`, `pdf-duplicate-page`, `pdf-add-image`, `pdf-fill-form`, and
-`pdf-ocr`.
+`pdf-remove-blank`, `pdf-duplicate-page`, `pdf-add-image`, `pdf-fill-form`,
+`pdf-compress`, and `pdf-ocr`.
 
 ### Video
-`trim`, `cut`, `speed`, and `frames`.
+`trim`, `cut`, `split`, `compress`, `convert`, `resize`, `fps`, `speed`, `mute`,
+`extract-audio`, `to-gif`, `from-gif`, `frames`, `thumbnail`, `rotate`, `flip`, and `metadata`.
 
 ### Audio
 `audio-trim`, `normalize-audio`, `metadata-audio`, and `convert-audio`.
 
 ### Presentation and documents
 `ppt-text`, `pptx-text`, `pptx-pdf`, `pptx-png`, `pptx-jpg`, `docx-text` (DOC/DOCX),
-`txt-preview`, `spreadsheet-preview`, `spreadsheet-csv`, `archive-list`, and
-`archive-extract`.
+`txt-preview`, `spreadsheet-preview`, `spreadsheet-csv`, `archive-list`,
+`archive-extract`, `archive-create`, `json-format`, `base64-encode`, and
+`base64-decode`.
 
 Every exposed descriptor points to one of the four processor kinds:
 
@@ -149,7 +151,8 @@ Every exposed descriptor points to one of the four processor kinds:
 - `pdf` → `lib/tools/pdf.ts`
 - `ffmpeg` → `lib/tools/ffmpeg.ts`
 - `document` → `lib/tools/document.ts` (delegates PowerPoint operations to
-  `lib/tools/presentation.ts` and archive operations to `lib/tools/archive.ts`)
+  `lib/tools/presentation.ts`, archive operations to `lib/tools/archive.ts`, and
+  JSON/Base64 utilities to `lib/tools/text-utils.ts`)
 
 ## 4. Currently working features
 
@@ -523,28 +526,13 @@ These operations are exposed through the current registry and use the existing C
 processor and visual image editor. Focused Chromium coverage passes for rotate, flip,
 and thumbnail output.
 
-### 5.2 Dormant FFmpeg command mappings - `PLANNED`
+### 5.2 Additional FFmpeg video tools - `PARTIALLY WORKING`
 
-`lib/tools/ffmpeg-commands.ts` contains command mappings for:
-
-- split;
-- compress;
-- convert;
-- resize;
-- FPS;
-- mute/remove audio;
-- extract audio;
-- video-to-GIF;
-- GIF-to-video;
-- thumbnail;
-- rotate;
-- flip;
-- metadata removal;
-
-These remaining video operations are intentionally filtered out by `lib/tools/registry.ts` and are not
-advertised to users. They are **not supported V1 features**. Their command mappings
-must not be surfaced or added to the registry without explicit product approval and
-reliable execution verification.
+`lib/tools/ffmpeg-commands.ts` and the registry now expose split, compress, convert,
+resize, FPS, mute, extract-audio, video-to-GIF, GIF-to-video, thumbnail, rotate, flip,
+and metadata removal for video (and shared metadata on audio/video). These tools use
+option forms plus the local FFmpeg worker rather than the timeline editor. Browser codec
+and execution coverage remain limited.
 
 ### 5.3 Subtitle/text overlay command branch - `PLANNED`
 
@@ -593,9 +581,6 @@ The tests must not be described as a complete successful browser matrix.
 ### Product features
 
 - Additional image editor effects and AI tools - `PLANNED`
-- Video split exposure - `PLANNED`
-- Video compression, conversion, resize, FPS, mute, audio extraction, GIF, thumbnail,
-  rotate, flip, and metadata tools - `PLANNED`
 - Video merge - `PLANNED`, blocked by reliability
 - Subtitle-file workflow - `PLANNED`
 - Image contact sheets, PDF text extraction, and true PDF compression - `PLANNED`;
@@ -603,7 +588,7 @@ The tests must not be described as a complete successful browser matrix.
 - Broader audio-only workflows - `PLANNED`
 - Document editing - `PLANNED`
 - Spreadsheet editing beyond preview and CSV export - `PLANNED`
-- ZIP creation and non-ZIP archive operations - `PLANNED`
+- Non-ZIP archive operations (RAR/7z) - `PLANNED`
 - Persistence/history - `PLANNED`
 - Offline/PWA behavior - `PLANNED`
 
@@ -915,10 +900,11 @@ lib/tools/
   ffmpeg.ts                Main-thread Worker bridge
   ffmpeg-worker.ts         FFmpeg Worker implementation
   ffmpeg-commands.ts       Media command/output mapping
-  document.ts              Local DOC/DOCX and TXT processor
+  document.ts              Local DOC/DOCX, TXT, and text-utils router
   presentation.ts          Local PPT/PPTX processor
   spreadsheet.ts           Local XLS/XLSX parser and CSV exporter
-  archive.ts               Local ZIP listing and selected-file extraction
+  archive.ts               Local ZIP list, extract, and create
+  text-utils.ts            Local JSON format and Base64 encode/decode
 
 lib/app/
   useFileWorkflow.ts       Queue, selection, processing, theme, and layout state
@@ -1005,20 +991,19 @@ future hardening.
 3. Video/audio processor execution across codecs, containers, and browsers is not
    exhaustively verified.
 4. Video merge is deliberately not exposed because its browser execution was unreliable.
-5. Video split command/editor support exists but is deliberately not exposed.
-6. Most FFmpeg command mappings are deferred and should not be described as supported.
+5. Video split is exposed through FFmpeg segment mode without a dedicated timeline editor.
+6. Video merge and subtitle overlay remain unexposed FFmpeg command paths.
 7. Subtitle-file input is not implemented.
 8. The `subtitle` command branch is not a supported product feature.
-9. Image rotate, flip, and thumbnail branches are not exposed.
-10. Audio waveform decoding depends on browser `AudioContext` support and decodable
+9. Audio waveform decoding depends on browser `AudioContext` support and decodable
     input formats.
-11. PDF previews create one object URL per page; very large PDFs can create memory
+10. PDF previews create one object URL per page; very large PDFs can create memory
     pressure despite cleanup.
-12. No history, persistence, accounts, server upload, or cloud storage exists.
-13. No global React error boundary or runtime fallback screen exists.
-14. The worker protocol is local to `ffmpeg.ts` and `ffmpeg-worker.ts`; it is not yet a
+11. No history, persistence, accounts, server upload, or cloud storage exists.
+12. No global React error boundary or runtime fallback screen exists.
+13. The worker protocol is local to `ffmpeg.ts` and `ffmpeg-worker.ts`; it is not yet a
     separate shared typed protocol module.
-15. `app/page.tsx` is intentionally a composition layer; workflow state is centralized
+14. `app/page.tsx` is intentionally a composition layer; workflow state is centralized
     in `lib/app/useFileWorkflow.ts` and UI sections are under `components/app/`.
 
 ## 13. Verification evidence
@@ -1027,8 +1012,8 @@ The accepted static verification currently passes:
 
 ```text
 npm test
-  8 Vitest files passed
-  58 tests passed
+  19 Vitest files passed
+  138 tests passed
 
 npm run lint
   passed
@@ -1055,6 +1040,9 @@ Browser tests present:
 - `tests/browser/image-tools-focused.spec.ts` - image rotate, flip, and thumbnail round trips
 - `tests/browser/document-focused.spec.ts` - DOCX, TXT, and legacy DOC text extraction round trips
 - `tests/browser/presentation-focused.spec.ts` - PPTX text extraction, legacy PPT extraction, and real PPTX PDF/PNG/JPG export round trips
+- `tests/browser/archive-focused.spec.ts` - ZIP list/extract and multi-file ZIP creation round trips
+- `tests/browser/ffmpeg-generic-focused.spec.ts` - generic FFmpeg option-form tools (mute, thumbnail, audio metadata)
+- `tests/browser/text-utils-focused.spec.ts` - JSON format and Base64 encode round trips
 
 The browser suites cover image, PDF, audio, video capability states, deferred file
 states, cancellation, file switching, responsive layout, keyboard interaction,

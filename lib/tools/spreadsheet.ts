@@ -57,6 +57,22 @@ const spreadsheetProcessor: ToolProcessor = async (files, options, context) => {
       : workbook.sheets[0]?.name;
     const selected = workbook.sheets.find((sheet) => sheet.name === selectedName) ?? workbook.sheets[0];
     if (!selected) throw new ProcessingError("No worksheet could be selected.", "invalid");
+    if (options.operation === "spreadsheet-preview") {
+      const previewRows = selected.rows.slice(0, 100);
+      const lines = [
+        `Workbook: ${file.name}`,
+        `Sheet: ${selected.name}`,
+        `${selected.rows.length} rows · ${Math.max(0, ...previewRows.map((row) => row.length))} columns`,
+        "",
+        ...previewRows.map((row) => row.join("\t")),
+      ];
+      outputs.push({
+        blob: new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" }),
+        type: "text/plain",
+        name: `${file.name.replace(/\.(xlsx|xls)$/i, "")}-${selected.name}-preview.txt`,
+      });
+      continue;
+    }
     outputs.push({
       blob: new Blob([selected.csv], { type: "text/csv;charset=utf-8" }),
       type: "text/csv",

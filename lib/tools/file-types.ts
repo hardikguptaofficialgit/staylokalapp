@@ -34,6 +34,14 @@ const extensionKinds: Record<string, DetectedFileType> = {
   ppt: { kind: "presentation", label: "Legacy PowerPoint presentation" },
   pptx: { kind: "presentation", label: "PowerPoint presentation" },
   txt: { kind: "text", label: "Text file" },
+  md: { kind: "text", label: "Markdown file" },
+  markdown: { kind: "text", label: "Markdown file" },
+  csv: { kind: "text", label: "CSV file" },
+  json: { kind: "text", label: "JSON file" },
+  log: { kind: "text", label: "Log file" },
+  xml: { kind: "text", label: "XML file" },
+  yml: { kind: "text", label: "YAML file" },
+  yaml: { kind: "text", label: "YAML file" },
   mp4: { kind: "video", label: "MP4 video" },
   webm: { kind: "video", label: "WebM video" },
   mov: { kind: "video", label: "MOV video" },
@@ -61,7 +69,8 @@ function typeFromMime(mime: string): DetectedFileType | undefined {
   if (mime.startsWith("audio/")) return { kind: "audio", label: "Audio" };
   if (mime === "application/msword" || mime.includes("wordprocessingml")) return { kind: "document", label: "Word document" };
   if (mime.includes("presentation")) return { kind: "presentation", label: "PowerPoint presentation" };
-  if (mime === "text/plain") return extensionKinds.txt;
+  if (mime === "text/plain" || mime === "text/markdown" || mime === "text/csv" || mime === "application/json" || mime === "application/xml" || mime === "text/xml") return extensionKinds.txt;
+  if (mime.startsWith("text/")) return { kind: "text", label: "Text file" };
   if (mime.includes("spreadsheet") || mime === "application/vnd.ms-excel") return { kind: "spreadsheet", label: "Excel spreadsheet" };
   if (mime === "application/zip" || mime === "application/x-zip-compressed") return extensionKinds.zip;
   return undefined;
@@ -77,5 +86,6 @@ export function detectFileType(file: File): DetectedFileType {
 }
 
 export function hasUnsupportedDetectedType(file: File) {
-  return !["pdf", "image", "video", "audio", "unknown"].includes(detectFileType(file).kind);
+  const kind = detectFileType(file).kind;
+  return kind === "unknown" || kind === "folder";
 }

@@ -14,7 +14,15 @@ export function matchesAcceptedFile(file: File, accept: string[]) {
     ppt: ["application/vnd.ms-powerpoint"],
     docx: ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
     doc: ["application/msword"],
-    txt: ["text/plain"],
+    txt: ["text/plain", "text/*"],
+    md: ["text/plain", "text/*"],
+    markdown: ["text/plain", "text/*"],
+    csv: ["text/plain", "text/*"],
+    json: ["text/plain", "text/*", "application/json"],
+    log: ["text/plain", "text/*"],
+    xml: ["text/plain", "text/*", "application/xml", "text/xml"],
+    yml: ["text/plain", "text/*"],
+    yaml: ["text/plain", "text/*"],
     xls: ["application/vnd.ms-excel"],
     xlsx: ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
   };
@@ -30,11 +38,15 @@ export function matchesAcceptedFile(file: File, accept: string[]) {
           ? detected.kind === "video"
           : rule === "audio/*"
             ? detected.kind === "audio"
-            : rule === "text/plain"
+            : rule === "text/plain" || rule === "text/*"
               ? detected.kind === "text"
-              : rule.includes("spreadsheet")
-                ? detected.kind === "spreadsheet"
-                : rule === "application/zip" && detected.kind === "archive";
+              : rule === "application/json"
+                ? detected.kind === "text"
+                : rule === "application/xml" || rule === "text/xml"
+                  ? detected.kind === "text"
+                  : rule.includes("spreadsheet")
+                    ? detected.kind === "spreadsheet"
+                    : rule === "application/zip" && detected.kind === "archive";
     return typeMatch || extensionMatch || detectedTypeMatch;
   });
 }
@@ -48,6 +60,12 @@ export function validateToolInput(files: File[], tool: ToolDescriptor, options: 
   }
   if (files.some((file) => !matchesAcceptedFile(file, tool.accept))) {
     throw new ProcessingError(`This tool accepts ${tool.accept.join(", ")} files.`, "invalid");
+  }
+  if (tool.id === "image-gif" && files.length < 2) {
+    throw new ProcessingError("Add at least two images to create an animated GIF.", "invalid");
+  }
+  if (tool.id === "image-contact-sheet" && files.length < 2) {
+    throw new ProcessingError("Add at least two images to build a contact sheet.", "invalid");
   }
   for (const option of tool.options) {
     const value = options[option.id];

@@ -84,7 +84,7 @@ export function mediaArgs(operation: string, options: MediaOptions, input: strin
     }
     case "mute":
     case "remove-audio":
-      return ["-i", input, "-c", "copy", "-an", output.pattern];
+      return ["-i", input, "-map", "0:v:0", "-c:v", "copy", output.pattern];
     case "extract-audio":
       return ["-i", input, "-vn", "-c:a", "libmp3lame", output.pattern];
     case "to-gif":

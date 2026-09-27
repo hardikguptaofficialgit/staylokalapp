@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { mediaArgs, mediaOutput } from "../lib/tools/ffmpeg-commands";
+import { tools } from "../lib/tools/registry";
 
 describe("video command validation", () => {
   it("rejects zero playback speed instead of building a hanging atempo loop", () => {
@@ -12,6 +13,13 @@ describe("video command validation", () => {
     expect(() => mediaArgs("cut", { startSeconds: 1, durationSeconds: 0 }, "fixture.mp4", mediaOutput("cut", {}, "fixture.mp4"))).toThrow(
       "Cut start and duration must be valid positive numbers.",
     );
+  });
+
+  it("mutes video by copying the video stream without audio", () => {
+    const output = mediaOutput("mute", {}, "fixture.mp4");
+    expect(mediaArgs("mute", {}, "fixture.mp4", output)).toEqual([
+      "-i", "fixture.mp4", "-map", "0:v:0", "-c:v", "copy", output.pattern,
+    ]);
   });
 
   it("re-encodes cut output with browser-compatible MP4 codecs", () => {
@@ -31,4 +39,23 @@ describe("video command validation", () => {
       "-i", "fixture.wav", "-vn", "-af", "loudnorm", "-c:a", "pcm_s16le", "ihatefiles-output.wav",
     ]);
   });
+
+  it.each(tools.filter((tool) => tool.kind === "ffmpeg").map((tool) => tool.id))(
+    "builds FFmpeg args for exposed tool %s",
+    (operation) => {
+      const tool = tools.find((item) => item.id === operation)!;
+      const options = Object.fromEntries(tool.options.map((option) => [option.id, option.defaultValue ?? option.options?.[0]?.value ?? ""]));
+      const input = operation === "from-gif"
+        ? "fixture.gif"
+        : tool.accept.includes("audio/*") && !tool.accept.includes("video/*")
+          ? "fixture.wav"
+          : "fixture.mp4";
+      const extension = input.split(".").pop() ?? "mp4";
+      const audioOnly = ["mp3", "wav", "m4a", "aac", "flac", "ogg", "oga"].includes(extension);
+      const output = mediaOutput(operation, options, input);
+      const args = mediaArgs(operation, { ...options, audioOnly, videoOnly: false }, input, output);
+      expect(args.length).toBeGreaterThan(0);
+      expect(output.pattern).toBeTruthy();
+    },
+  );
 });
