@@ -1,3 +1,5 @@
+import "server-only";
+
 import { sendAppwriteHtmlEmail } from "./appwrite-messaging";
 import { resolveEmailLinkOrigin, resolveSponsorEmailLogoUrl } from "./email-brand-logo";
 import {

@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import SponsorModal from "./SponsorModal";
 import { readJsonResponse } from "@/lib/app/fetch-json";
 import { formatSponsorCardAmount } from "@/lib/sponsors/ranking";
+import { sponsorMarkStyle } from "@/lib/sponsors/sponsor-mark";
 import type { RankedSponsor } from "@/lib/sponsors/types";
 import type { AppWorkflow } from "./types";
 
@@ -47,13 +48,6 @@ const categoryAccept: Record<string, string> = {
   MP3: "audio/*",
   ZIP: ".zip,.7z,.rar",
 };
-
-const previewColors = ["#f44336", "#a259ff", "#4d7cff", "#777", "#82b9a8"];
-
-function sponsorMarkStyle(index: number, logoUrl?: string) {
-  if (logoUrl) return { backgroundImage: `url("${logoUrl}")` };
-  return { backgroundColor: previewColors[index % previewColors.length] };
-}
 
 function MaskedText({ text, className = "" }: { text: string; className?: string }) {
   return (

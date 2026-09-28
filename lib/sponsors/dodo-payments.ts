@@ -1,3 +1,5 @@
+import "server-only";
+
 import DodoPayments from "dodopayments";
 import { normalizeBidCents } from "./ranking";
 

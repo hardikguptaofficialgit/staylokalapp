@@ -20,10 +20,11 @@ const PAYMENT_ID_PATTERN = /^pay_[A-Za-z0-9_-]{8,128}$/;
 const CLAIM_ID_PATTERN = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 
 function verificationFailureResponse(error: unknown) {
-  const message = error instanceof Error
-    ? error.message
-    : "Sponsor payment verification failed.";
-  return Response.json({ error: message }, { status: 409 });
+  if (isSponsorVerificationError(error)) {
+    return Response.json({ error: error.message }, { status: 409 });
+  }
+  console.error("Sponsor payment verification failed:", error);
+  return Response.json({ error: "Sponsor payment verification failed." }, { status: 409 });
 }
 
 async function confirmPaymentId(paymentId: string, fallbackClaimId?: string): Promise<Response> {
@@ -79,7 +80,7 @@ async function confirmPaymentId(paymentId: string, fallbackClaimId?: string): Pr
   } catch (error) {
     if (isAppwriteRowNotFound(error)) {
       return Response.json({
-        error: "This sponsor claim could not be found in storage. Start a new sponsor checkout or check Appwrite claims table configuration.",
+        error: "This sponsor claim could not be found. Start a new sponsor checkout or contact support.",
       }, { status: 409 });
     }
     if (isSponsorVerificationError(error)) {
@@ -99,7 +100,7 @@ async function confirmClaimId(claimId: string): Promise<Response> {
   } catch (error) {
     if (isAppwriteRowNotFound(error)) {
       return Response.json({
-        error: "This sponsor claim could not be found in storage. Start a new sponsor checkout or check Appwrite claims table configuration.",
+        error: "This sponsor claim could not be found. Start a new sponsor checkout or contact support.",
       }, { status: 409 });
     }
     throw error;

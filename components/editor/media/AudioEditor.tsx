@@ -205,7 +205,7 @@ export function AudioEditor({
         <span className="text-[11px]">Space play · ←/→ seek · I/O set points · R reset</span>
       </div>}
       {error && <p className="text-xs text-red-500" role="alert">{error}</p>}
-      {activeProgress && <div className="space-y-2" aria-live="polite"><div className="flex justify-between text-xs text-muted"><span>{activeProgress.label}</span><span>{Math.round(activeProgress.ratio * 100)}%</span></div><progress className="w-full" max={1} value={activeProgress.ratio} /><button type="button" className="control-pill min-h-11" onClick={cancel}>Cancel</button></div>}
+      {activeProgress && <div className="space-y-2" aria-live="polite"><div className="flex justify-between text-xs text-muted"><span>{activeProgress.label}</span><span>{Math.min(100, Math.max(0, Math.round(activeProgress.ratio * 100)))}%</span></div><progress className="w-full" max={1} value={Math.min(1, Math.max(0, activeProgress.ratio))} /><button type="button" className="control-pill min-h-11" onClick={cancel}>Cancel</button></div>}
       {mode === "trim" && <div className="video-action-footer">
         {onReplace && <button type="button" className="control-pill" onClick={onReplace}>Replace file</button>}
         <button type="button" aria-label="Trim selection" className="action-button" disabled={disabled || Boolean(activeProgress) || !duration || inPoint === outPoint} onClick={trimSelection}>Trim audio · {formatMediaTime(outPoint - inPoint)}</button>

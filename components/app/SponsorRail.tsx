@@ -4,15 +4,9 @@ import { Crown } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { readJsonResponse } from "@/lib/app/fetch-json";
 import { formatSponsorCardAmount } from "@/lib/sponsors/ranking";
+import { sponsorMarkStyle } from "@/lib/sponsors/sponsor-mark";
 import type { RankedSponsor } from "@/lib/sponsors/types";
 import SponsorModal from "./SponsorModal";
-
-const previewColors = ["#f44336", "#a259ff", "#4d7cff", "#777", "#82b9a8"];
-
-function sponsorMarkStyle(index: number, logoUrl?: string) {
-  if (logoUrl) return { backgroundImage: `url("${logoUrl}")` };
-  return { backgroundColor: previewColors[index % previewColors.length] };
-}
 
 export default function SponsorRail() {
   const [sponsors, setSponsors] = useState<RankedSponsor[]>([]);

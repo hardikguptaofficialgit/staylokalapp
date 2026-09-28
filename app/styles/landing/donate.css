@@ -33,7 +33,7 @@ html[data-theme="light"] .donate-page {
 }
 
 html[data-theme="light"] .donate-page::before {
-  background: rgb(255 255 255 / 0.28);
+  background: rgb(244 235 227 / 0.22);
 }
 
 .donate-header {

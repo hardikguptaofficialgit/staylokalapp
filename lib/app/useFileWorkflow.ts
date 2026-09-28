@@ -6,7 +6,7 @@ import { ProcessingError, type ProcessedFile, type ToolDescriptor } from "@/lib/
 import { matchesAcceptedFile, maxInputBytes, validateToolInput } from "@/lib/tools/validation";
 import { detectFileType, hasUnsupportedDetectedType } from "@/lib/tools/file-types";
 import type { VideoEditorAction } from "@/components/editor/media";
-import { applyTheme, persistTheme, resolveTheme, subscribeTheme, type Theme } from "@/lib/app/theme";
+import { applyTheme, resolveTheme, subscribeTheme, type Theme } from "@/lib/app/theme";
 
 export type Category = "All" | "PDF" | "Image" | "Video" | "Audio" | "Other";
 export type { Theme };
@@ -34,7 +34,6 @@ export function useFileWorkflow() {
   const [progress, setProgress] = useState({ ratio: 0, label: "" });
   const [result, setResult] = useState<ProcessedFile[]>([]);
   const [error, setError] = useState("");
-  const [themeChanging, setThemeChanging] = useState(false);
   const [panelSplit, setPanelSplit] = useState(24);
 
   const selected = selectedId ? getTool(selectedId) : undefined;
@@ -186,12 +185,19 @@ export function useFileWorkflow() {
     setStatus("processing");
     setError("");
     setResult([]);
+    setProgress({ ratio: 0, label: "Starting…" });
     controller.current = new AbortController();
+    let peakProgress = 0;
+    const onProgress = (update: { ratio: number; label: string }) => {
+      const ratio = Math.min(1, Math.max(0, update.ratio));
+      peakProgress = Math.max(peakProgress, ratio);
+      setProgress({ ratio: peakProgress, label: update.label });
+    };
     try {
       const operation = String((nextOptions as Record<string, unknown>).operation ?? selected.id);
       const output = await processors[selected.kind](selected.batch ? accepted : accepted.slice(0, 1), { ...nextOptions, operation }, {
         signal: controller.current.signal,
-        onProgress: setProgress,
+        onProgress,
       });
       setResult(output);
       setStatus("done");
@@ -255,46 +261,6 @@ export function useFileWorkflow() {
     setResult([]);
   }
 
-  function toggleTheme() {
-    const next = theme === "dark" ? "light" : "dark";
-    const root = document.documentElement;
-    const durationMs = 520;
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
-    setThemeChanging(true);
-    root.classList.add("theme-transition");
-
-    const restoreScroll = () => {
-      window.scrollTo(scrollX, scrollY);
-    };
-
-    const finish = () => {
-      restoreScroll();
-      window.setTimeout(() => {
-        root.classList.remove("theme-transition");
-        setThemeChanging(false);
-        restoreScroll();
-      }, durationMs);
-    };
-
-    const commitTheme = () => {
-      applyTheme(next);
-      persistTheme(next);
-      restoreScroll();
-    };
-
-    const startViewTransition = (
-      document as Document & { startViewTransition?: (update: () => void) => { finished: Promise<void> } }
-    ).startViewTransition;
-
-    if (startViewTransition) {
-      startViewTransition.call(document, commitTheme).finished.then(finish).catch(finish);
-    } else {
-      commitTheme();
-      finish();
-    }
-  }
-
   function startDividerDrag(event: React.PointerEvent<HTMLDivElement>) {
     const grid = event.currentTarget.parentElement;
     if (!grid) return;
@@ -315,12 +281,12 @@ export function useFileWorkflow() {
   }
 
   return {
-    inputRef, theme, themeChanging, viewMode, setViewMode, category, query, files, selectedFileIndex, selectedId, options, status,
+    inputRef, theme, viewMode, setViewMode, category, query, files, selectedFileIndex, selectedId, options, status,
     progress, result, resultUrls, error, panelSplit, selected, activeFile,
     oversizedInput, inputSizeError, detectedTypes, unsupportedTypes, compatibleTools,
     availableCategories, visibleTools, setCategory, setQuery, setOptions, clearWorkspace,
     addFiles, replaceActiveFile, selectTool, clearSelectedTool, removeFile, processWithOptions, selectFile, processVideoAction,
-    completeResult, reportError, setProcessingState, toggleTheme, startDividerDrag, formatBytes,
+    completeResult, reportError, setProcessingState, startDividerDrag, formatBytes,
     setPanelSplit, setProgress, cancelProcessing: () => controller.current?.abort(),
   };
 }

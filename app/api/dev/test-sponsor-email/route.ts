@@ -3,8 +3,13 @@ import { appwriteMessagingIsConfigured } from "@/lib/notifications/appwrite-mess
 
 export const runtime = "nodejs";
 
+function isLocalDevRequest(request: Request): boolean {
+  const host = new URL(request.url).hostname;
+  return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+}
+
 export async function POST(request: Request) {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === "production" || !isLocalDevRequest(request)) {
     return Response.json({ error: "Not found." }, { status: 404 });
   }
 

@@ -25,35 +25,30 @@
   background: #050505;
   border: 1px solid var(--muted);
   border-bottom: 0;
-
   border-radius: 1.25rem 1.25rem 0 0;
-
   color: var(--muted);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   font-size: clamp(0.68rem, 1vw, 0.82rem);
-
   left: 50%;
   line-height: 1.2;
   max-width: calc(100% - 2rem);
-
   padding: 0.42rem 1.15rem 0.5rem;
-
   position: absolute;
   top: 0;
-  transform: translate(-50%, -50%);
-
+  transform: translate(-50%, -95%);
   white-space: nowrap;
   z-index: 2;
 }
 
 html[data-theme="light"] .drop-zone-subtitle {
-  background: #fffaf6;
+  background: var(--panel);
   color: #4a433d;
   border-color: #d8cec5;
 }
 
 html[data-theme="light"] .drop-zone {
-  background: #fffaf6;
+  background: var(--panel);
+  border-color: #d8cec5;
 }
 
 .drop-zone:hover, .drop-zone.drag-active {
@@ -72,8 +67,10 @@ html[data-theme="light"] .drop-zone {
   outline-offset: 0.5rem;
 }
 
-html[data-theme="light"] .drop-zone:hover {
-  background: #fffaf6;
+html[data-theme="light"] .drop-zone:hover,
+html[data-theme="light"] .drop-zone.drag-active {
+  background: var(--panel);
+  border-color: #b9aea4;
 }
 
 .drop-category {
@@ -96,8 +93,9 @@ html[data-theme="light"] .drop-zone:hover {
 }
 
 html[data-theme="light"] .drop-category {
-  background: rgb(0 0 0 / 0.03);
-  border: 1px solid rgb(0 0 0 / 0.09);
+  background: rgb(26 20 16 / 0.035);
+  border: 1px solid rgb(26 20 16 / 0.1);
+  color: #4d443d;
 }
 
 .drop-category:hover {

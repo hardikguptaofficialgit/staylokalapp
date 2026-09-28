@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   }
 
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
-  const returnUrl = process.env.DODO_PAYMENTS_RETURN_URL ?? `${origin}/donate?success=1`;
+  const returnUrl = process.env.DODO_PAYMENTS_RETURN_URL ?? `${origin}/donate`;
   try {
     const client = createDodoClient();
     const session = await client.checkoutSessions.create({

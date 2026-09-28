@@ -12,9 +12,9 @@ The shared VelocityBrain project can use the following isolated StayLokal
 resources:
 
 - Database: `6aa918ed001e3dd5a377`
-- Sponsors table: `ihatefiles_sponsors`
-- Claims table: `ihatefiles_claims`
-- Sponsor logo bucket: `ihatefiles_sponsor_logos`
+- Sponsors table: `staylokal_sponsors` (legacy `ihatefiles_*` resources are retired)
+- Claims table: `staylokal_claims`
+- Sponsor logo bucket: `staylokal_sponsor_logos`
 
 - `sponsors` table: `companyName`, `destinationUrl`, `handle`, `category`, `description`,
   `logoUrl`, `bidCents` (integer), `paidAt` (datetime string), `paymentId`,

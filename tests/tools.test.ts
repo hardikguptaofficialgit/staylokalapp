@@ -100,13 +100,21 @@ describe("tool registry", () => {
       "rotate",
       "flip",
       "metadata",
+      "reverse",
+      "loop",
+      "crop-video",
+      "video-caption",
       "audio-trim",
       "normalize-audio",
       "metadata-audio",
       "convert-audio",
+      "audio-speed",
+      "audio-fade",
+      "audio-volume",
+      "audio-reverse",
     ]);
     expect(deferredToolIds).toEqual([]);
-    expect(tools).toHaveLength(76);
+    expect(tools).toHaveLength(84);
   });
 
   it("treats office, archive, and text files as supported types", () => {

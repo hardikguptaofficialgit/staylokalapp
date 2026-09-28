@@ -14,7 +14,6 @@
   height: 2rem;
   object-fit: contain;
   object-position: left center;
-  transition: filter var(--theme-transition-duration) var(--theme-transition-ease);
   width: 2.45rem;
 }
 
@@ -22,55 +21,129 @@ html[data-theme="light"] .brand-logo {
   filter: invert(1);
 }
 
-.theme-changing .app-window {
-  will-change: background-color, color;
+.theme-toggle {
+  --theme-toggle-inset: 3px;
+  background: rgb(0 0 0 / 0.46);
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 999px;
+  color: rgb(255 255 255 / 0.72);
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 2rem;
+  isolation: isolate;
+  overflow: hidden;
+  padding: var(--theme-toggle-inset);
+  position: relative;
+  width: 3.6rem;
 }
 
-.theme-icon-spin {
-  animation: theme-icon-change 520ms var(--theme-transition-ease) both;
-  display: inline-flex;
+.theme-toggle-thumb {
+  background: rgb(255 255 255 / 0.94);
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.28);
+  height: calc(100% - var(--theme-toggle-inset) * 2);
+  left: var(--theme-toggle-inset);
+  position: absolute;
+  top: var(--theme-toggle-inset);
+  transition: transform 420ms var(--theme-transition-ease);
+  width: calc((100% - var(--theme-toggle-inset) * 2) / 2);
+  z-index: 0;
 }
 
-@keyframes theme-icon-change {
-  0% { transform: rotate(-72deg) scale(0.72); opacity: 0.35; }
-  100% { transform: rotate(0) scale(1); opacity: 1; }
+.theme-toggle-icon {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
-::view-transition-old(root),
-::view-transition-new(root) {
+.theme-toggle-moon {
+  color: #111;
+}
+
+.theme-toggle-sun {
+  color: rgb(255 255 255 / 0.55);
+}
+
+.theme-toggle:hover {
+  border-color: rgb(255 255 255 / 0.34);
+}
+
+html[data-theme="light"] .theme-toggle {
+  background: rgb(255 255 255 / 0.62);
+  border-color: rgb(26 20 16 / 0.14);
+  box-shadow: 0 1px 4px rgb(26 20 16 / 0.06);
+  color: rgb(26 20 16 / 0.7);
+}
+
+html[data-theme="light"] .theme-toggle-thumb {
+  background: #1a1410;
+  box-shadow: 0 1px 4px rgb(26 20 16 / 0.2);
+  transform: translateX(100%);
+}
+
+html[data-theme="light"] .theme-toggle-moon {
+  color: rgb(26 20 16 / 0.42);
+}
+
+html[data-theme="light"] .theme-toggle-sun {
+  color: #fffaf6;
+}
+
+html[data-theme="light"] .theme-toggle:hover {
+  background: rgb(255 255 255 / 0.84);
+  border-color: rgb(26 20 16 / 0.28);
+}
+
+html.theme-pixelating::view-transition {
+  pointer-events: none;
+}
+
+html.theme-pixelating::view-transition-group(root) {
   animation-duration: var(--theme-transition-duration);
-  animation-timing-function: var(--theme-transition-ease);
 }
 
-::view-transition-old(root) {
-  animation-name: theme-crossfade-out;
+html.theme-pixelating::view-transition-old(root) {
+  animation: none;
   mix-blend-mode: normal;
   z-index: 1;
 }
 
-::view-transition-new(root) {
-  animation-name: theme-crossfade-in;
+html.theme-pixelating::view-transition-new(root) {
+  -webkit-mask-image: var(--theme-pixel-sprite);
+  -webkit-mask-position: 0 0;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% calc(100% * var(--theme-pixel-frames, 20));
+  animation: theme-pixel-scrub var(--theme-transition-duration) steps(19, end) both;
+  image-rendering: pixelated;
+  mask-image: var(--theme-pixel-sprite);
+  mask-mode: alpha;
+  mask-position: 0 0;
+  mask-repeat: no-repeat;
+  mask-size: 100% calc(100% * var(--theme-pixel-frames, 20));
   mix-blend-mode: normal;
   z-index: 2;
 }
 
-@keyframes theme-crossfade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
-@keyframes theme-crossfade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes theme-pixel-scrub {
+  from {
+    -webkit-mask-position: 0 0;
+    mask-position: 0 0;
+  }
+  to {
+    -webkit-mask-position: 0 100%;
+    mask-position: 0 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation-duration: 1ms;
+  .theme-toggle-thumb {
+    transition-duration: 1ms;
   }
 
-  .theme-icon-spin {
+  html.theme-pixelating::view-transition-new(root) {
     animation-duration: 1ms;
   }
 }

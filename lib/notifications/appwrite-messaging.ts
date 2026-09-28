@@ -1,3 +1,5 @@
+import "server-only";
+
 import { createHash } from "node:crypto";
 
 function validEmail(value: string) {

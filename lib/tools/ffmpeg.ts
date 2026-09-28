@@ -1,3 +1,4 @@
+import { clampProgressRatio } from "./ffmpeg-progress";
 import { ProcessingError, type ToolProcessor } from "./types";
 
 let worker: Worker | null = null;
@@ -31,8 +32,10 @@ const ffmpegProcessor: ToolProcessor = async (files, options, context) => {
     activeRequest = false;
     throw new ProcessingError("Processing cancelled.", "cancelled");
   }
+  context.onProgress({ ratio: 0.02, label: "Starting media engine…" });
   return new Promise((resolve, reject) => {
     let settled = false;
+    let peakRatio = 0;
     const cleanup = () => {
       activeWorker.removeEventListener("message", onMessage);
       activeWorker.removeEventListener("error", onWorkerError);
@@ -62,7 +65,11 @@ const ffmpegProcessor: ToolProcessor = async (files, options, context) => {
       message?: string;
     }>) => {
       if (event.data.id !== id) return;
-      if (event.data.type === "progress") context.onProgress({ ratio: event.data.ratio ?? 0, label: event.data.label ?? "Processing media" });
+      if (event.data.type === "progress") {
+        const ratio = clampProgressRatio(event.data.ratio ?? 0);
+        peakRatio = Math.max(peakRatio, ratio);
+        context.onProgress({ ratio: peakRatio, label: event.data.label ?? "Processing media" });
+      }
       if (event.data.type === "complete") {
         if (!event.data.outputs?.length || !event.data.mime) {
           finish(() => reject(new ProcessingError("Media processing completed without a downloadable result.", "runtime")));

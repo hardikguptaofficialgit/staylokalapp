@@ -29,14 +29,20 @@ describe("video command validation", () => {
 
   it("limits frame export to the selected time range when provided", () => {
     expect(mediaArgs("frames", { startSeconds: 2, durationSeconds: 5, fps: 2 }, "fixture.mp4", mediaOutput("frames", {}, "fixture.mp4"))).toEqual([
-      "-ss", "2", "-i", "fixture.mp4", "-t", "5", "-vf", "fps=2", "ihatefiles-frame-%03d.jpg",
+      "-ss", "2", "-i", "fixture.mp4", "-t", "5", "-vf", "fps=2", "staylokal-frame-%03d.jpg",
     ]);
+  });
+
+  it("builds fade and volume filters for audio tools", () => {
+    const output = mediaOutput("audio-fade", {}, "fixture.wav");
+    expect(mediaArgs("audio-fade", { fadeIn: 1, fadeOut: 2 }, "fixture.wav", output).join(" ")).toContain("afade=t=in:st=0:d=1");
+    expect(mediaArgs("audio-volume", { gainDb: 6 }, "fixture.wav", mediaOutput("audio-volume", {}, "fixture.wav"))).toContain("volume=6dB");
   });
 
   it("uses an audio-only codec for normalized WAV output", () => {
     const output = mediaOutput("normalize-audio", {}, "fixture.wav");
     expect(mediaArgs("normalize-audio", { audioOnly: true }, "fixture.wav", output)).toEqual([
-      "-i", "fixture.wav", "-vn", "-af", "loudnorm", "-c:a", "pcm_s16le", "ihatefiles-output.wav",
+      "-i", "fixture.wav", "-vn", "-af", "loudnorm", "-c:a", "pcm_s16le", "staylokal-output.wav",
     ]);
   });
 

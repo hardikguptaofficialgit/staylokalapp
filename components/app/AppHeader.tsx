@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Moon, Sun } from "@phosphor-icons/react";
+import ThemeToggle from "./ThemeToggle";
 import type { AppWorkflow } from "./types";
 
 export default function AppHeader({ workflow }: { workflow: AppWorkflow }) {
@@ -30,12 +30,7 @@ export default function AppHeader({ workflow }: { workflow: AppWorkflow }) {
           </div>
           <button className="sponsor-link" type="button" onClick={() => window.dispatchEvent(new Event("open-sponsor-modal"))}>Sponsor</button>
           <a className="donate-link" href="/donate">Donate</a>
-          <button onClick={workflow.toggleTheme} className="control-pill theme-toggle" aria-label="Toggle color mode">
-            <span className={workflow.themeChanging ? "theme-icon-spin" : ""}>
-              {workflow.theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-            </span>
-            <span className="hidden sm:inline font-medium">{workflow.theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
-          </button>
+          <ThemeToggle />
         </div>
         <details className="mobile-header-menu">
           <summary aria-label="Open navigation menu">Menu</summary>

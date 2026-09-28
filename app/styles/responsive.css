@@ -347,10 +347,6 @@
     font-size: 0.62rem;
     padding: 0.34rem 0.48rem;
   }
-  .site-header .theme-toggle {
-    min-height: 2rem;
-    padding: 0.35rem 0.48rem;
-  }
   .mobile-header-menu {
     display: block;
     position: relative;

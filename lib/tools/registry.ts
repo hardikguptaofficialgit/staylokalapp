@@ -17,7 +17,7 @@ const videoTools: ToolSpec[] = [
   ["fps", "Change FPS", "Set a new playback frame rate.", "tv", ["video/*"], ["fps"]],
   ["speed", "Change speed", "Make video faster or slower.", "timer", ["video/*"], ["speed"]],
   ["mute", "Mute video", "Remove the audio stream from a video.", "mic-off", ["video/*"], []],
-  ["extract-audio", "Extract audio", "Save a video's audio as an MP3.", "mic", ["video/*"], []],
+  ["extract-audio", "Extract audio", "Save a video's audio track as MP3 or WAV.", "mic", ["video/*"], ["format"]],
   ["to-gif", "Video to GIF", "Turn a video clip into a shareable GIF.", "photo", ["video/*"], []],
   ["from-gif", "GIF to video", "Convert an animated GIF to MP4.", "tv", ["image/gif"], []],
   ["frames", "Extract frames", "Export individual frames as separate downloads.", "photos", ["video/*"], []],
@@ -25,13 +25,21 @@ const videoTools: ToolSpec[] = [
   ["rotate", "Rotate video", "Rotate video by a fixed angle.", "3d-rotate", ["video/*"], ["angle"]],
   ["flip", "Flip video", "Flip video horizontally or vertically.", "transfer-horizontal", ["video/*"], ["direction"]],
   ["metadata", "Remove metadata", "Strip metadata while preserving media.", "privacy", mediaAccept, []],
+  ["reverse", "Reverse video", "Play a clip backwards with synchronized audio.", "arrow-u-down-left", ["video/*"], []],
+  ["loop", "Loop video", "Repeat the same clip end-to-end.", "repeat", ["video/*"], ["loopCount"]],
+  ["crop-video", "Crop video", "Crop to an exact pixel region.", "crop", ["video/*"], ["x", "y", "width", "height"]],
+  ["video-caption", "Add caption", "Burn a short text caption into the video.", "text-aa", ["video/*"], ["text", "fontSize"]],
 ];
 
 const audioTools: ToolSpec[] = [
   ["audio-trim", "Trim audio", "Keep a selected range of an audio file.", "cut", ["audio/*"], ["start", "duration"]],
   ["normalize-audio", "Normalize audio", "Balance loudness using FFmpeg loudness normalization.", "waveform", ["audio/*", "video/*"], []],
   ["metadata-audio", "Remove metadata", "Strip audio metadata while preserving the track.", "privacy", ["audio/*"], []],
-  ["convert-audio", "Convert audio", "Convert an audio track to MP3.", "view-reload", ["audio/*"], ["format"]],
+  ["convert-audio", "Convert audio", "Convert an audio track to MP3 or WAV.", "view-reload", ["audio/*"], ["format"]],
+  ["audio-speed", "Change speed", "Speed up or slow down audio while keeping pitch natural.", "timer", ["audio/*"], ["speed"]],
+  ["audio-fade", "Fade in & out", "Add smooth fade-in and fade-out.", "waveform", ["audio/*"], ["fadeIn", "fadeOut"]],
+  ["audio-volume", "Adjust volume", "Boost or reduce loudness in decibels.", "speaker-high", ["audio/*"], ["gainDb"]],
+  ["audio-reverse", "Reverse audio", "Play the track backwards.", "arrow-u-down-left", ["audio/*"], []],
 ];
 
 const recentToolIds = new Set([
@@ -80,6 +88,14 @@ const recentToolIds = new Set([
   "rotate",
   "flip",
   "metadata",
+  "reverse",
+  "loop",
+  "crop-video",
+  "video-caption",
+  "audio-speed",
+  "audio-fade",
+  "audio-volume",
+  "audio-reverse",
 ]);
 
 function descriptor(
@@ -94,11 +110,11 @@ function descriptor(
 ): ToolDescriptor {
   const options = optionIds.map((option) => ({
     id: option,
-    label: option === "start" ? "Start time" : option === "duration" ? "Duration" : option === "startSeconds" ? "Start (seconds)" : option === "durationSeconds" ? "Remove (seconds)" : option === "segmentDuration" ? "Segment length (seconds)" : option === "topText" ? "Top text" : option === "bottomText" ? "Bottom text" : option === "fontSize" ? "Font size" : option === "archiveName" ? "ZIP file name" : option === "mode" ? "Output style" : option === "algorithm" ? "Algorithm" : option[0].toUpperCase() + option.slice(1),
+    label: option === "start" ? "Start time" : option === "duration" ? "Duration" : option === "startSeconds" ? "Start (seconds)" : option === "durationSeconds" ? "Remove (seconds)" : option === "segmentDuration" ? "Segment length (seconds)" : option === "fadeIn" ? "Fade in (seconds)" : option === "fadeOut" ? "Fade out (seconds)" : option === "gainDb" ? "Gain (dB)" : option === "loopCount" ? "Loop count" : option === "topText" ? "Top text" : option === "bottomText" ? "Bottom text" : option === "fontSize" ? "Font size" : option === "archiveName" ? "ZIP file name" : option === "mode" ? "Output style" : option === "algorithm" ? "Algorithm" : option[0].toUpperCase() + option.slice(1),
     type: (["format", "direction", "angle", "speed", "position", "mode", "algorithm"].includes(option) ? "select" : ["quality", "width", "height", "fps", "fontSize", "opacity", "pageNumber", "x", "y"].includes(option) ? "number" : option === "removeMetadata" ? "checkbox" : "text") as "text" | "number" | "select" | "checkbox",
-    defaultValue: option === "quality" ? 28 : option === "speed" ? "1" : option === "angle" ? "90" : option === "direction" ? "hflip" : option === "mode" ? "prettify" : option === "algorithm" ? "sha256" : option === "archiveName" ? "archive.zip" : option === "format" ? (id === "pdf-to-image" ? "image/png" : category === "Image" ? "image/jpeg" : category === "Audio" ? "mp3" : "mp4") : option === "width" ? (id === "pdf-redact" ? 20 : id === "image-thumbnail" ? 320 : id === "image-crop" ? 800 : 1280) : option === "height" ? (id === "pdf-redact" ? 20 : 600) : option === "x" || option === "y" ? 0 : option === "fps" ? 30 : option === "fontSize" ? (id === "image-watermark" || id === "image-meme" ? 36 : 12) : option === "opacity" ? 0.6 : option === "position" ? "bottom-right" : option === "pageNumber" ? 1 : option === "startSeconds" ? 0 : option === "durationSeconds" || option === "segmentDuration" ? 10 : option === "removeMetadata" ? false : undefined,
-    min: ["quality", "width", "height", "fps", "fontSize", "opacity", "pageNumber", "x", "y", "startSeconds", "durationSeconds", "segmentDuration"].includes(option) ? (option === "quality" ? 18 : option === "width" && !["pdf-redact", "pdf-highlight", "pdf-shape"].includes(id) ? 160 : option === "fontSize" ? 8 : option === "pageNumber" ? 1 : 0) : undefined,
-    max: option === "quality" ? 40 : option === "width" && id !== "pdf-redact" ? 7680 : ["height", "x", "y", "width"].includes(option) && id === "pdf-redact" ? 100 : option === "fps" ? 120 : option === "fontSize" ? 96 : option === "opacity" ? 1 : undefined,
+    defaultValue: option === "quality" ? 28 : option === "speed" ? "1" : option === "angle" ? "90" : option === "direction" ? "hflip" : option === "mode" ? "prettify" : option === "algorithm" ? "sha256" : option === "archiveName" ? "archive.zip" : option === "format" ? (id === "pdf-to-image" ? "image/png" : id === "extract-audio" ? "mp3" : category === "Image" ? "image/jpeg" : category === "Audio" ? "mp3" : "mp4") : option === "width" ? (id === "pdf-redact" ? 20 : id === "image-thumbnail" ? 320 : id === "image-crop" ? 800 : id === "crop-video" ? 1280 : 1280) : option === "height" ? (id === "pdf-redact" ? 20 : id === "crop-video" ? 720 : 600) : option === "x" || option === "y" ? 0 : option === "fps" ? 30 : option === "fontSize" ? (id === "image-watermark" || id === "image-meme" || id === "video-caption" ? 36 : 12) : option === "opacity" ? 0.6 : option === "position" ? "bottom-right" : option === "pageNumber" ? 1 : option === "startSeconds" ? 0 : option === "durationSeconds" || option === "segmentDuration" ? 10 : option === "fadeIn" || option === "fadeOut" ? 2 : option === "gainDb" ? 0 : option === "loopCount" ? 2 : option === "removeMetadata" ? false : undefined,
+    min: ["quality", "width", "height", "fps", "fontSize", "opacity", "pageNumber", "x", "y", "startSeconds", "durationSeconds", "segmentDuration", "fadeIn", "fadeOut", "gainDb", "loopCount"].includes(option) ? (option === "quality" ? 18 : option === "width" && !["pdf-redact", "pdf-highlight", "pdf-shape"].includes(id) ? 160 : option === "fontSize" ? 8 : option === "pageNumber" ? 1 : option === "gainDb" ? -40 : option === "loopCount" ? 2 : 0) : undefined,
+    max: option === "quality" ? 40 : option === "width" && id !== "pdf-redact" ? 7680 : ["height", "x", "y", "width"].includes(option) && id === "pdf-redact" ? 100 : option === "fps" ? 120 : option === "fontSize" ? 96 : option === "opacity" ? 1 : option === "gainDb" ? 40 : option === "loopCount" ? 20 : undefined,
     step: option === "quality" || option === "fps" ? 1 : undefined,
     placeholder: option === "start" || option === "duration" ? "00:00:00" : undefined,
     options: option === "angle"
@@ -108,7 +124,7 @@ function descriptor(
         : option === "format"
       ? category === "Image" || id === "pdf-to-image"
         ? imageFormatSelectOptions()
-        : category === "Audio"
+        : category === "Audio" || id === "extract-audio"
           ? [{ label: "MP3", value: "mp3" }, { label: "WAV", value: "wav" }]
           : [{ label: "MP4", value: "mp4" }, { label: "WebM", value: "webm" }, { label: "MOV", value: "mov" }]
       : option === "direction" ? [{ label: "Horizontal", value: "hflip" }, { label: "Vertical", value: "vflip" }]

@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { CheckCircle, CircleNotch, X } from "@phosphor-icons/react";
 import { readJsonResponse } from "@/lib/app/fetch-json";
+import { firePaymentConfetti } from "@/lib/app/payment-confetti";
 
 type State = "idle" | "confirming" | "success" | "error";
 
@@ -137,6 +138,13 @@ export default function SponsorPaymentStatus() {
   const [state, setState] = useState<State>("idle");
   const [message, setMessage] = useState("");
   const [isOpen, setIsOpen] = useState(true);
+  const confettiFired = useRef(false);
+
+  useEffect(() => {
+    if (state !== "success" || confettiFired.current) return;
+    confettiFired.current = true;
+    firePaymentConfetti();
+  }, [state]);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);

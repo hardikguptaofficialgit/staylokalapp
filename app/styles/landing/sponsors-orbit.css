@@ -400,7 +400,15 @@ html[data-theme="light"] .sponsor-mark.has-sponsor-logo {
   width: 100%;
 }
 .sponsor-payment-modal-success {
+  animation: sponsor-payment-success-pop 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) both;
   border-color: #4b9b6b;
+  box-shadow:
+    0 1.5rem 4rem rgb(0 0 0 / 0.38),
+    0 0 0 1px rgb(75 155 107 / 0.25),
+    0 0 2.5rem rgb(75 155 107 / 0.18);
+}
+.sponsor-payment-modal-success .sponsor-payment-modal-icon {
+  animation: sponsor-payment-icon-pop 0.65s cubic-bezier(0.34, 1.4, 0.64, 1) 0.08s both;
 }
 .sponsor-payment-modal-pending,
 .sponsor-payment-modal-confirming {
@@ -474,4 +482,33 @@ html[data-theme="light"] .sponsor-mark.has-sponsor-logo {
 }
 @keyframes sponsor-payment-spin {
   to { transform: rotate(360deg); }
+}
+@keyframes sponsor-payment-success-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.88) translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+@keyframes sponsor-payment-icon-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  55% {
+    transform: scale(1.12);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sponsor-payment-modal-success,
+  .sponsor-payment-modal-success .sponsor-payment-modal-icon {
+    animation: none;
+  }
 }

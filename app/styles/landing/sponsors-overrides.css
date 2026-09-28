@@ -44,17 +44,17 @@ html[data-theme="light"] .sponsor-orbit {
 
 html[data-theme="light"] .sponsor-link,
 html[data-theme="light"] .donate-link {
-  background: rgb(255 255 255 / 0.62);
-  border-color: rgb(17 17 17 / 0.2);
-  color: rgb(24 29 27 / 0.88);
-  box-shadow: 0 1px 5px rgb(17 17 17 / 0.08);
+  background: rgb(255 250 246 / 0.72);
+  border-color: rgb(26 20 16 / 0.16);
+  color: rgb(26 20 16 / 0.88);
+  box-shadow: 0 1px 5px rgb(26 20 16 / 0.06);
 }
 
 html[data-theme="light"] .sponsor-link:hover,
 html[data-theme="light"] .sponsor-link:focus-visible,
 html[data-theme="light"] .donate-link:hover,
 html[data-theme="light"] .donate-link:focus-visible {
-  background: rgb(255 255 255 / 0.9);
-  border-color: rgb(17 17 17 / 0.5);
-  color: rgb(17 17 17);
+  background: rgb(255 250 246 / 0.94);
+  border-color: rgb(26 20 16 / 0.42);
+  color: #1a1410;
 }

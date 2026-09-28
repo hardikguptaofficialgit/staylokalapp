@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowRight, CaretDown, Check, Tag, UploadSimple } from "@phosphor-icons/react";
+import { ArrowRight, CaretDown, Check, Tag, UploadSimple, X } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { readJsonResponse } from "@/lib/app/fetch-json";
 import { formatBid, minimumBidForRank } from "@/lib/sponsors/ranking";
 import { SPONSOR_CATEGORIES, type RankedSponsor } from "@/lib/sponsors/types";
+import SponsorStackPreview from "./SponsorStackPreview";
 
 type SponsorModalProps = {
   sponsors: RankedSponsor[];
@@ -237,17 +238,15 @@ function SponsorLogoCropper({
           width={canvasWidth}
         />
         <div className="sponsor-crop-content">
-          <p className="eyebrow">Local image editor</p>
-          <h2 id="sponsor-crop-title">Crop your logo</h2>
-          <p>Drag the square to reposition it. Pull any corner handle to resize it.</p>
+          <h2 id="sponsor-crop-title">Crop logo</h2>
+          <p className="sponsor-crop-hint">Drag or resize the square.</p>
           <div className="sponsor-crop-meta">
-            <span>Square crop</span>
-            <span>{frame && rect ? `${Math.round(rect.size / frame.scale)} × ${Math.round(rect.size / frame.scale)} px` : "Preparing preview…"}</span>
+            <span>{frame && rect ? `${Math.round(rect.size / frame.scale)}px square` : "Loading…"}</span>
           </div>
           <div className="sponsor-crop-actions">
             <button type="button" onClick={() => initialRect && setRect(initialRect)}>Reset</button>
             <button type="button" onClick={onCancel}>Cancel</button>
-            <button className="sponsor-crop-apply" type="button" onClick={applyCrop}>Use cropped logo</button>
+            <button className="sponsor-crop-apply" type="button" onClick={applyCrop}>Use logo</button>
           </div>
         </div>
       </section>
@@ -267,6 +266,14 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
   const [cropSource, setCropSource] = useState("");
 
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  useEffect(() => {
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
       if (categoryOpen) setCategoryOpen(false);
@@ -281,6 +288,11 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
     [sponsors, targetRank],
   );
   const currentSponsor = sponsors.find((sponsor) => sponsor.rank === targetRank);
+  const previewBidCents = useMemo(() => {
+    const parsed = Math.round(Number(form.bid) * 100);
+    if (Number.isSafeInteger(parsed) && parsed >= minimumBid) return parsed;
+    return minimumBid;
+  }, [form.bid, minimumBid]);
 
   function updateForm(field: keyof typeof emptyForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -395,12 +407,21 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
             closeModal();
           }}
         >
-          Close
+          <X size={16} weight="bold" aria-hidden />
         </button>
+        <SponsorStackPreview
+          sponsors={sponsors}
+          targetRank={targetRank}
+          companyName={form.companyName}
+          description={form.description}
+          logoDataUrl={logoDataUrl}
+          bidCents={previewBidCents}
+        />
         <div className="sponsor-modal-content">
-          <p className="eyebrow">Limited sponsored positions</p>
-          <h2 id="sponsor-modal-title">Claim a sponsor position.</h2>
-          <p className="sponsor-modal-intro">Choose a rank, add your listing, and continue to checkout.</p>
+          <header className="sponsor-modal-header">
+            <h2 id="sponsor-modal-title">Sponsor a spot</h2>
+            <p className="sponsor-modal-intro">Pick a rank, fill the basics, checkout.</p>
+          </header>
 
           <div className="sponsor-rank-picker" aria-label="Choose a sponsor rank">
           {Array.from({ length: 5 }, (_, index) => index + 1).map((rank) => {
@@ -420,12 +441,12 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
           })}
           </div>
           <p className="sponsor-rank-status">
-            #{targetRank} · {currentSponsor ? `${currentSponsor.companyName} · ` : "Open · "}from <strong>{formatBid(minimumBid)}</strong>
+            #{targetRank} · {currentSponsor ? currentSponsor.companyName : "Open"} · min <strong>{formatBid(minimumBid)}</strong>
           </p>
 
           <form className="sponsor-form" onSubmit={submitClaim}>
-          <label>Company name<input required maxLength={80} value={form.companyName} onChange={(event) => updateForm("companyName", event.target.value)} placeholder="Your company" /></label>
-          <label>Website or @handle<input required maxLength={300} value={form.destination} onChange={(event) => updateForm("destination", event.target.value)} placeholder="https://example.com" /></label>
+          <label>Name<input required maxLength={80} value={form.companyName} onChange={(event) => updateForm("companyName", event.target.value)} placeholder="Company or creator" /></label>
+          <label>Link<input required maxLength={300} value={form.destination} onChange={(event) => updateForm("destination", event.target.value)} placeholder="site.com or @you" /></label>
           <label className="sponsor-category-field">Category
             <span className="sponsor-category-select">
               <button
@@ -436,7 +457,7 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
                 onClick={() => setCategoryOpen((open) => !open)}
               >
                 <Tag size={15} />
-                <span>{form.category || "Choose a category"}</span>
+                <span>{form.category || "Category"}</span>
                 <CaretDown className={categoryOpen ? "is-open" : ""} size={15} />
               </button>
               {categoryOpen && (
@@ -462,7 +483,7 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
               )}
             </span>
           </label>
-          <label>Description<input required maxLength={160} value={form.description} onChange={(event) => updateForm("description", event.target.value)} placeholder="One short sentence" /></label>
+          <label className="sponsor-tagline-field">Tagline<input required maxLength={160} value={form.description} onChange={(event) => updateForm("description", event.target.value)} placeholder="What you do in one line" /></label>
           <label className="sponsor-logo-upload">Logo <span>optional</span>
             <span className="sponsor-logo-dropzone">
               <span
@@ -470,11 +491,11 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
                 className="sponsor-logo-preview"
                 style={logoDataUrl ? { backgroundImage: `url(${logoDataUrl})` } : undefined}
               >
-                {!logoDataUrl && <UploadSimple size={18} />}
+                {!logoDataUrl && <UploadSimple size={16} />}
               </span>
               <span className="sponsor-logo-copy">
-                <strong>{logoFileName || "Upload a logo"}</strong>
-                <small>{logoFileName ? "Logo ready" : "PNG, JPEG, or WebP · max 512 KB"}</small>
+                <strong>{logoFileName || "Add logo"}</strong>
+                <small>{logoFileName ? "Ready" : "PNG · JPG · WebP"}</small>
               </span>
               <input
                 accept="image/png,image/jpeg,image/webp"
@@ -484,20 +505,12 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
               />
             </span>
           </label>
-          <label className="sponsor-bid-label">Your bid <span>{formatBid(Math.max(minimumBid, Math.round(Number(form.bid || 0) * 100)))}</span><input required min={minimumBid / 100} step="0.01" type="number" value={form.bid} onChange={(event) => updateForm("bid", event.target.value)} /></label>
-          <label className="sponsor-terms"><input checked={termsAccepted} type="checkbox" onChange={(event) => setTermsAccepted(event.target.checked)} /> I agree to the one-time sponsor payment.</label>
+          <label className="sponsor-bid-label">Bid <span>{formatBid(Math.max(minimumBid, Math.round(Number(form.bid || 0) * 100)))}</span><input required min={minimumBid / 100} step="0.01" type="number" value={form.bid} onChange={(event) => updateForm("bid", event.target.value)} /></label>
+          <label className="sponsor-terms"><input checked={termsAccepted} type="checkbox" onChange={(event) => setTermsAccepted(event.target.checked)} /> One-time payment — I&apos;m good with that.</label>
           {error && <p className="sponsor-form-error" role="alert">{error}</p>}
-          <button className="sponsor-submit" disabled={isSubmitting} type="submit">{isSubmitting ? "Opening checkout…" : "Continue to checkout"}<ArrowRight size={17} /></button>
+          <button className="sponsor-submit" disabled={isSubmitting} type="submit">{isSubmitting ? "Heading to checkout…" : "Checkout"}<ArrowRight size={17} weight="bold" /></button>
           </form>
         </div>
-        <aside className="sponsor-modal-visual" aria-label="Sponsor placement information">
-          <div className="sponsor-modal-visual-overlay">
-            <span className="sponsor-modal-visual-kicker">Be seen by every file</span>
-            <strong>Put your product in the workflow.</strong>
-            <p>One focused placement. Five limited positions. A simple way to support private, local-first tools.</p>
-            <span className="sponsor-modal-visual-note">One-time payment · No recurring plan</span>
-          </div>
-        </aside>
       </section>
       {cropSource && (
         <SponsorLogoCropper

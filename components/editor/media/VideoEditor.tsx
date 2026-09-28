@@ -458,8 +458,8 @@ export function VideoEditor({ source, fileName, onAction, onReplace, progress, o
       </div>
       {progress && (
         <div className="space-y-2" aria-live="polite">
-          <div className="flex justify-between text-xs text-muted"><span>{progress.label}</span><span>{Math.round(progress.ratio * 100)}%</span></div>
-          <progress className="w-full" max={1} value={progress.ratio} />
+          <div className="flex justify-between text-xs text-muted"><span>{progress.label}</span><span>{Math.min(100, Math.max(0, Math.round(progress.ratio * 100)))}%</span></div>
+          <progress className="w-full" max={1} value={Math.min(1, Math.max(0, progress.ratio))} />
           {onCancel && <button type="button" className="control-pill" onClick={onCancel}>Cancel</button>}
         </div>
       )}

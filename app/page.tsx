@@ -16,7 +16,7 @@ export default function Home() {
   const pdfSelected = workflow.selected?.kind === "pdf";
 
   return (
-    <main className={`app-window flex flex-col min-h-screen ${workflow.themeChanging ? "theme-changing" : ""}`}>
+    <main className="app-window flex flex-col min-h-screen">
       <input
         ref={inputRef}
         type="file"

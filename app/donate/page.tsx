@@ -3,32 +3,87 @@
 import Link from "next/link";
 import Image from "next/image";
 import { readJsonResponse } from "@/lib/app/fetch-json";
-import { ArrowLeft, CheckCircle, Heart, LockKey, Moon, Sun } from "@phosphor-icons/react";
-import { applyTheme, persistTheme, resolveTheme, subscribeTheme, type Theme } from "@/lib/app/theme";
+import { ArrowLeft, CheckCircle, CircleNotch, Heart, LockKey } from "@phosphor-icons/react";
+import { applyTheme, resolveTheme, subscribeTheme, type Theme } from "@/lib/app/theme";
+import ThemeToggle from "@/components/app/ThemeToggle";
+import { firePaymentConfetti } from "@/lib/app/payment-confetti";
 import { FormEvent, useEffect, useState, useSyncExternalStore } from "react";
 
 const MINIMUM_DONATION = 5;
+type DonationReturnState = "none" | "verifying" | "verified" | "failed";
+
+function readReturnPaymentId(): string | null {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  return params.get("payment_id")?.trim() || params.get("paymentId")?.trim() || null;
+}
+
+function clearDonationReturnParams() {
+  const url = new URL(window.location.href);
+  for (const key of ["payment_id", "paymentId", "status", "success", "email", "subscription_id"]) {
+    url.searchParams.delete(key);
+  }
+  const next = `${url.pathname}${url.search}${url.hash}`;
+  window.history.replaceState({}, "", next);
+}
 
 export default function DonatePage() {
   const [amount, setAmount] = useState("5");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [paymentComplete] = useState(() => {
-    if (typeof window === "undefined") return false;
-    const params = new URLSearchParams(window.location.search);
-    return params.get("success") === "1" || params.get("status") === "succeeded";
-  });
+  const [returnPaymentId] = useState(readReturnPaymentId);
+  const [donationReturn, setDonationReturn] = useState<DonationReturnState>(() => (
+    returnPaymentId ? "verifying" : "none"
+  ));
   const theme = useSyncExternalStore(subscribeTheme, resolveTheme, () => "dark" as Theme);
 
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
 
-  function toggleTheme() {
-    const nextTheme: Theme = theme === "light" ? "dark" : "light";
-    applyTheme(nextTheme);
-    persistTheme(nextTheme);
-  }
+  useEffect(() => {
+    if (!returnPaymentId) return;
+
+    const controller = new AbortController();
+    const deadline = Date.now() + 60_000;
+    const verify = async () => {
+      while (!controller.signal.aborted && Date.now() < deadline) {
+        try {
+          const query = new URLSearchParams({ payment_id: returnPaymentId });
+          const response = await fetch(`/api/donations/confirm?${query.toString()}`, {
+            signal: controller.signal,
+          });
+          const result = await readJsonResponse<{ verified?: boolean; error?: string }>(response);
+          if (result.verified) {
+            setDonationReturn("verified");
+            clearDonationReturnParams();
+            firePaymentConfetti();
+            return;
+          }
+          if (response.status === 202) {
+            await new Promise((resolve) => window.setTimeout(resolve, 2000));
+            continue;
+          }
+          setDonationReturn("failed");
+          setError(result.error ?? "We could not verify this donation.");
+          return;
+        } catch (verifyError) {
+          if (verifyError instanceof DOMException && verifyError.name === "AbortError") return;
+          await new Promise((resolve) => window.setTimeout(resolve, 2000));
+        }
+      }
+      if (!controller.signal.aborted) {
+        setDonationReturn("failed");
+        setError("Donation confirmation timed out. Refresh shortly if you completed checkout.");
+      }
+    };
+
+    void verify();
+    return () => controller.abort();
+  }, [returnPaymentId]);
+
+  const paymentComplete = donationReturn === "verified";
+  const verifyingReturn = donationReturn === "verifying";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -66,9 +121,7 @@ export default function DonatePage() {
           <span>StayLokal</span>
         </Link>
         <div className="donate-header-actions">
-          <button className="control-pill theme-toggle" onClick={toggleTheme} aria-label="Toggle color mode" type="button">
-            {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
-          </button>
+          <ThemeToggle />
           <Link className="donate-back-link" href="/">
             <ArrowLeft size={15} /> Back
           </Link>
@@ -84,7 +137,13 @@ export default function DonatePage() {
           If it saves you time, you can support its continued development.
         </p>
 
-        {paymentComplete ? (
+        {verifyingReturn ? (
+          <div className="donation-success" role="status">
+            <CircleNotch className="sponsor-payment-spinner" size={28} />
+            <h2>Confirming your donation…</h2>
+            <p>Hang on while we verify your payment.</p>
+          </div>
+        ) : paymentComplete ? (
           <div className="donation-success" role="status">
             <CheckCircle size={28} weight="fill" />
             <h2>Thank you for supporting StayLokal.</h2>

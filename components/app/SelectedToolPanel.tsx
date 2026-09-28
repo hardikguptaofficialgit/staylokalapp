@@ -21,8 +21,11 @@ import ArchiveCreateEditor from "@/components/editor/archive/ArchiveCreateEditor
 const videoEditorToolIds = ["trim", "cut", "speed", "frames"] as const;
 const genericFfmpegVideoToolIds = [
   "split", "compress", "convert", "resize", "fps", "mute", "extract-audio", "to-gif", "from-gif", "thumbnail", "rotate", "flip", "metadata",
+  "reverse", "loop", "crop-video", "video-caption",
 ] as const;
-const audioEditorToolIds = ["audio-trim", "normalize-audio", "metadata-audio", "convert-audio"] as const;
+const audioEditorToolIds = [
+  "audio-trim", "normalize-audio", "metadata-audio", "convert-audio", "audio-speed", "audio-fade", "audio-volume", "audio-reverse",
+] as const;
 
 function usesInlineMediaProgress(toolId: string) {
   return (videoEditorToolIds as readonly string[]).includes(toolId) || (audioEditorToolIds as readonly string[]).includes(toolId);
@@ -68,6 +71,10 @@ function primaryRunToolLabel(toolId: string, processing: boolean) {
     rotate: "Rotate video",
     flip: "Flip video",
     metadata: "Remove metadata",
+    reverse: "Reverse video",
+    loop: "Loop video",
+    "crop-video": "Crop video",
+    "video-caption": "Add caption",
   };
   return labels[toolId] ?? "Run Tool";
 }
@@ -294,7 +301,7 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
       {selected.kind !== "pdf" && (audioEditorToolIds as readonly string[]).includes(selected.id) && selected.id !== "audio-trim" && !workflow.oversizedInput && (
         <div className="flex flex-col sm:flex-row gap-3">
           <button type="button" onClick={() => void workflow.processWithOptions()} disabled={workflow.status === "processing"} className="action-button flex-1 justify-center disabled:cursor-not-allowed disabled:opacity-50">
-            {workflow.status === "processing" ? "Processing File..." : selected.id === "normalize-audio" ? "Normalize audio" : selected.id === "metadata-audio" ? "Remove metadata" : "Convert audio"}
+            {workflow.status === "processing" ? "Processing File..." : selected.id === "normalize-audio" ? "Normalize audio" : selected.id === "metadata-audio" ? "Remove metadata" : selected.id === "audio-speed" ? "Change speed" : selected.id === "audio-fade" ? "Apply fades" : selected.id === "audio-volume" ? "Adjust volume" : selected.id === "audio-reverse" ? "Reverse audio" : "Convert audio"}
             {workflow.status !== "processing" && <ArrowUp size={18} weight="bold" />}
           </button>
           {workflow.status === "processing" && <button type="button" onClick={workflow.cancelProcessing} className="control-pill justify-center sm:w-32" aria-label="Cancel processing">Cancel</button>}
@@ -305,10 +312,10 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
         <div className="mt-6 animate-fade-in rounded-xl border border-line bg-background p-4" role="status">
           <div className="mb-3 flex justify-between text-sm font-medium text-foreground">
             <span>{workflow.progress.label || "Preparing media engine…"}</span>
-            <span>{Math.round(workflow.progress.ratio * 100)}%</span>
+            <span>{Math.min(100, Math.max(0, Math.round(workflow.progress.ratio * 100)))}%</span>
           </div>
-          <div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(workflow.progress.ratio * 100)} aria-label="Processing progress">
-            <div className="progress-bar" style={{ width: `${Math.max(2, Math.min(100, workflow.progress.ratio * 100))}%` }} />
+          <div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(100, Math.max(0, Math.round(workflow.progress.ratio * 100)))} aria-label="Processing progress">
+            <div className="progress-bar" style={{ width: `${Math.min(100, Math.max(workflow.progress.ratio > 0 ? 2 : 0, workflow.progress.ratio * 100))}%` }} />
           </div>
         </div>
       )}

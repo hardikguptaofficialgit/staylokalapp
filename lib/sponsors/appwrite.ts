@@ -1,3 +1,5 @@
+import "server-only";
+
 import { activationOutcome, normalizeBidCents } from "./ranking";
 import { normalizeSponsorLogoUrl } from "./validation";
 import type { SponsorRecord, SponsorStatus } from "./types";
