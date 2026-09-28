@@ -1,6 +1,6 @@
 import {
   Archive, ArrowsClockwise, ArrowsLeftRight, ArrowsOut, Copy, File, FileArrowDown,
-  FileImage, FilePdf, FilePlus, FilmStrip, HighlighterCircle, ImageSquare, List,
+  FileImage, FilePdf, FilePlus, FilmStrip, Fingerprint, HighlighterCircle, ImageSquare, List,
   ListNumbers, Microphone, MinusSquare, Plus, Prohibit, Scan, Scissors, ShieldCheck,
   SpeakerSimpleX, Square, Stack, TextAa, Textbox, Timer, type IconProps, Waveform,
 } from "@phosphor-icons/react";
@@ -16,7 +16,7 @@ const toolIcons: Record<string, PhosphorIcon> = {
   "file-arrow-down": FileArrowDown, "file-plus": FilePlus, "text-aa": TextAa,
   "list-numbers": ListNumbers, layers: Stack, prohibit: Prohibit,
   "highlighter-circle": HighlighterCircle, square: Square, "minus-square": MinusSquare,
-  copy: Copy, textbox: Textbox, scan: Scan, scissors: Scissors,
+  copy: Copy, textbox: Textbox, scan: Scan, scissors: Scissors, fingerprint: Fingerprint,
 };
 
 const toolColors: Record<string, string> = {

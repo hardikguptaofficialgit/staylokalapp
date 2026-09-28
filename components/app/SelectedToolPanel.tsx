@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowUp, CloudArrowDown, Sparkle } from "@phosphor-icons/react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { buildResultsZip, downloadBlob } from "@/lib/app/download-results-zip";
 import PdfEditor from "@/components/editor/pdf/pdf-editor";
 import ImageToPdfEditor from "@/components/editor/pdf/ImageToPdfEditor";
 import PdfMetadataEditor from "@/components/editor/pdf/PdfMetadataEditor";
@@ -73,8 +74,21 @@ function primaryRunToolLabel(toolId: string, processing: boolean) {
 
 export default function SelectedToolPanel({ workflow, inputRef }: { workflow: AppWorkflow; inputRef: React.RefObject<HTMLInputElement | null> }) {
   const selected = workflow.selected;
+  const [zippingResults, setZippingResults] = useState(false);
   if (!selected) return null;
   const inlineMediaProgress = usesInlineMediaProgress(selected.id);
+
+  async function downloadAllResultsAsZip() {
+    if (workflow.result.length < 2) return;
+    setZippingResults(true);
+    try {
+      const base = workflow.activeFile?.name.replace(/\.[^.]+$/, "") || "results";
+      const blob = await buildResultsZip(workflow.result);
+      downloadBlob(blob, `${base}-downloads.zip`);
+    } finally {
+      setZippingResults(false);
+    }
+  }
 
   return (
     <div className="selected-tool-panel animate-fade-in mx-auto w-full max-w-[1000px] rounded-xl border border-line bg-panel p-3 sm:p-4">
@@ -303,7 +317,14 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
 
       {workflow.result.length > 0 && (
         <div className="mt-6 animate-fade-in rounded-xl border border-line bg-background p-4 shadow-sm">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-green-600 dark:text-green-400 mb-3"><Sparkle size={14} weight="fill" /> Completed Locally</div>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-green-600 dark:text-green-400"><Sparkle size={14} weight="fill" /> Completed Locally</div>
+            {workflow.result.length >= 2 && (
+              <button type="button" onClick={() => void downloadAllResultsAsZip()} disabled={zippingResults} className="control-pill text-xs disabled:cursor-not-allowed disabled:opacity-50">
+                {zippingResults ? "Building ZIP…" : "Download all as ZIP"}
+              </button>
+            )}
+          </div>
           <div className="flex flex-col gap-2">
             {workflow.resultUrls.map((item) => (
               <a key={item.name} download={item.name} href={item.url} className="group flex items-center justify-between rounded-lg border border-line bg-panel p-3 transition-colors hover:border-foreground hover:bg-foreground hover:text-background text-sm font-medium">

@@ -19,7 +19,7 @@ these statuses:
 
 StayLokal V1 is **READY TO FREEZE** under the accepted verification criteria:
 
-- `npm test` - **PASS** (138 tests)
+- `npm test` - **PASS** (140 tests)
 - `npm run lint` - **PASS**
 - `npm run typecheck` - **PASS**
 - `npm run build` - **PASS**
@@ -106,7 +106,7 @@ sent to those services.
 | Audio trim and conversion tools | `PARTIALLY WORKING` | Waveform/editor and FFmpeg adapters exist; trim, normalization, metadata removal, and conversion are exposed locally, while browser codec/execution coverage remains limited. |
 | 512 MB local input limit | `WORKING` | Validation and UI gating exist before editor processing paths. |
 | Cancellation | `PARTIALLY WORKING` | AbortController and worker termination exist; exhaustive browser verification is incomplete. |
-| Result/download UI | `WORKING` | Blob result links are rendered and object URLs are cleaned on result changes. |
+| Result/download UI | `WORKING` | Blob result links are rendered, multi-output jobs offer “Download all as ZIP”, and object URLs are cleaned on result changes. |
 | Donation checkout | `PARTIALLY WORKING` | Dodo hosted donation checkout route and `/donate` UI exist; production credentials are not configured. |
 | Sponsor leaderboard | `PARTIALLY WORKING` | Five-rank pay-to-outbid UI, ranking logic, Appwrite repository, Dodo claim route, signed webhook, and verified payment-return confirmation exist; external configuration and live verification remain. |
 | Backend/API/database/auth | `PARTIALLY WORKING` | Donation and sponsor API routes exist; Appwrite is used for optional sponsor persistence, with no user account system. |
@@ -1012,8 +1012,8 @@ The accepted static verification currently passes:
 
 ```text
 npm test
-  19 Vitest files passed
-  138 tests passed
+  20 Vitest files passed
+  140 tests passed
 
 npm run lint
   passed

@@ -61,7 +61,7 @@ All shipped tools run in the browser; optional sponsor/donation APIs never recei
 | Background removal | `image-background-remove` | Shipped | Local IS-NET model |
 | Upscale | `image-upscale` | Shipped | 2× ESRGAN |
 | Full editor (Photopea-class) | — | N/A | Use dedicated editors |
-| Batch ZIP download all variants | — | Gap | Per-file downloads today |
+| Batch ZIP download all variants | Result panel | Shipped | “Download all as ZIP” when ≥2 outputs |
 
 ---
 
@@ -139,8 +139,6 @@ All shipped tools run in the browser; optional sponsor/donation APIs never recei
 
 1. **PDF password** — only after standards-compliant browser path  
 2. **Video merge** — re-enable when worker reliability proven  
-3. **Batch ZIP download** — optional UX for multi-output image/PDF exports  
-
 ---
 
 ## Verification

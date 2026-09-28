@@ -29,5 +29,18 @@
 		// Enable image optimization
 		// see https://opennext.js.org/cloudflare/howtos/image
 		"binding": "IMAGES"
-	}
+	},
+	"vars": {
+		"NEXT_PUBLIC_APP_URL": "https://staylokal.app"
+	},
+	"routes": [
+		{
+			"pattern": "staylokal.app",
+			"custom_domain": true
+		},
+		{
+			"pattern": "www.staylokal.app",
+			"custom_domain": true
+		}
+	]
 }

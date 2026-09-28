@@ -75,7 +75,7 @@ Copy environment variables into `.env.local` (never commit secrets).
 | `DODO_SPONSOR_RETURN_URL` | Optional override for post-checkout return (claim id is appended automatically) |
 | `DODO_PAYMENTS_RETURN_URL` | Donation return URL override |
 
-Webhook URL: `https://your-domain.com/api/webhooks/dodo`
+Webhook URL: `https://staylokal.app/api/webhooks/dodo`
 
 ### Appwrite (sponsor leaderboard + emails)
 

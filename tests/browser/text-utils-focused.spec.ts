@@ -28,3 +28,16 @@ test("formats JSON and round-trips Base64 in the browser", async ({ page }) => {
   const download = page.getByRole("link", { name: /payload\.base64\.txt/i });
   await expect(download).toBeVisible();
 });
+
+test("computes a SHA-256 hash for a text file", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('input[aria-label="Choose files"]').setInputFiles({
+    name: "checksum.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("hash-me", "utf8"),
+  });
+  await page.getByRole("button", { name: /File hash/i }).click();
+  await page.getByRole("button", { name: "Compute hash" }).click();
+  await expect(page.getByText("Completed Locally")).toBeVisible();
+  await expect(page.getByRole("link", { name: /checksum\.sha256\.txt/i })).toBeVisible();
+});

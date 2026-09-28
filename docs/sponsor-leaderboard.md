@@ -31,7 +31,7 @@ Set the matching values from `.env.example` in `.env.local`. Appwrite values are
 server-only and must not use a `NEXT_PUBLIC_` prefix.
 
 Also set `NEXT_PUBLIC_APP_URL` to your public site origin so checkout returns resolve
-correctly. For sponsor **email images in Gmail**, set a public HTTPS origin via
+correctly (`https://staylokal.app` in production today). For sponsor **email images in Gmail**, set a public HTTPS origin via
 `NEXT_PUBLIC_APP_URL` or `SPONSOR_EMAIL_ASSET_BASE_URL`. When neither is public,
 StayLokal uploads `public/images/logo.png` to your Appwrite sponsor logo bucket as
 `staylokal_email_logo` (world-readable) so clients can load the mark.
@@ -79,7 +79,7 @@ minimum to `$1.00` and use its product ID as `DODO_SPONSOR_PRODUCT_ID`.
 Configure a webhook pointing to:
 
 ```text
-https://your-domain.com/api/webhooks/dodo
+https://staylokal.app/api/webhooks/dodo
 ```
 
 Subscribe to successful payment events and copy the webhook signing key into
