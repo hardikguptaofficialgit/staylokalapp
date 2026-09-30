@@ -70,7 +70,7 @@ export default function SponsorRail() {
   return (
     <>
       <aside className={`sponsor-stack all-tools-sponsor-stack ${displaySponsors.length ? "" : "sponsor-stack-unavailable"}`} aria-label="Sponsored placements">
-        <span className="sponsor-mobile-label">Sponsored</span>
+        <span className="sponsor-mobile-label">Sponsored by</span>
         <span className="sponsor-orbit" aria-hidden="true" />
         {loadFailed && <span>Sponsor leaderboard is temporarily unavailable.</span>}
         {!loadFailed && displaySponsors.length === 0 && <span>No sponsor placements yet.</span>}

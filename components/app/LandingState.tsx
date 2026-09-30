@@ -7,6 +7,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import PeerlistPostEmbed from "./PeerlistPostEmbed";
 import SponsorModal from "./SponsorModal";
 import { readJsonResponse } from "@/lib/app/fetch-json";
 import { formatSponsorCardAmount } from "@/lib/sponsors/ranking";
@@ -143,7 +144,7 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
     <>
       <div className="landing-hero flex flex-col items-center animate-fade-in text-center">
         <aside className={`sponsor-stack ${sponsorsLoading ? "sponsor-stack-loading" : displaySponsors.length ? "" : "sponsor-stack-unavailable"}`} id="sponsors" aria-label="Sponsored placements">
-          <span className="sponsor-mobile-label">Sponsored</span>
+          <span className="sponsor-mobile-label">Sponsored by</span>
           <span className="sponsor-orbit" aria-hidden="true" />
           {sponsorsLoading && [1, 2].map((rank) => (
             <div className={`sponsor-card sponsor-skeleton-card sponsor-card-rank-${rank}`} key={`skeleton-${rank}`} aria-hidden="true">
@@ -178,6 +179,10 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
         <h1 className="landing-title max-w-[34rem] text-3xl font-semibold tracking-[-0.045em] sm:text-4xl lg:text-[2.85rem]">
           <MaskedText text="Transform your files," /><br /><MaskedText text="without the cloud." className="text-muted" />
         </h1>
+
+        <p className="landing-hero-lead">
+          Convert, compress, and edit files instantly. No servers. No accounts.
+        </p>
 
         <div
           className={`drop-zone group relative mt-16 mx-auto w-full max-w-[40rem] cursor-pointer rounded-[2rem] px-5 py-14 text-center transition-all duration-300 hover:bg-panel/50 sm:px-8 sm:py-16 ${dragging ? "drop-zone-active" : ""}`}
@@ -307,6 +312,8 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
           </div>
         </div>
       </section>
+
+      <PeerlistPostEmbed />
 
       <footer className="landing-footer" aria-label="StayLokal">
         <p className="landing-footer-line">

@@ -297,28 +297,19 @@ html[data-theme="light"] .offline-page-card {
   outline: none;
 }
 
-@media (max-width: 700px) {
-  .site-header-center {
-    grid-column: 2;
-    max-width: calc(100vw - 8.5rem);
-  }
-
+@media (max-width: 900px) {
   .pwa-install-button-label {
     display: inline;
   }
 
   .pwa-install-button {
-    font-size: 0.62rem;
-    padding: 0.3rem 0.55rem 0.3rem 0.32rem;
+    font-size: 0.68rem;
+    padding: 0.36rem 0.85rem 0.36rem 0.4rem;
   }
 }
 
 @media (max-width: 420px) {
-  .pwa-install-button-label {
-    display: none;
-  }
-
   .pwa-install-button {
-    padding: 0.28rem 0.38rem 0.28rem 0.32rem;
+    padding: 0.32rem 0.62rem 0.32rem 0.34rem;
   }
 }

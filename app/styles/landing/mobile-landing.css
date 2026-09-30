@@ -1,0 +1,323 @@
+/* Landing + header — tablet and phone (desktop unchanged) */
+
+.landing-hero-lead {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .app-window {
+    margin: 0;
+    border-radius: 0;
+    min-height: 100svh;
+    width: 100%;
+  }
+
+  .landing-section {
+    background-attachment: scroll;
+    background-image: url("/chatbg.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    box-sizing: border-box;
+    isolation: isolate;
+    max-width: 100%;
+    overflow-x: clip;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    width: 100%;
+  }
+
+  html[data-theme="light"] .landing-section {
+    background-image: url("/images/bglightland.png");
+  }
+
+  .floating-file-card,
+  .floating-file-layer {
+    display: none !important;
+  }
+
+  .landing-section::before {
+    background: rgb(0 0 0 / 0.72);
+    z-index: 1;
+  }
+
+  html[data-theme="light"] .landing-section::before {
+    background: rgb(244 235 227 / 0.1);
+  }
+
+  .landing-section > * {
+    z-index: 2;
+  }
+
+  .all-tools-section {
+    max-width: 100%;
+    overflow-x: clip;
+    width: 100%;
+  }
+
+  .all-tools-section::after {
+    background-attachment: scroll;
+    background-position: center;
+    background-size: cover;
+    filter: blur(8px);
+    inset: 0;
+    transform: scale(1.03);
+  }
+
+  .site-header.site-header-bar {
+    align-items: center;
+    display: grid;
+    gap: 0.55rem 0.65rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .site-header-center {
+    display: none;
+  }
+
+  .site-header-brand-row {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+  }
+
+  .site-header-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .landing-hero {
+    box-sizing: border-box;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 5.35rem;
+    width: 100%;
+  }
+
+  .landing-hero-lead {
+    background: rgb(0 0 0 / 0.62);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    border-radius: 999px;
+    box-sizing: border-box;
+    color: rgb(255 255 255 / 0.94);
+    display: block;
+    font-size: clamp(0.72rem, 3.2vw, 0.86rem);
+    font-weight: 550;
+    line-height: 1.4;
+    margin: 0.65rem auto 0.2rem;
+    max-width: min(22rem, calc(100% - 0.5rem));
+    order: 2;
+    padding: 0.5rem 0.9rem;
+    text-align: center;
+  }
+
+  html[data-theme="light"] .landing-hero-lead {
+    background: #fff;
+    border-color: rgb(26 20 16 / 0.12);
+    box-shadow: 0 1px 6px rgb(26 20 16 / 0.08);
+    color: #3f3832;
+  }
+
+  .landing-hero .drop-zone {
+    order: 3;
+  }
+
+  .landing-hero .landing-privacy-note {
+    order: 4;
+  }
+
+  .landing-hero .sponsor-stack {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    box-sizing: border-box;
+    gap: 0.4rem;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: calc(100% - 0.5rem);
+    order: 5;
+    padding: 0;
+    width: auto;
+  }
+
+  .landing-hero .sponsor-mobile-label {
+    background: rgb(255 255 255 / 0.1);
+    border: 1px solid rgb(255 255 255 / 0.16);
+    border-radius: 999px;
+    color: rgb(255 255 255 / 0.95);
+    flex: 0 0 auto;
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    margin-right: 0.35rem;
+    padding: 0.3rem 0.55rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  html[data-theme="light"] .landing-hero .sponsor-mobile-label {
+    background: rgb(244 235 227 / 0.95);
+    border-color: rgb(26 20 16 / 0.14);
+    color: #2f2924;
+  }
+
+  .drop-zone .drop-zone-subtitle {
+    display: none;
+  }
+
+  .landing-hero .landing-title {
+    box-sizing: border-box;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: min(100%, 22rem) !important;
+    order: 1;
+    overflow-wrap: anywhere;
+    text-align: center;
+    width: 100%;
+  }
+
+  .landing-character-mask {
+    display: block;
+    white-space: normal;
+  }
+
+  .landing-character-mask > span {
+    display: inline;
+  }
+
+  .landing-character-mask > span.landing-character-space {
+    display: inline;
+    width: 0.28em;
+  }
+
+  .landing-hero .drop-zone {
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .site-header.site-header-bar {
+    align-items: center;
+  }
+
+  .site-header-bar {
+    padding-top: 0.65rem;
+    padding-bottom: 0.55rem;
+  }
+
+  .site-header-actions {
+    flex-wrap: nowrap;
+  }
+
+  .mobile-header-menu {
+    position: relative;
+  }
+
+  .mobile-header-menu summary {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    min-height: 1.85rem;
+    min-width: 3.1rem;
+    padding: 0.38rem 0.65rem;
+  }
+
+  .mobile-header-menu-panel {
+    left: auto;
+    min-width: 8.5rem;
+    right: 0;
+  }
+
+  .mobile-header-menu-panel button,
+  .mobile-header-menu-panel a {
+    border-radius: 0.45rem;
+    justify-self: stretch;
+    text-align: center;
+    width: 100%;
+  }
+
+  .mobile-header-menu[open] summary {
+    background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  }
+
+  .theme-toggle {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-hero {
+    justify-content: flex-start;
+    min-height: auto;
+    padding-bottom: 1.5rem;
+    padding-top: 5.85rem;
+  }
+
+  .landing-section {
+    min-height: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .landing-hero .landing-title {
+    font-size: clamp(1.5rem, 7.4vw, 1.85rem);
+    line-height: 1.14;
+    max-width: calc(100% - 0.25rem) !important;
+    overflow-wrap: anywhere;
+    padding: 0.35rem 0.5rem;
+    word-break: normal;
+  }
+
+  html[data-theme="light"] .landing-hero .landing-title {
+    max-width: calc(100% - 0.5rem) !important;
+  }
+
+  .landing-title br {
+    display: none;
+  }
+
+  .landing-title .text-muted {
+    display: block;
+    margin-top: 0.12rem;
+  }
+
+  .drop-zone {
+    margin-top: 0.85rem !important;
+    padding: 1.35rem 0.65rem 1.1rem;
+  }
+
+  .drop-category-list {
+    gap: 0.4rem 0.45rem;
+    justify-content: center;
+    max-width: 100%;
+  }
+
+  .landing-privacy-note {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: calc(100% - 0.5rem);
+  }
+
+  .landing-hero .sponsor-stack {
+    margin-bottom: 1rem;
+    margin-top: 0.85rem;
+  }
+}
+
+/* Small phones — keep install label readable */
+@media (max-width: 380px) {
+  .pwa-install-button-label {
+    font-size: 0.58rem;
+  }
+}

@@ -40,6 +40,7 @@ export default function AppHeader({ workflow }: { workflow: AppWorkflow }) {
           <details className="mobile-header-menu">
             <summary aria-label="Open navigation menu">Menu</summary>
             <div className="mobile-header-menu-panel">
+              <PwaInstallButton placement="menu" />
               <button type="button" onClick={() => workflow.setViewMode("all")}>All Tools</button>
               <button type="button" onClick={() => window.dispatchEvent(new Event("open-sponsor-modal"))}>Sponsor</button>
               <a href="/donate">Donate</a>
