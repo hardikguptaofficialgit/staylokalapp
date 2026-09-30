@@ -10,6 +10,7 @@ import ThemeToggle from "@/components/app/ThemeToggle";
 import { firePaymentConfetti } from "@/lib/app/payment-confetti";
 import { FormEvent, useEffect, useState, useSyncExternalStore } from "react";
 
+
 import { MAXIMUM_DONATION_CENTS, MINIMUM_DONATION_CENTS } from "@/lib/donations";
 
 const MINIMUM_DONATION = MINIMUM_DONATION_CENTS / 100;
