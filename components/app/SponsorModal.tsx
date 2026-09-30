@@ -413,6 +413,13 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
         role="dialog"
         aria-modal="true"
         aria-labelledby="sponsor-modal-title"
+        style={{
+          maxHeight: "calc(100dvh - 16px)",
+          overflowY: "auto",
+          overflowX: "hidden",
+          WebkitOverflowScrolling: "touch",
+          overscrollBehavior: "contain",
+        }}
         onClickCapture={(event) => {
           if (event.target instanceof Element && event.target.closest(".sponsor-modal-close")) {
             closeModal();
@@ -433,6 +440,21 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
         >
           <X size={16} weight="bold" aria-hidden />
         </button>
+        <style>{`
+          @media (max-width: 720px) {
+            .sponsor-modal {
+              max-height: calc(100dvh - 12px) !important;
+              overflow-y: auto !important;
+              overflow-x: hidden !important;
+              -webkit-overflow-scrolling: touch;
+              overscroll-behavior: contain;
+            }
+
+            .sponsor-modal-content {
+              min-height: 0 !important;
+            }
+          }
+        `}</style>
         <SponsorStackPreview
           sponsors={sponsors}
           targetRank={targetRank}
