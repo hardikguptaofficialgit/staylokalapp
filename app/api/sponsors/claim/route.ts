@@ -99,7 +99,9 @@ export async function POST(request: Request) {
       ...staylokalCheckoutSessionOptions(),
       metadata: {
         bid: `$${(claim.bidCents / 100).toFixed(2)}`,
+        bid_usd_cents: String(claim.bidCents),
         charge: `$${(checkout.chargeCents / 100).toFixed(2)}`,
+        charge_usd_cents: String(checkout.chargeCents),
         claim_id: pendingClaim.$id,
         company_name: claim.companyName,
         target_rank: String(targetRank),

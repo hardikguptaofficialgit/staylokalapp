@@ -5,6 +5,7 @@ import { normalizeBidCents } from "./ranking";
 
 export type DodoPaymentSnapshot = {
   amount?: number;
+  currency?: string | null;
   metadata?: Record<string, string | number | boolean | undefined>;
   status?: string | null;
   tax?: number | null;
@@ -42,10 +43,13 @@ export function paymentBidCents(payment: DodoPaymentSnapshot): number | null {
   return subtotal;
 }
 
-export function metadataBidCents(metadata?: DodoPaymentSnapshot["metadata"]): number | null {
-  const bid = metadata?.bid;
-  if (typeof bid !== "string") return null;
-  const match = /^\$(\d+(?:\.\d{2})?)$/.exec(bid.trim());
+function metadataUsdDollarsField(
+  metadata?: DodoPaymentSnapshot["metadata"],
+  field: "bid" | "charge" = "bid",
+): number | null {
+  const raw = metadata?.[field];
+  if (typeof raw !== "string") return null;
+  const match = /^\$(\d+(?:\.\d{2})?)$/.exec(raw.trim());
   if (!match) return null;
   const dollars = Number.parseFloat(match[1]);
   if (!Number.isFinite(dollars)) return null;
@@ -53,8 +57,47 @@ export function metadataBidCents(metadata?: DodoPaymentSnapshot["metadata"]): nu
   return Number.isSafeInteger(cents) ? cents : null;
 }
 
+export function metadataBidCents(metadata?: DodoPaymentSnapshot["metadata"]): number | null {
+  return metadataUsdDollarsField(metadata, "bid");
+}
+
+export function metadataChargeCents(metadata?: DodoPaymentSnapshot["metadata"]): number | null {
+  return metadataUsdDollarsField(metadata, "charge");
+}
+
+function metadataIntegerCents(
+  metadata?: DodoPaymentSnapshot["metadata"],
+  field = "charge_usd_cents",
+): number | null {
+  const raw = metadata?.[field];
+  if (raw === undefined || raw === null) return null;
+  const cents = Number(String(raw).trim());
+  return Number.isSafeInteger(cents) ? cents : null;
+}
+
+/** USD charge for sponsor checkout (Adaptive Currency may settle in INR, etc.). */
+export function resolvedSponsorPaidChargeCents(payment: DodoPaymentSnapshot): number | null {
+  const explicit = metadataIntegerCents(payment.metadata, "charge_usd_cents");
+  if (explicit !== null) return explicit;
+
+  const fromCharge = metadataChargeCents(payment.metadata);
+  if (fromCharge !== null) return fromCharge;
+
+  const currency = String(payment.currency ?? "USD").trim().toUpperCase();
+  const paymentCents = paymentBidCents(payment);
+  if (paymentCents !== null && currency === "USD") {
+    return paymentCents;
+  }
+
+  const fromBid = metadataBidCents(payment.metadata);
+  if (fromBid !== null) return fromBid;
+
+  return null;
+}
+
+/** @deprecated Use resolvedSponsorPaidChargeCents */
 export function resolvedSponsorBidCents(payment: DodoPaymentSnapshot): number | null {
-  return paymentBidCents(payment) ?? metadataBidCents(payment.metadata);
+  return resolvedSponsorPaidChargeCents(payment);
 }
 
 export function dodoApiErrorStatus(error: unknown): number | undefined {
@@ -98,8 +141,8 @@ export function assertSponsorPaymentMatchesClaim(
   if (metadataClaimId !== claimId) {
     throw new Error("Payment is not linked to this sponsor claim.");
   }
-  const paidBidCents = resolvedSponsorBidCents(payment);
-  if (paidBidCents === null || paidBidCents !== bidCents) {
+  const paidChargeCents = resolvedSponsorPaidChargeCents(payment);
+  if (paidChargeCents === null || paidChargeCents !== bidCents) {
     throw new Error("Payment amount does not match the sponsor bid.");
   }
   const rankMetadata = payment.metadata?.target_rank;

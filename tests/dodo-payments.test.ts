@@ -6,6 +6,7 @@ import {
   paymentAmountCents,
   paymentBidCents,
   resolvedSponsorBidCents,
+  resolvedSponsorPaidChargeCents,
 } from "../lib/sponsors/dodo-payments";
 
 describe("dodo sponsor payment verification", () => {
@@ -62,19 +63,38 @@ describe("dodo sponsor payment verification", () => {
     expect(claimChargeCents({ bidCents: 401 })).toBe(401);
   });
 
-  it("subtracts tax when matching sponsor bid", () => {
+  it("subtracts tax when matching sponsor bid in USD", () => {
     const payment = {
-      metadata: { bid: "$1.00", claim_id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11" },
+      currency: "USD",
+      metadata: { charge: "$1.00", claim_id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11" },
       status: "succeeded",
       tax: 18,
       total_amount: 118,
     };
     expect(paymentBidCents(payment)).toBe(100);
+    expect(resolvedSponsorPaidChargeCents(payment)).toBe(100);
     expect(resolvedSponsorBidCents(payment)).toBe(100);
     expect(() => assertSponsorPaymentMatchesClaim(
       payment,
       "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
       100,
     )).not.toThrow();
+  });
+
+  it("uses checkout USD metadata when customer paid in INR", () => {
+    const claimId = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
+    const payment = {
+      currency: "INR",
+      metadata: {
+        charge: "$1.00",
+        charge_usd_cents: "100",
+        claim_id: claimId,
+      },
+      status: "succeeded",
+      total_amount: 11_700,
+    };
+    expect(paymentBidCents(payment)).toBe(11_700);
+    expect(resolvedSponsorPaidChargeCents(payment)).toBe(100);
+    expect(() => assertSponsorPaymentMatchesClaim(payment, claimId, 100)).not.toThrow();
   });
 });
