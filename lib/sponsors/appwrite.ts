@@ -9,13 +9,17 @@ import {
 import { normalizeSponsorLogoUrl } from "./validation";
 import type { SponsorRecord, SponsorStatus } from "./types";
 
+function envValue(name: string): string {
+  return process.env[name]?.trim() ?? "";
+}
+
 function hasBaseConfig(): boolean {
   return Boolean(
-    process.env.APPWRITE_ENDPOINT
-    && process.env.APPWRITE_PROJECT_ID
-    && process.env.APPWRITE_API_KEY
-    && process.env.APPWRITE_DATABASE_ID
-    && process.env.APPWRITE_SPONSORS_TABLE_ID,
+    envValue("APPWRITE_ENDPOINT")
+    && envValue("APPWRITE_PROJECT_ID")
+    && envValue("APPWRITE_API_KEY")
+    && envValue("APPWRITE_DATABASE_ID")
+    && envValue("APPWRITE_SPONSORS_TABLE_ID"),
   );
 }
 
@@ -24,7 +28,7 @@ export function appwriteIsConfigured(): boolean {
 }
 
 export function appwriteClaimsAreConfigured(): boolean {
-  return hasBaseConfig() && Boolean(process.env.APPWRITE_CLAIMS_TABLE_ID);
+  return hasBaseConfig() && Boolean(envValue("APPWRITE_CLAIMS_TABLE_ID"));
 }
 
 type AppwriteRow = {
@@ -65,17 +69,17 @@ const Query = {
 const uniqueId = () => crypto.randomUUID();
 
 function appwriteUrl(path: string) {
-  const endpoint = process.env.APPWRITE_ENDPOINT!.replace(/\/+$/, "").replace(/\/v1$/, "");
+  const endpoint = envValue("APPWRITE_ENDPOINT").replace(/\/+$/, "").replace(/\/v1$/, "");
   return `${endpoint}${path}`;
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
-  headers.set("X-Appwrite-Project", process.env.APPWRITE_PROJECT_ID!);
-  headers.set("X-Appwrite-Key", process.env.APPWRITE_API_KEY!);
+  headers.set("X-Appwrite-Project", envValue("APPWRITE_PROJECT_ID"));
+  headers.set("X-Appwrite-Key", envValue("APPWRITE_API_KEY"));
   if (init.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
 
-  const response = await fetch(appwriteUrl(path), { ...init, headers });
+  const response = await fetch(appwriteUrl(path), { ...init, headers, cache: "no-store" });
   const text = await response.text();
   let body: unknown = undefined;
   try {
@@ -97,7 +101,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
 function rowPath(tableId: string, rowId?: string) {
   const suffix = rowId ? `/${encodeURIComponent(rowId)}` : "";
-  return `/v1/tablesdb/${encodeURIComponent(process.env.APPWRITE_DATABASE_ID!)}/tables/${encodeURIComponent(tableId)}/rows${suffix}`;
+  return `/v1/tablesdb/${encodeURIComponent(envValue("APPWRITE_DATABASE_ID"))}/tables/${encodeURIComponent(tableId)}/rows${suffix}`;
 }
 
 function services() {

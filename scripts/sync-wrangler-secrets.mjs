@@ -15,15 +15,9 @@ const wranglerText = readFileSync(resolve(root, "wrangler.jsonc"), "utf8");
 const workerMatch = wranglerText.match(/"name"\s*:\s*"([^"]+)"/);
 const workerName = workerMatch?.[1] ?? "staylokal";
 
+// Non-secret Appwrite IDs live in wrangler.jsonc `vars` (stay in sync with VelocityBrain).
 const SECRET_KEYS = [
   "APPWRITE_API_KEY",
-  "APPWRITE_PROJECT_ID",
-  "APPWRITE_DATABASE_ID",
-  "APPWRITE_SPONSORS_TABLE_ID",
-  "APPWRITE_CLAIMS_TABLE_ID",
-  "APPWRITE_SPONSOR_BUCKET_ID",
-  "APPWRITE_ENDPOINT",
-  "APPWRITE_MESSAGING_EMAIL_PROVIDER_ID",
   "DODO_PAYMENTS_API_KEY",
   "DODO_PAYMENTS_ENVIRONMENT",
   "DODO_PAYMENTS_WEBHOOK_KEY",

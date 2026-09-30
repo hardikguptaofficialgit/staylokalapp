@@ -32,8 +32,14 @@
 	},
 	"vars": {
 		"NEXT_PUBLIC_APP_URL": "https://staylokal.app",
-		// Cloudflare dashboard → Web Analytics → Add site → copy token (staylokal.app)
-		"NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN": "cc4ed9110bb844858a8bff04f101127d"
+		"NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN": "cc4ed9110bb844858a8bff04f101127d",
+		"APPWRITE_ENDPOINT": "https://fra.cloud.appwrite.io/v1",
+		"APPWRITE_PROJECT_ID": "69e7d0a0002573ec6840",
+		"APPWRITE_DATABASE_ID": "6aa918ed001e3dd5a377",
+		"APPWRITE_SPONSORS_TABLE_ID": "staylokal_sponsors",
+		"APPWRITE_CLAIMS_TABLE_ID": "staylokal_claims",
+		"APPWRITE_SPONSOR_BUCKET_ID": "staylokal_sponsor_logos",
+		"APPWRITE_MESSAGING_EMAIL_PROVIDER_ID": "6ab54ac3003bfb09a711"
 	},
 	"routes": [
 		{

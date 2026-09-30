@@ -15,6 +15,7 @@
     "test:browser": "playwright test",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && node scripts/prepare-cloudflare-assets.mjs && opennextjs-cloudflare deploy",
+    "cf:sync-secrets": "node scripts/sync-wrangler-secrets.mjs",
     "upload": "opennextjs-cloudflare build && node scripts/prepare-cloudflare-assets.mjs && opennextjs-cloudflare upload",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "pwa:icons": "node scripts/generate-pwa-icons.mjs",
