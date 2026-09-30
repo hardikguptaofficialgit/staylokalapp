@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"account_id": "3392434d9b73db7d2ba85c65886700d1",
+	"account_id": "a4ad01d39f86f127a5dddee41cf7bc5f",
 	"main": ".open-next/worker.js",
 	"name": "staylokalapp",
 	"compatibility_date": "2026-09-15",
