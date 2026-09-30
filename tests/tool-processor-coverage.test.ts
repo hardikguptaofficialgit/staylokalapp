@@ -3,7 +3,38 @@ import { mediaArgs, mediaOutput } from "../lib/tools/ffmpeg-commands";
 import { resolvePdfRasterExportFormat } from "../lib/tools/image-formats";
 import { tools } from "../lib/tools/registry";
 
-const IMAGE_OPS = new Set([
+const PDF_PROCESSOR_IDS = new Set([
+  "pdf-page-size",
+  "pdf-crop",
+  "pdf-contact-sheet",
+  "pdf-flatten",
+  "pdf-redact",
+  "pdf-remove-blank",
+  "pdf-duplicate-page",
+  "pdf-add-image",
+  "pdf-sign",
+  "pdf-fill-form",
+  "pdf-privacy",
+  "pdf-watermark",
+  "pdf-page-numbers",
+  "pdf-add-text",
+  "pdf-header-footer",
+  "pdf-highlight",
+  "pdf-shape",
+  "pdf-ocr",
+  "pdf-compress",
+  "pdf-image-to-pdf",
+  "pdf-metadata",
+  "pdf-extract",
+  "pdf-delete-pages",
+  "pdf-reorder",
+  "pdf-split",
+  "pdf-merge",
+  "pdf-rotate",
+  "pdf-to-image",
+]);
+
+const IMAGE_PROCESSOR_IDS = new Set([
   "image-process",
   "image-crop",
   "image-rotate",
@@ -18,38 +49,7 @@ const IMAGE_OPS = new Set([
   "image-contact-sheet",
 ]);
 
-const PDF_OPS = new Set([
-  "pdf-merge",
-  "pdf-rotate",
-  "pdf-split",
-  "pdf-extract",
-  "pdf-delete-pages",
-  "pdf-reorder",
-  "pdf-image-to-pdf",
-  "pdf-metadata",
-  "pdf-compress",
-  "pdf-to-image",
-  "pdf-contact-sheet",
-  "pdf-crop",
-  "pdf-page-size",
-  "pdf-watermark",
-  "pdf-page-numbers",
-  "pdf-add-text",
-  "pdf-header-footer",
-  "pdf-flatten",
-  "pdf-privacy",
-  "pdf-redact",
-  "pdf-highlight",
-  "pdf-shape",
-  "pdf-remove-blank",
-  "pdf-duplicate-page",
-  "pdf-add-image",
-  "pdf-sign",
-  "pdf-fill-form",
-  "pdf-ocr",
-]);
-
-const DOCUMENT_OPS = new Set([
+const DOCUMENT_PROCESSOR_IDS = new Set([
   "ppt-text",
   "pptx-text",
   "pptx-pdf",
@@ -68,50 +68,31 @@ const DOCUMENT_OPS = new Set([
   "archive-create",
 ]);
 
-function ffmpegArgsFor(operation: string) {
-  const tool = tools.find((item) => item.id === operation)!;
-  const options = Object.fromEntries(tool.options.map((option) => [option.id, option.defaultValue ?? option.options?.[0]?.value ?? ""]));
-  const input = operation === "from-gif"
-    ? "fixture.gif"
-    : tool.accept.includes("audio/*") && !tool.accept.includes("video/*")
-      ? "fixture.wav"
-      : "fixture.mp4";
-  const extension = input.split(".").pop() ?? "mp4";
-  const audioOnly = ["mp3", "wav", "m4a", "aac", "flac", "ogg", "oga"].includes(extension);
-  const output = mediaOutput(operation, options, input);
-  return mediaArgs(operation, { ...options, audioOnly, videoOnly: false }, input, output);
-}
-
 describe("all exposed tools have processor paths", () => {
-  it("covers exactly 85 registry tools", () => {
+  it("covers every registry tool id", () => {
     expect(tools).toHaveLength(85);
-  });
-
-  it("maps every tool id to a known processor operation", () => {
-    const missing: string[] = [];
     for (const tool of tools) {
-      if (tool.kind === "image") {
-        if (!IMAGE_OPS.has(tool.id)) missing.push(tool.id);
-        continue;
-      }
       if (tool.kind === "pdf") {
-        if (PDF_OPS.has(tool.id)) continue;
-        if (resolvePdfRasterExportFormat(tool.id, {})) continue;
-        missing.push(tool.id);
-        continue;
-      }
-      if (tool.kind === "document") {
-        if (!DOCUMENT_OPS.has(tool.id)) missing.push(tool.id);
-        continue;
-      }
-      if (tool.kind === "ffmpeg") {
-        try {
-          ffmpegArgsFor(tool.id);
-        } catch {
-          missing.push(tool.id);
+        expect(PDF_PROCESSOR_IDS.has(tool.id), tool.id).toBe(true);
+        if (tool.id === "pdf-to-image") {
+          expect(resolvePdfRasterExportFormat(tool.id, { format: "image/png" })).toBe("image/png");
         }
+      } else if (tool.kind === "image") {
+        expect(IMAGE_PROCESSOR_IDS.has(tool.id), tool.id).toBe(true);
+      } else if (tool.kind === "document") {
+        expect(DOCUMENT_PROCESSOR_IDS.has(tool.id), tool.id).toBe(true);
+      } else if (tool.kind === "ffmpeg") {
+        const options = Object.fromEntries(
+          tool.options.map((option) => [option.id, option.defaultValue ?? option.options?.[0]?.value ?? ""]),
+        );
+        const input = tool.id === "from-gif"
+          ? "fixture.gif"
+          : tool.accept.includes("audio/*") && !tool.accept.includes("video/*")
+            ? "fixture.wav"
+            : "fixture.mp4";
+        const output = mediaOutput(tool.id, options, input);
+        expect(mediaArgs(tool.id, { ...options, audioOnly: input.endsWith(".wav"), videoOnly: false }, input, output).length).toBeGreaterThan(0);
       }
     }
-    expect(missing, missing.join(", ")).toEqual([]);
   });
 });

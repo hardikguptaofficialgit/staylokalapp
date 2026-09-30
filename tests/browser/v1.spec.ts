@@ -66,7 +66,7 @@ test.describe("StayLokal V1 browser flows", () => {
     await page.goto("/");
     await expect(page.getByText("Drop your files right here")).toBeVisible();
     await upload(page, { name: "fixture.bin", mimeType: "application/octet-stream", buffer: Buffer.from("unsupported") });
-    await expect(page.getByText("No local tools support this file.")).toBeVisible();
+    await expect(page.getByText(/No local tools support this file yet/i)).toBeVisible();
   });
 
   test("accepts a file pasted from the clipboard", async ({ page }) => {
@@ -94,7 +94,7 @@ test.describe("StayLokal V1 browser flows", () => {
     await upload(page, { name: "fixture.mp4", mimeType: "video/mp4", buffer: readVideoFixture() });
     await page.getByRole("button", { name: /Change speed/ }).click();
     if (!await expectVideoEditorCapability(page, "fixture.mp4")) return;
-    await page.getByLabel("Speed").selectOption("2");
+    await page.getByRole("combobox", { name: "Speed" }).selectOption("2");
     await page.getByRole("button", { name: "Apply 2× speed" }).click();
     const cancel = page.getByRole("button", { name: "Cancel" });
     if (await cancel.isVisible({ timeout: 2_000 }).catch(() => false)) await cancel.click();
@@ -115,7 +115,7 @@ test.describe("StayLokal V1 browser flows", () => {
         continue;
       }
       if (name === "Change speed") {
-        await page.getByLabel("Speed").selectOption("1.5");
+        await page.getByRole("combobox", { name: "Speed" }).selectOption("1.5");
         await page.getByRole("button", { name: "Apply 1.5× speed" }).click();
       } else {
         await page.getByRole("spinbutton", { name: "Out point" }).fill(name === "Cut out a section" ? "1.5" : "0.5");

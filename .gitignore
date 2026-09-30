@@ -1,13 +1,6 @@
-.next/
-node_modules/
-.dev.log
-playwright-report/
-test-results/
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
-/node_modules
-/.pnp
+node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -15,40 +8,49 @@ test-results/
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# env & secrets
+.env*
+!.env.example
+.dev.vars*
+!.dev.vars.example
 
 # next.js
-/.next/
-/out/
-
-# production
+.next/
+out/
 /build
 
-# misc
-.DS_Store
-*.pem
+# OpenNext / Cloudflare
+.open-next/
+.wrangler/
 
-# debug
+# generated at npm install / build (see scripts/copy-qpdf-assets.mjs)
+public/qpdf/
+
+# testing artifacts
+/coverage
+playwright-report/
+test-results/
+blob-report/
+
+# logs & debug
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+.dev.log
 
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
+# typescript / tooling
 *.tsbuildinfo
 next-env.d.ts
 
-# OpenNext
-.open-next
+# misc
+.DS_Store
+Thumbs.db
+*.pem
+.vercel
+.turbo/
 
-# wrangler files
-.wrangler
-.dev.vars*
-!.dev.vars.example
+# IDE (optional local)
+.idea/
+*.swp

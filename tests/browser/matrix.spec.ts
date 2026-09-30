@@ -89,7 +89,7 @@ test.describe("browser file matrix", () => {
       } else if (file.name.endsWith(".docx") || file.name.endsWith(".pptx") || file.name.endsWith(".xlsx") || file.name.endsWith(".txt") || file.name.endsWith(".zip")) {
         await expect(page.getByText(/Detected .* More tools are coming soon\./)).toBeVisible();
       } else {
-        await expect(page.getByText("No local tools support this file.")).toBeVisible();
+        await expect(page.getByText(/No local tools support this file yet/i)).toBeVisible();
       }
     }
   });

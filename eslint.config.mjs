@@ -13,6 +13,7 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "public/ffmpeg/**",
+    "public/qpdf/**",
     "public/tesseract/**",
     "playwright-report/**",
     "test-results/**",

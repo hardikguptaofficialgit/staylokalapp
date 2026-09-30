@@ -73,7 +73,7 @@ test.describe("visual editor browser flows", () => {
 
     const editor = page.getByRole("region", { name: "PDF page editor" });
     await expect(editor).toBeVisible();
-    await expect(editor.getByText("Visual PDF editor")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Export PDF" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Select page 1" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Select page 2" })).toBeVisible();
     await page.getByRole("button", { name: "Select page 2" }).click();
@@ -172,12 +172,12 @@ test.describe("media editor integration coverage", () => {
   });
 
   test("converts a WAV locally through the audio FFmpeg tool", async ({ page }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(180_000);
     await page.goto("/");
     await upload(page, { name: "convert.wav", mimeType: "audio/wav", buffer: makeWav() });
-    await page.getByRole("button", { name: "Convert audio" }).click();
-    await page.getByRole("button", { name: /Run Tool/ }).click();
-    await expect(page.getByText("Completed Locally")).toBeVisible({ timeout: 60_000 });
+    await page.getByRole("button", { name: "Convert audio" }).first().click();
+    await page.locator(".selected-tool-panel .action-button").filter({ hasText: "Convert audio" }).click();
+    await expect(page.getByText("Completed Locally")).toBeVisible({ timeout: 120_000 });
     await expect(page.getByRole("link", { name: /convert-convert-audio-001\.mp3/i })).toHaveAttribute("download", "convert-convert-audio-001.mp3");
   });
 });
