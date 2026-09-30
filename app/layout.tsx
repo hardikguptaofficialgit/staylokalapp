@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Rubik_Doodle_Shadow } from "next/font/google";
 import CloudflareWebAnalytics from "@/components/app/CloudflareWebAnalytics";
 import PwaRegister from "@/components/app/PwaRegister";
@@ -30,7 +30,6 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "StayLokal",
   },
-  themeColor: "#080808",
   icons: {
     icon: [
       { url: "/images/pwa/favicon-32.png", sizes: "32x32", type: "image/png" },
@@ -40,6 +39,10 @@ export const metadata: Metadata = {
     shortcut: ["/images/pwa/icon-192.png"],
     apple: [{ url: "/images/pwa/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#080808",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

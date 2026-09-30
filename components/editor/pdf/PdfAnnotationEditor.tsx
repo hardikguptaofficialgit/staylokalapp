@@ -181,6 +181,7 @@ export default function PdfAnnotationEditor({ file, region, disabled, onRegionCh
           {headerText && <span className="pdf-header-preview" aria-hidden="true">{headerText}</span>}
           {footerText && <span className="pdf-footer-preview" aria-hidden="true">{footerText}</span>}
           {imageOverlay ? (
+            // eslint-disable-next-line @next/next/no-img-element -- blob/data URL overlay on PDF canvas
             <img
               className="pdf-image-overlay"
               src={imageOverlay}

@@ -11,6 +11,7 @@ const POLL_MS = 2_000;
 const TIMEOUT_MS = 60_000;
 const MAX_TRANSIENT_RETRIES = 8;
 const CLAIM_STORAGE_KEY = "staylokal-sponsor-claim-id";
+const SPONSOR_RETURN_URL_EVENT = "staylokal-sponsor-return-url";
 const CONFIRM_MESSAGE = "Payment received. Activating your sponsor placement…";
 
 type SponsorReturn = {
@@ -23,10 +24,10 @@ type SponsorReturn = {
 const subscribeToLocation = (callback: () => void) => {
   const onChange = () => callback();
   window.addEventListener("popstate", onChange);
-  const timer = window.setTimeout(onChange, 0);
+  window.addEventListener(SPONSOR_RETURN_URL_EVENT, onChange);
   return () => {
-    window.clearTimeout(timer);
     window.removeEventListener("popstate", onChange);
+    window.removeEventListener(SPONSOR_RETURN_URL_EVENT, onChange);
   };
 };
 
@@ -104,7 +105,7 @@ function clearSponsorReturnState() {
   window.history.replaceState({}, "", next);
   cachedActiveReturn = null;
   cachedActiveReturnKey = "";
-  window.dispatchEvent(new Event("popstate"));
+  window.dispatchEvent(new Event(SPONSOR_RETURN_URL_EVENT));
 }
 
 async function requestConfirmation(target: { paymentId?: string; claimId?: string }, signal: AbortSignal) {

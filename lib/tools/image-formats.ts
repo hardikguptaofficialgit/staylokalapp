@@ -1,8 +1,6 @@
 import { encodeCanvasToIco } from "./ico-encode";
 import { encodeCanvasToTiff } from "./tiff-encode";
 import {
-  IMAGE_EXPORT_FORMATS,
-  imageExtensionForMime,
   imageFormatLabel,
   normalizeImageMime,
   type ImageExportFormat,
