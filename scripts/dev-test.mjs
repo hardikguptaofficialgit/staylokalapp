@@ -28,8 +28,17 @@ const merged = {
   ...parseEnvFile(testEnvPath),
 };
 
+if (process.env.DODO_PAYMENTS_API_KEY?.trim()) {
+  merged.DODO_PAYMENTS_API_KEY = process.env.DODO_PAYMENTS_API_KEY.trim();
+}
+if (process.env.DODO_PAYMENTS_WEBHOOK_KEY?.trim()) {
+  merged.DODO_PAYMENTS_WEBHOOK_KEY = process.env.DODO_PAYMENTS_WEBHOOK_KEY.trim();
+}
+
 if (!merged.DODO_PAYMENTS_API_KEY?.trim()) {
-  console.error(".env.test.local needs DODO_PAYMENTS_API_KEY (create it in Dodo with Live Mode OFF).");
+  console.error(
+    "Set DODO_PAYMENTS_API_KEY in .env.test.local (Dodo dashboard, Live Mode OFF) or pass it in the shell for this command only.",
+  );
   process.exit(1);
 }
 

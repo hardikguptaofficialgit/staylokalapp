@@ -121,6 +121,10 @@ Live Mode, create a **test-mode** API key (live keys return `401` in
 Visa test card `4242424242424242`, expiry `06/32`, CVV `123`. See [Dodo testing
 process](https://docs.dodopayments.com/miscellaneous/testing-process).
 
+For local Dodo webhooks, run `npm run tunnel:cf` in a second terminal (uses
+installed `cloudflared`; quick Tunnel URL auto-registers the test webhook). Leave
+it running while you pay.
+
 Test-mode product IDs for this project (dashboard test catalog):
 
 - Sponsor: `pdt_0NneHBMUPJHxxUZqj6BIc`

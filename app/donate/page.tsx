@@ -177,7 +177,7 @@ export default function DonatePage() {
             <span className="donation-currency">USD</span>
           </div>
           <p className="donation-hint">
-            Any amount from $5 helps keep the project independent. 50% of donations and sponsor payments go to charity.
+            Any amount from $5 helps keep the project independent. 
             At checkout, Indian customers can pay in INR with UPI or cards when Dodo offers it.
           </p>
           {error && <p className="donation-error" role="alert">{error}</p>}

@@ -337,14 +337,9 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
             <a href={FOUNDER_X_URL} rel="me noreferrer noopener" target="_blank">{FOUNDER_X_HANDLE}</a>
           </span>
         </p>
+      
         <p className="landing-footer-line landing-footer-charity">
-          <span>50% of donations and sponsor payments go to charity.</span>
-        </p>
-        <p className="landing-footer-line landing-footer-charity">
-          <span>
-            Know a nonprofit we should support?{" "}
-            <a href={FOUNDER_X_URL} rel="noreferrer noopener" target="_blank">DM {FOUNDER_X_HANDLE} on X</a>.
-          </span>
+         
           <span className="landing-footer-dot" aria-hidden="true">·</span>
           <span>
             Questions or support?{" "}
