@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Rubik_Doodle_Shadow } from "next/font/google";
+import CloudflareWebAnalytics from "@/components/app/CloudflareWebAnalytics";
 import PwaRegister from "@/components/app/PwaRegister";
 import PwaThemeColor from "@/components/app/PwaThemeColor";
 import "./styles/main.css";
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col">
+        <CloudflareWebAnalytics />
         <PwaRegister />
         <PwaThemeColor />
         {children}

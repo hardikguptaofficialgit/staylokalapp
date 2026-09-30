@@ -50,7 +50,14 @@ export default function PrivacyPage() {
             until you clear them or close the page.
           </li>
         </ul>
-        <p>We do not use advertising trackers or third-party analytics on the main app today.</p>
+        <p>
+          We do not use advertising trackers. We may use{" "}
+          <a href="https://www.cloudflare.com/web-analytics/" rel="noreferrer noopener" target="_blank">
+            Cloudflare Web Analytics
+          </a>{" "}
+          on the public site for aggregated page views and performance metrics (no ad profiling). File-tool
+          processing still happens locally in your browser.
+        </p>
       </section>
 
       <section>

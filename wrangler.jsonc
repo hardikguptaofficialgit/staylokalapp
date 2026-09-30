@@ -31,7 +31,9 @@
 		"binding": "IMAGES"
 	},
 	"vars": {
-		"NEXT_PUBLIC_APP_URL": "https://staylokal.app"
+		"NEXT_PUBLIC_APP_URL": "https://staylokal.app",
+		// Cloudflare dashboard → Web Analytics → Add site → copy token (staylokal.app)
+		"NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN": "cc4ed9110bb844858a8bff04f101127d"
 	},
 	"routes": [
 		{

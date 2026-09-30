@@ -62,6 +62,7 @@ Copy environment variables into `.env.local` (never commit secrets).
 | Variable | Purpose |
 |----------|---------|
 | `NEXT_PUBLIC_APP_URL` | Public site origin for checkout returns and email links |
+| `NEXT_PUBLIC_CF_WEB_ANALYTICS_TOKEN` | [Cloudflare Web Analytics](https://developers.cloudflare.com/web-analytics/get-started/) site token (manual beacon; also set in `wrangler.jsonc` `vars` for production builds) |
 
 ### Dodo Payments (donations + sponsors)
 

@@ -43,7 +43,7 @@ const sponsor = {
   description: "Your links, one clean page.",
   destinationUrl,
   handle: "",
-  logoUrl: "",
+  logoUrl: "https://linkitapp.in/v1.png",
   paidAt: new Date().toISOString(),
   paymentId: "pay_manual_linkitapp_seed",
   status: "active",
