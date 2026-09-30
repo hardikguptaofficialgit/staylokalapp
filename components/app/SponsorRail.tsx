@@ -11,6 +11,7 @@ import SponsorModal from "./SponsorModal";
 export default function SponsorRail() {
   const [sponsors, setSponsors] = useState<RankedSponsor[]>([]);
   const [configured, setConfigured] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [modalRank, setModalRank] = useState<number | null>(null);
   const [selected, setSelected] = useState<RankedSponsor | null>(null);
 
@@ -22,14 +23,26 @@ export default function SponsorRail() {
       setSelected(null);
     };
     const refreshLeaderboard = () => {
+      setLoadFailed(false);
       fetch("/api/sponsors/leaderboard")
-        .then((response) => readJsonResponse<{ configured?: boolean; sponsors?: RankedSponsor[] }>(response))
-        .then((result) => {
+        .then(async (response) => {
+          const result = await readJsonResponse<{ configured?: boolean; sponsors?: RankedSponsor[] }>(response);
           if (!active) return;
+          if (!response.ok) {
+            setConfigured(false);
+            setSponsors([]);
+            setLoadFailed(true);
+            return;
+          }
           setConfigured(Boolean(result.configured));
           setSponsors(result.sponsors ?? []);
         })
-        .catch(() => undefined);
+        .catch(() => {
+          if (!active) return;
+          setConfigured(false);
+          setSponsors([]);
+          setLoadFailed(true);
+        });
     };
     window.addEventListener("open-sponsor-modal", openModal);
     window.addEventListener("close-sponsor-modal", closeModal);
@@ -59,7 +72,8 @@ export default function SponsorRail() {
       <aside className={`sponsor-stack all-tools-sponsor-stack ${displaySponsors.length ? "" : "sponsor-stack-unavailable"}`} aria-label="Sponsored placements">
         <span className="sponsor-mobile-label">Sponsored</span>
         <span className="sponsor-orbit" aria-hidden="true" />
-        {displaySponsors.length === 0 && <span>No sponsor placements yet.</span>}
+        {loadFailed && <span>Sponsor leaderboard is temporarily unavailable.</span>}
+        {!loadFailed && displaySponsors.length === 0 && <span>No sponsor placements yet.</span>}
         {displaySponsors.map((sponsor, index) => (
           <div className={`sponsor-card sponsor-card-rank-${sponsor.rank} ${index === 0 ? "sponsor-card-featured" : ""}`} key={sponsor.id}>
             <button className="sponsor-card-main" type="button" onClick={() => setSelected(sponsor)}>

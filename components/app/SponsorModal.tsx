@@ -255,7 +255,10 @@ function SponsorLogoCropper({
 }
 
 export default function SponsorModal({ sponsors, initialRank = 5, onClose }: SponsorModalProps) {
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(() => ({
+    ...emptyForm,
+    bid: (minimumBidForRank(sponsors, initialRank) / 100).toFixed(2),
+  }));
   const [targetRank, setTargetRank] = useState(initialRank);
   const [logoDataUrl, setLogoDataUrl] = useState("");
   const [logoFileName, setLogoFileName] = useState("");
@@ -287,6 +290,7 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
     () => minimumBidForRank(sponsors, targetRank),
     [sponsors, targetRank],
   );
+
   const currentSponsor = sponsors.find((sponsor) => sponsor.rank === targetRank);
   const previewBidCents = useMemo(() => {
     const parsed = Math.round(Number(form.bid) * 100);
@@ -329,13 +333,9 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
     event.preventDefault();
     if (isSubmitting) return;
     setError("");
-    const bidCents = Math.round(Number(form.bid) * 100);
+    const bidCents = previewBidCents;
     if (!termsAccepted) {
       setError("Accept the sponsor terms to continue.");
-      return;
-    }
-    if (!Number.isSafeInteger(bidCents) || bidCents < minimumBid) {
-      setError(`This rank currently requires at least ${formatBid(minimumBid)}.`);
       return;
     }
 

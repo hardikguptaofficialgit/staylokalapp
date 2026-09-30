@@ -78,6 +78,7 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
   const [sponsors, setSponsors] = useState<RankedSponsor[]>([]);
   const [leaderboardConfigured, setLeaderboardConfigured] = useState(false);
   const [sponsorsLoading, setSponsorsLoading] = useState(true);
+  const [sponsorsLoadFailed, setSponsorsLoadFailed] = useState(false);
   const [sponsorModalRank, setSponsorModalRank] = useState<number | null>(null);
   const [selectedSponsor, setSelectedSponsor] = useState<RankedSponsor | null>(null);
 
@@ -85,14 +86,26 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
     let active = true;
     const loadSponsors = () => {
       setSponsorsLoading(true);
+      setSponsorsLoadFailed(false);
       fetch("/api/sponsors/leaderboard")
-        .then((response) => readJsonResponse<{ configured?: boolean; sponsors?: RankedSponsor[] }>(response))
-        .then((result) => {
+        .then(async (response) => {
+          const result = await readJsonResponse<{ configured?: boolean; sponsors?: RankedSponsor[] }>(response);
           if (!active) return;
+          if (!response.ok) {
+            setLeaderboardConfigured(false);
+            setSponsors([]);
+            setSponsorsLoadFailed(true);
+            return;
+          }
           setLeaderboardConfigured(Boolean(result.configured));
           setSponsors(result.sponsors ?? []);
         })
-        .catch(() => undefined)
+        .catch(() => {
+          if (!active) return;
+          setLeaderboardConfigured(false);
+          setSponsors([]);
+          setSponsorsLoadFailed(true);
+        })
         .finally(() => {
           if (active) setSponsorsLoading(false);
         });
@@ -141,7 +154,8 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
               <span className="sponsor-skeleton-amount" />
             </div>
           ))}
-          {!sponsorsLoading && displaySponsors.length === 0 && <span>No sponsor placements yet.</span>}
+          {!sponsorsLoading && sponsorsLoadFailed && <span>Sponsor leaderboard is temporarily unavailable.</span>}
+          {!sponsorsLoading && !sponsorsLoadFailed && displaySponsors.length === 0 && <span>No sponsor placements yet.</span>}
           {!sponsorsLoading && displaySponsors.map((sponsor, index) => (
             <div className={`sponsor-card sponsor-card-rank-${sponsor.rank} ${index === 0 ? "sponsor-card-featured" : ""}`} key={sponsor.id}>
               <button className="sponsor-card-main" type="button" onClick={() => setSelectedSponsor(sponsor)}>
