@@ -1,0 +1,324 @@
+.site-header-bar {
+  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.site-header-brand-row {
+  align-items: center;
+  display: flex;
+  grid-column: 1;
+  justify-self: start;
+  min-width: 0;
+}
+
+.site-header-center {
+  grid-column: 2;
+  justify-self: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.site-header-center .pwa-install-shell {
+  pointer-events: auto;
+}
+
+.site-header-actions {
+  color: rgb(255 255 255 / 0.86);
+  grid-column: 3;
+  justify-self: end;
+}
+
+html[data-theme="light"] .site-header-actions {
+  color: rgb(26 20 16 / 0.76);
+}
+
+@keyframes pwa-install-border-spin {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 300% 50%;
+  }
+}
+
+.pwa-install-shell {
+  background: linear-gradient(
+    90deg,
+    #f97316,
+    #facc15,
+    #4ade80,
+    #38bdf8,
+    #c084fc,
+    #f97316
+  );
+  background-size: 300% 100%;
+  border-radius: 999px;
+  display: inline-flex;
+  padding: 1.5px;
+  animation: pwa-install-border-spin 4.5s linear infinite;
+}
+
+.pwa-install-button {
+  align-items: center;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  border: 0;
+  border-radius: 999px;
+  color: var(--foreground);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.68rem;
+  font-weight: 650;
+  gap: 0.4rem;
+  line-height: 1;
+  padding: 0.32rem 0.78rem 0.32rem 0.38rem;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+  white-space: nowrap;
+}
+
+.pwa-install-button:hover,
+.pwa-install-button:focus-visible {
+  outline: none;
+}
+
+.pwa-install-button:active {
+  transform: scale(0.98);
+}
+
+.pwa-install-button-mark {
+  align-items: center;
+  background: rgb(0 0 0 / 0.92);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 0.45rem;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 1.35rem;
+  justify-content: center;
+  overflow: hidden;
+  width: 1.35rem;
+}
+
+.pwa-install-button-mark img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.site-header:not(.site-header-workspace) .pwa-install-button {
+  background: rgb(0 0 0 / 0.62);
+  color: #fff;
+}
+
+.site-header:not(.site-header-workspace) .pwa-install-button:hover,
+.site-header:not(.site-header-workspace) .pwa-install-button:focus-visible {
+  background: rgb(0 0 0 / 0.74);
+}
+
+html[data-theme="light"] .site-header:not(.site-header-workspace) .pwa-install-button {
+  background: rgb(0 0 0 / 0.68);
+  box-shadow: 0 0.35rem 1.1rem rgb(0 0 0 / 0.28);
+  color: #fff;
+}
+
+html[data-theme="light"] .site-header:not(.site-header-workspace) .pwa-install-button:hover,
+html[data-theme="light"] .site-header:not(.site-header-workspace) .pwa-install-button:focus-visible {
+  background: rgb(0 0 0 / 0.78);
+  color: #fff;
+}
+
+.site-header-workspace .pwa-install-shell {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--foreground) 70%, #f97316),
+    color-mix(in srgb, var(--foreground) 55%, #38bdf8),
+    color-mix(in srgb, var(--foreground) 70%, #a855f7),
+    color-mix(in srgb, var(--foreground) 55%, #f97316)
+  );
+  background-size: 300% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pwa-install-shell {
+    animation: none;
+    background: linear-gradient(90deg, #f97316, #38bdf8, #a855f7);
+  }
+}
+
+.pwa-ios-hint {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 1.25rem 3rem rgb(0 0 0 / 0.28);
+  left: 50%;
+  max-width: 20rem;
+  padding: 1rem 1rem 1.05rem;
+  position: fixed;
+  top: 4.5rem;
+  transform: translateX(-50%);
+  width: calc(100% - 2rem);
+  z-index: 60;
+}
+
+html[data-theme="light"] .pwa-ios-hint {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.88),
+    0 1rem 2.5rem rgb(40 28 18 / 0.12);
+}
+
+.pwa-ios-hint-brand {
+  align-items: center;
+  display: flex;
+  gap: 0.55rem;
+  margin-bottom: 0.55rem;
+}
+
+.pwa-ios-hint-logo {
+  border: 1px solid var(--line);
+  border-radius: 0.55rem;
+  flex: 0 0 auto;
+  height: 2.25rem;
+  object-fit: cover;
+  width: 2.25rem;
+}
+
+.pwa-ios-hint-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.pwa-ios-hint-copy {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.pwa-ios-hint-copy strong {
+  color: var(--foreground);
+  font-weight: 650;
+}
+
+.pwa-ios-hint-close {
+  align-items: center;
+  background: color-mix(in srgb, var(--panel) 70%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  height: 1.65rem;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  right: 0.55rem;
+  top: 0.55rem;
+  width: 1.65rem;
+}
+
+.pwa-ios-hint-close:hover,
+.pwa-ios-hint-close:focus-visible {
+  color: var(--foreground);
+  outline: none;
+}
+
+.offline-page {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 26rem;
+  min-height: min(70vh, 32rem);
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.offline-page-card {
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 1.2rem;
+  box-shadow: 0 1.25rem 3rem rgb(0 0 0 / 0.18);
+  padding: 1.75rem 1.35rem 1.5rem;
+  width: 100%;
+}
+
+html[data-theme="light"] .offline-page-card {
+  box-shadow: 0 1rem 2.5rem rgb(40 28 18 / 0.08);
+}
+
+.offline-page-logo {
+  border: 1px solid var(--line);
+  border-radius: 0.85rem;
+  height: 3.5rem;
+  margin: 0 auto 1rem;
+  object-fit: cover;
+  width: 3.5rem;
+}
+
+.offline-page h1 {
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.65rem;
+}
+
+.offline-page p {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.65;
+  margin: 0 0 1.15rem;
+}
+
+.offline-page-link {
+  align-items: center;
+  background: var(--foreground);
+  border-radius: 999px;
+  color: var(--background);
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 700;
+  justify-content: center;
+  min-width: 10rem;
+  padding: 0.55rem 1.1rem;
+  text-decoration: none;
+}
+
+.offline-page-link:hover,
+.offline-page-link:focus-visible {
+  opacity: 0.92;
+  outline: none;
+}
+
+@media (max-width: 700px) {
+  .site-header-center {
+    grid-column: 2;
+    max-width: calc(100vw - 8.5rem);
+  }
+
+  .pwa-install-button-label {
+    display: inline;
+  }
+
+  .pwa-install-button {
+    font-size: 0.62rem;
+    padding: 0.3rem 0.55rem 0.3rem 0.32rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .pwa-install-button-label {
+    display: none;
+  }
+
+  .pwa-install-button {
+    padding: 0.28rem 0.38rem 0.28rem 0.32rem;
+  }
+}

@@ -204,12 +204,12 @@
     width: 2rem;
   }
   .landing-privacy-note {
-    color: color-mix(in srgb, var(--foreground) 72%, transparent);
     font-size: 0.68rem;
     line-height: 1.35;
     margin-top: 0.7rem;
-    max-width: 15rem;
+    max-width: min(16rem, calc(100% - 1.5rem));
     order: 4;
+    padding: 0.5rem 0.75rem;
   }
   .drop-zone-subtitle {
     background: transparent;
@@ -242,8 +242,6 @@
   }
   .landing-section {
     min-height: calc(100svh - 4.5rem);
-  }
-  .landing-privacy-note {
   }
   .landing-section::before {
     background: rgb(0 0 0 / 0.9);
@@ -335,7 +333,7 @@
     height: 1.1rem;
     width: 1.25rem;
   }
-  .site-header > div:last-child {
+  .site-header-actions {
     gap: 0.25rem;
   }
   .site-header .view-toggle-option:not(:first-child),

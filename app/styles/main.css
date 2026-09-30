@@ -2,6 +2,7 @@
 @import "tailwindcss";
 
 @import "./tokens.css";
+@import "./pwa.css";
 @import "./shell.css";
 @import "./motion.css";
 @import "./landing/index.css";

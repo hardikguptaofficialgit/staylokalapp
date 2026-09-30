@@ -1,3 +1,18 @@
+export type VideoEditorOperation = "trim" | "cut" | "split" | "frames" | "speed";
+export type VideoEditorToolId = "trim" | "cut" | "speed" | "frames";
+
+export type VideoEditorAction = {
+  operation: VideoEditorOperation;
+  startSeconds: number;
+  endSeconds: number;
+  durationSeconds: number;
+  start: string;
+  duration: string;
+  segmentDuration: number;
+  speed?: number;
+  fps?: number;
+};
+
 export type MediaEditorOperation = "trim" | "cut" | "split";
 
 export type MediaEditorAction = {

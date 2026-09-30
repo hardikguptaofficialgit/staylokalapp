@@ -10,13 +10,16 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run tests/tools.test.ts tests/tool-wiring.test.ts tests/pdf.test.ts tests/donations.test.ts tests/donation-confirm.test.ts tests/dodo-payments.test.ts tests/image-formats.test.ts tests/ico-tiff-encode.test.ts tests/sponsors.test.ts tests/sponsor-checkout-return-url.test.ts tests/sponsor-payment-flow.test.ts tests/checkout-url.test.ts tests/document.test.ts tests/spreadsheet.test.ts tests/archive.test.ts tests/text-utils.test.ts tests/download-results-zip.test.ts tests/ffmpeg-commands.test.ts tests/ffmpeg-progress.test.ts tests/audio-processor.test.ts tests/webhooks.test.ts tests/sponsor-email.test.ts tests/sponsor-confirm.test.ts tests/fetch-json.test.ts tests/theme.test.ts",
-    "test:sponsor-payment": "vitest run tests/sponsor-payment-flow.test.ts tests/sponsor-confirm.test.ts tests/webhooks.test.ts tests/dodo-payments.test.ts tests/sponsors.test.ts",
+    "test": "vitest run tests/move-file-order.test.ts tests/tool-queue-guidance.test.ts tests/dodo-checkout-session.test.ts tests/tools.test.ts tests/tool-wiring.test.ts tests/pdf.test.ts tests/pdf-load-errors.test.ts tests/donations.test.ts tests/donation-confirm.test.ts tests/dodo-payments.test.ts tests/image-formats.test.ts tests/ico-tiff-encode.test.ts tests/sponsors.test.ts tests/sponsor-upgrade.test.ts tests/sponsor-checkout-return-url.test.ts tests/sponsor-payment-flow.test.ts tests/checkout-url.test.ts tests/document.test.ts tests/spreadsheet.test.ts tests/archive.test.ts tests/text-utils.test.ts tests/download-results-zip.test.ts tests/ffmpeg-commands.test.ts tests/ffmpeg-progress.test.ts tests/audio-processor.test.ts tests/webhooks.test.ts tests/sponsor-email.test.ts tests/sponsor-confirm.test.ts tests/fetch-json.test.ts tests/theme.test.ts",
+    "test:sponsor-payment": "vitest run tests/sponsor-payment-flow.test.ts tests/sponsor-confirm.test.ts tests/webhooks.test.ts tests/dodo-payments.test.ts tests/sponsors.test.ts tests/sponsor-upgrade.test.ts",
     "test:browser": "playwright test",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && node scripts/prepare-cloudflare-assets.mjs && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && node scripts/prepare-cloudflare-assets.mjs && opennextjs-cloudflare upload",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "pwa:icons": "node scripts/generate-pwa-icons.mjs",
+    "sponsor:seed-linkitapp": "node scripts/seed-sponsor.mjs",
+    "smoke:payments": "node scripts/smoke-payments.mjs"
   },
   "dependencies": {
     "@ffmpeg/core": "^0.12.6",
@@ -56,6 +59,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4",
     "ts-ebml": "^3.0.2",
     "typescript": "^5",

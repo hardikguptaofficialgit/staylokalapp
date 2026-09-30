@@ -61,6 +61,22 @@ describe("PDF processor", () => {
     expect((await PDFDocument.load(await result[0].blob.arrayBuffer())).getPageCount()).toBe(1);
   });
 
+  it("embeds a drawn signature image onto a PDF page", async () => {
+    const pngData = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
+    const result = await pdfProcessor([await fixture()], {
+      operation: "pdf-sign",
+      imageData: pngData,
+      imageType: "image/png",
+      pageNumber: 1,
+      x: 10,
+      y: 10,
+      width: 20,
+      height: 20,
+    }, context);
+    expect(result[0].name).toBe("signed.pdf");
+    expect((await PDFDocument.load(await result[0].blob.arrayBuffer())).getPageCount()).toBe(2);
+  });
+
   it("adds a small highlight region without rejecting the PDF", async () => {
     const result = await pdfProcessor([await fixture()], { operation: "pdf-highlight", pageNumber: 1, x: 0, y: 0, width: 20, height: 20 }, context);
     expect((await PDFDocument.load(await result[0].blob.arrayBuffer())).getPageCount()).toBe(2);

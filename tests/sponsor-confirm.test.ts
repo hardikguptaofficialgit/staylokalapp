@@ -16,10 +16,14 @@ vi.mock("../lib/sponsors/dodo-payments", async (importOriginal) => {
   };
 });
 
+const listActiveSponsorsMock = vi.hoisted(() => vi.fn());
+
 vi.mock("../lib/sponsors/appwrite", () => ({
   activateClaim: activateClaimMock,
   appwriteClaimsAreConfigured: () => true,
   findClaimById: findClaimByIdMock,
+  isAppwriteRowNotFound: () => false,
+  listActiveSponsors: listActiveSponsorsMock,
 }));
 
 import { GET } from "../app/api/sponsors/confirm/route";
@@ -32,7 +36,12 @@ describe("sponsor confirm route", () => {
     activateClaimMock.mockReset();
     findClaimByIdMock.mockReset();
     retrieveMock.mockReset();
-    findClaimByIdMock.mockResolvedValue({ bidCents: 2500, status: "pending" });
+    listActiveSponsorsMock.mockResolvedValue([]);
+    findClaimByIdMock.mockResolvedValue({
+      bidCents: 2500,
+      destinationUrl: "https://example.com/",
+      status: "pending",
+    });
     retrieveMock.mockResolvedValue({
       amount: 2500,
       metadata: { claim_id: claimId },

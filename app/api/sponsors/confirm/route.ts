@@ -3,6 +3,7 @@ import {
   appwriteClaimsAreConfigured,
   findClaimById,
   isAppwriteRowNotFound,
+  listActiveSponsors,
 } from "../../../../lib/sponsors/appwrite";
 import {
   assertSponsorPaymentMatchesClaim,
@@ -13,6 +14,7 @@ import {
   isSponsorVerificationError,
   paymentMetadataClaimId,
 } from "../../../../lib/sponsors/dodo-payments";
+import { expectedSponsorChargeCents } from "../../../../lib/sponsors/sponsor-identity";
 
 export const runtime = "nodejs";
 
@@ -67,12 +69,16 @@ async function confirmPaymentId(paymentId: string, fallbackClaimId?: string): Pr
     if (claimData.status === "activated") {
       return Response.json({ activated: true });
     }
-    const bidCents = claimBidCents(claimData);
-    if (bidCents === null) {
+    if (claimBidCents(claimData) === null) {
+      return Response.json({ error: "This sponsor claim is invalid." }, { status: 409 });
+    }
+    const activeSponsors = await listActiveSponsors();
+    const chargeCents = expectedSponsorChargeCents(claimData, activeSponsors);
+    if (chargeCents === null) {
       return Response.json({ error: "This sponsor claim is invalid." }, { status: 409 });
     }
     const targetRank = Number(claimData.targetRank);
-    assertSponsorPaymentMatchesClaim(payment, claimId, bidCents, {
+    assertSponsorPaymentMatchesClaim(payment, claimId, chargeCents, {
       targetRank: Number.isInteger(targetRank) ? targetRank : undefined,
     });
     await activateClaim(claimId, paymentId);

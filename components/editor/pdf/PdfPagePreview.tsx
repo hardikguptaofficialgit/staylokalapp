@@ -4,13 +4,22 @@ import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 
 type PdfPagePreviewProps = {
-  previewUrl: string;
+  documentUrl: string;
+  pageNumber: number;
+  rotation?: number;
   title: string;
   className: string;
   style?: CSSProperties;
 };
 
-export default function PdfPagePreview({ previewUrl, title, className, style }: PdfPagePreviewProps) {
+export default function PdfPagePreview({
+  documentUrl,
+  pageNumber,
+  rotation = 0,
+  title,
+  className,
+  style,
+}: PdfPagePreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -20,13 +29,16 @@ export default function PdfPagePreview({ previewUrl, title, className, style }: 
     void (async () => {
       try {
         const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-        pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/legacy/build/pdf.worker.min.mjs", import.meta.url).toString();
-        const document = await pdfjs.getDocument({ url: previewUrl }).promise;
-        const page = await document.getPage(1);
+        pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+          "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
+          import.meta.url,
+        ).toString();
+        const document = await pdfjs.getDocument({ url: documentUrl }).promise;
+        const page = await document.getPage(pageNumber);
         if (cancelled || !canvasRef.current) return;
         const canvas = canvasRef.current;
         const scale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
-        const viewport = page.getViewport({ scale });
+        const viewport = page.getViewport({ scale, rotation });
         canvas.width = Math.ceil(viewport.width);
         canvas.height = Math.ceil(viewport.height);
         const context = canvas.getContext("2d");
@@ -49,7 +61,7 @@ export default function PdfPagePreview({ previewUrl, title, className, style }: 
       cancelled = true;
       renderTask?.cancel();
     };
-  }, [previewUrl]);
+  }, [documentUrl, pageNumber, rotation]);
 
   return <canvas ref={canvasRef} aria-label={title} className={className} style={style} />;
 }

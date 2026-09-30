@@ -42,6 +42,14 @@ const audioTools: ToolSpec[] = [
   ["audio-reverse", "Reverse audio", "Play the track backwards.", "arrow-u-down-left", ["audio/*"], []],
 ];
 
+const orderMattersToolIds = new Set([
+  "pdf-image-to-pdf",
+  "pdf-merge",
+  "image-gif",
+  "image-contact-sheet",
+  "archive-create",
+]);
+
 const recentToolIds = new Set([
   "image-background-remove",
   "image-upscale",
@@ -67,6 +75,7 @@ const recentToolIds = new Set([
   "pdf-remove-blank",
   "pdf-duplicate-page",
   "pdf-add-image",
+  "pdf-sign",
   "pdf-fill-form",
   "pdf-ocr",
   "pdf-contact-sheet",
@@ -140,6 +149,7 @@ function descriptor(
     icon,
     accept,
     batch: kind === "image" || id === "archive-create" || id === "merge" || id === "pdf-merge" || id === "pdf-rotate" || id === "pdf-image-to-pdf",
+    orderMatters: orderMattersToolIds.has(id),
     options,
     kind,
     available: true,
@@ -195,13 +205,13 @@ export const tools: ToolDescriptor[] = [
   descriptor("archive-list", "Inspect ZIP", "List ZIP contents locally.", "archive", "Other", ["application/zip"], [], "document"),
   descriptor("archive-extract", "Extract ZIP file", "Extract one file from a ZIP archive locally.", "archive", "Other", ["application/zip"], [], "document"),
   descriptor("archive-create", "Create ZIP", "Bundle every compatible queued file into one ZIP archive locally.", "archive", "Other", archiveCreateAccept, ["archiveName"], "document"),
-  descriptor("pdf-merge", "Merge PDFs", "Combine PDFs into one document.", "pdf", "PDF", ["application/pdf"], [], "pdf"),
+  descriptor("pdf-merge", "Merge PDFs", "Combine PDFs in workspace order, then fine-tune pages in the editor.", "pdf", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-rotate", "Rotate PDFs", "Rotate every page in a PDF.", "rotate", "PDF", ["application/pdf"], ["angle"], "pdf"),
   descriptor("pdf-split", "Split PDF", "Export each page as a separate PDF.", "grid", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-extract", "Extract selected pages", "Export selected pages as a new PDF.", "grid", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-delete-pages", "Delete pages", "Remove selected pages from a PDF.", "cut", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-reorder", "Reorder pages", "Arrange PDF pages in a new order.", "transfer-horizontal", "PDF", ["application/pdf"], [], "pdf"),
-  descriptor("pdf-image-to-pdf", "Images → PDF", "Combine local images into one PDF.", "image", "PDF", ["image/*"], [], "pdf"),
+  descriptor("pdf-image-to-pdf", "Images → PDF", "Combine images into one PDF in your chosen order.", "image", "PDF", ["image/*"], [], "pdf"),
   descriptor("pdf-metadata", "PDF metadata viewer/remover", "Inspect or remove PDF document metadata.", "privacy", "PDF", ["application/pdf"], ["removeMetadata"], "pdf"),
   descriptor("pdf-compress", "Compress PDF", "Shrink PDF streams locally when qpdf can produce a smaller file.", "archive", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-to-image", "PDF → images", "Render PDF pages to JPEG, PNG, WebP, GIF, BMP, AVIF, ICO, or TIFF locally.", "image", "PDF", ["application/pdf"], ["format"], "pdf"),
@@ -220,6 +230,7 @@ export const tools: ToolDescriptor[] = [
   descriptor("pdf-remove-blank", "Remove blank pages", "Detect and remove blank PDF pages locally.", "minus-square", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-duplicate-page", "Duplicate a page", "Append a duplicate of one selected PDF page locally.", "copy", "PDF", ["application/pdf"], ["pageNumber"], "pdf"),
   descriptor("pdf-add-image", "Add image annotation", "Place a JPG or PNG image on a PDF page locally.", "image", "PDF", ["application/pdf"], [], "pdf"),
+  descriptor("pdf-sign", "Sign PDF", "Draw or upload a signature and place it on a PDF page locally.", "pen-nib", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-fill-form", "Fill PDF form", "Fill editable PDF text fields locally.", "textbox", "PDF", ["application/pdf"], [], "pdf"),
   descriptor("pdf-ocr", "OCR searchable PDF", "Extract text and create a searchable PDF locally.", "scan", "PDF", ["application/pdf"], [], "pdf"),
   ...videoTools.map(([id, name, description, icon, accept, optionIds]) => descriptor(id, name, description, icon, "Video", accept, optionIds, "ffmpeg")),

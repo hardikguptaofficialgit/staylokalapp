@@ -29,7 +29,7 @@ describe("donation confirm route", () => {
 
   it("verifies succeeded donation payments", async () => {
     retrieveMock.mockResolvedValue({
-      metadata: { source: "staylokal-donation" },
+      metadata: { source: "staylokal-donation", usd_cents: "500" },
       status: "succeeded",
       total_amount: 500,
     });
@@ -48,6 +48,19 @@ describe("donation confirm route", () => {
 
     const response = await GET(new Request("https://example.com/api/donations/confirm?payment_id=pay_12345678"));
     expect(response.status).toBe(409);
+  });
+
+  it("uses checkout metadata usd_cents when customer paid in another currency", async () => {
+    retrieveMock.mockResolvedValue({
+      metadata: { source: "staylokal-donation", usd_cents: "500" },
+      status: "succeeded",
+      currency: "INR",
+      total_amount: 42_000,
+    });
+
+    const response = await GET(new Request("https://example.com/api/donations/confirm?payment_id=pay_12345678"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ verified: true });
   });
 
   it("polls while payment is still processing", async () => {

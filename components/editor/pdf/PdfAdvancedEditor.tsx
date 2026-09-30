@@ -57,6 +57,7 @@ export default function PdfAdvancedEditor({ operation, file, processing, onProce
   const isHighlight = operation === "pdf-highlight";
   const isShape = operation === "pdf-shape";
   const isDuplicatePage = operation === "pdf-duplicate-page";
+  const hasRegionEditor = isWatermark || isTextOverlay || isHeaderFooter || isCrop || isRedact || isHighlight || isShape;
   return (
     <section className="pdf-advanced-editor" aria-label={detail.label}>
       <div className="pdf-advanced-icon"><Icon size={26} aria-hidden="true" /></div>
@@ -65,6 +66,9 @@ export default function PdfAdvancedEditor({ operation, file, processing, onProce
         <h4>{detail.label}</h4>
         <p>{detail.description}</p>
         {file && <small>{file.name}</small>}
+        {file && !hasRegionEditor && (
+          <PdfAnnotationEditor file={file} region={{ pageNumber: 1, x: 0, y: 0, width: 0, height: 0 }} disabled onRegionChange={() => undefined} />
+        )}
         {isRasterExport && (
           <div className="pdf-export-options" aria-label="Page export options">
             <label>

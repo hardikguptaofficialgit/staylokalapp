@@ -7,6 +7,7 @@ import PdfMetadataEditor from "@/components/editor/pdf/PdfMetadataEditor";
 import PdfAdvancedEditor from "@/components/editor/pdf/PdfAdvancedEditor";
 import PdfFormEditor from "@/components/editor/pdf/PdfFormEditor";
 import PdfImageAnnotationEditor from "@/components/editor/pdf/PdfImageAnnotationEditor";
+import PdfSignatureEditor from "@/components/editor/pdf/PdfSignatureEditor";
 import ImageEditor from "@/components/editor/image/ImageEditor";
 import BackgroundRemovalEditor from "@/components/editor/image/BackgroundRemovalEditor";
 import DocumentEditor from "@/components/editor/document/DocumentEditor";
@@ -17,6 +18,9 @@ import type { AppWorkflow } from "./types";
 import { matchesAcceptedFile } from "@/lib/tools/validation";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 import ArchiveCreateEditor from "@/components/editor/archive/ArchiveCreateEditor";
+import OrderedFileList from "@/components/editor/OrderedFileList";
+import { acceptedFileQueueItems } from "@/lib/app/accepted-file-queue";
+import ToolQueueGuidance from "@/components/app/ToolQueueGuidance";
 
 const videoEditorToolIds = ["trim", "cut", "speed", "frames"] as const;
 const genericFfmpegVideoToolIds = [
@@ -82,6 +86,14 @@ function primaryRunToolLabel(toolId: string, processing: boolean) {
 export default function SelectedToolPanel({ workflow, inputRef }: { workflow: AppWorkflow; inputRef: React.RefObject<HTMLInputElement | null> }) {
   const selected = workflow.selected;
   const [zippingResults, setZippingResults] = useState(false);
+  const compatibleFiles = useMemo(() => {
+    if (!selected) return [];
+    return workflow.files.filter((file) => matchesAcceptedFile(file, selected.accept));
+  }, [workflow.files, selected]);
+  const compatibleQueueItems = useMemo(() => {
+    if (!selected) return [];
+    return acceptedFileQueueItems(workflow.files, selected.accept);
+  }, [workflow.files, selected]);
   if (!selected) return null;
   const inlineMediaProgress = usesInlineMediaProgress(selected.id);
 
@@ -108,6 +120,8 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
       </div>
       <div className="mt-5 mb-5 h-px w-full bg-line" />
 
+      <ToolQueueGuidance tool={selected} compatibleCount={compatibleFiles.length} />
+
       {selected.kind === "pdf" && (
         <div className="pdf-editor-layout">
           <WorkspaceSidebar workflow={workflow} inputRef={inputRef} compact />
@@ -124,6 +138,12 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
                 processing={workflow.status === "processing"}
                 onProcess={(options) => void workflow.processWithOptions(options)}
               />
+            ) : selected.id === "pdf-sign" && !workflow.oversizedInput ? (
+              <PdfSignatureEditor
+                file={workflow.activeFile}
+                processing={workflow.status === "processing"}
+                onProcess={(options) => void workflow.processWithOptions(options)}
+              />
             ) : ["pdf-to-image", "pdf-contact-sheet", "pdf-crop", "pdf-page-size", "pdf-ocr", "pdf-compress", "pdf-watermark", "pdf-page-numbers", "pdf-add-text", "pdf-header-footer", "pdf-flatten", "pdf-privacy", "pdf-redact", "pdf-highlight", "pdf-shape", "pdf-remove-blank", "pdf-duplicate-page"].includes(selected.id) && !workflow.oversizedInput ? (
               <PdfAdvancedEditor
                 operation={selected.id as "pdf-to-image" | "pdf-contact-sheet" | "pdf-crop" | "pdf-page-size" | "pdf-ocr" | "pdf-compress" | "pdf-watermark" | "pdf-page-numbers" | "pdf-add-text" | "pdf-header-footer" | "pdf-flatten" | "pdf-privacy" | "pdf-redact" | "pdf-highlight" | "pdf-shape" | "pdf-remove-blank" | "pdf-duplicate-page"}
@@ -133,8 +153,10 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
               />
             ) : selected.id === "pdf-image-to-pdf" && !workflow.oversizedInput ? (
               <ImageToPdfEditor
-                files={workflow.files.filter((file) => matchesAcceptedFile(file, selected.accept))}
+                files={workflow.files}
+                accept={selected.accept}
                 processing={workflow.status === "processing"}
+                onMoveFile={workflow.moveFile}
                 onProcess={() => void workflow.processWithOptions()}
               />
             ) : selected.id === "pdf-metadata" && !workflow.oversizedInput ? (
@@ -144,14 +166,23 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
                 onRemove={() => void workflow.processWithOptions({ removeMetadata: true })}
               />
             ) : !workflow.oversizedInput ? (
+              <>
+                {selected.orderMatters && selected.id === "pdf-merge" && compatibleQueueItems.length > 1 && (
+                  <OrderedFileList
+                    items={compatibleQueueItems}
+                    onMove={workflow.moveFile}
+                    hint="PDFs are merged in this order (all pages from file 1, then file 2, and so on). Reorder pages in the editor if needed."
+                  />
+                )}
               <PdfEditor
-                files={workflow.files.filter((file) => matchesAcceptedFile(file, selected.accept))}
+                files={compatibleFiles}
                 workflow={selected.id as "pdf-merge" | "pdf-rotate" | "pdf-split" | "pdf-extract" | "pdf-delete-pages" | "pdf-reorder"}
                 onComplete={workflow.completeResult}
                 onError={workflow.reportError}
                 onProgress={workflow.setProgress}
                 onProcessingChange={workflow.setProcessingState}
               />
+              </>
             ) : (
               <div className="rounded-xl border border-red-900/40 bg-red-950/10 p-5 text-sm text-red-500" role="alert">
                 <p className="font-semibold">Input is too large for local processing</p>
@@ -160,6 +191,16 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
             )}
           </div>
         </div>
+      )}
+
+      {selected.kind === "image" && workflow.activeFile && !workflow.oversizedInput && selected.orderMatters && (
+        <OrderedFileList
+          items={compatibleQueueItems}
+          onMove={workflow.moveFile}
+          hint={selected.id === "image-gif"
+            ? "GIF frames play in this order."
+            : "Contact sheet layout follows this order (left to right, top to bottom)."}
+        />
       )}
 
       {selected.kind === "image" && workflow.activeFile && !workflow.oversizedInput && (
@@ -180,6 +221,7 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
           tool={selected}
           archiveName={String(workflow.options.archiveName ?? "archive.zip")}
           onArchiveNameChange={(value) => workflow.setOptions({ ...workflow.options, archiveName: value })}
+          onMoveFile={workflow.moveFile}
         />
       )}
 

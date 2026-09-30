@@ -18,9 +18,12 @@ vi.mock("../lib/sponsors/dodo-payments", async (importOriginal) => {
   };
 });
 
+const listActiveSponsorsMock = vi.hoisted(() => vi.fn());
+
 vi.mock("../lib/sponsors/appwrite", () => ({
   activateClaim: activateClaimMock,
   findClaimById: findClaimByIdMock,
+  listActiveSponsors: listActiveSponsorsMock,
 }));
 
 import { POST } from "../app/api/webhooks/dodo/route";
@@ -36,7 +39,12 @@ describe("Dodo sponsor webhook", () => {
     findClaimByIdMock.mockReset();
     retrieveMock.mockReset();
     unwrapMock.mockReset();
-    findClaimByIdMock.mockResolvedValue({ bidCents: 401 });
+    listActiveSponsorsMock.mockResolvedValue([]);
+    findClaimByIdMock.mockResolvedValue({
+      bidCents: 401,
+      destinationUrl: "https://example.com/",
+      status: "pending",
+    });
     retrieveMock.mockResolvedValue({
       amount: 401,
       metadata: { claim_id: claimId },

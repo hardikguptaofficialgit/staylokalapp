@@ -24,10 +24,14 @@ vi.mock("../lib/sponsors/dodo-payments", async (importOriginal) => {
   };
 });
 
+const listActiveSponsorsMock = vi.hoisted(() => vi.fn());
+
 vi.mock("../lib/sponsors/appwrite", () => ({
   activateClaim: activateClaimMock,
   appwriteClaimsAreConfigured: () => true,
   findClaimById: findClaimByIdMock,
+  isAppwriteRowNotFound: () => false,
+  listActiveSponsors: listActiveSponsorsMock,
 }));
 
 import { GET as confirmGet } from "../app/api/sponsors/confirm/route";
@@ -46,8 +50,10 @@ describe("sponsor payment flow (no real charge)", () => {
     findClaimByIdMock.mockReset();
     retrieveMock.mockReset();
     unwrapMock.mockReset();
+    listActiveSponsorsMock.mockResolvedValue([]);
     findClaimByIdMock.mockResolvedValue({
       bidCents: 100,
+      destinationUrl: "https://staylokal.app/",
       status: "pending",
       targetRank: 5,
     });

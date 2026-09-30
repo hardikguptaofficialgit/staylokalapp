@@ -20,6 +20,8 @@ export type ToolDescriptor = {
   icon: string;
   accept: string[];
   batch: boolean;
+  /** Multi-file tools where queue order affects output (reorder UI). */
+  orderMatters?: boolean;
   options: ToolOption[];
   kind: "image" | "pdf" | "ffmpeg" | "document";
   outputExtension?: string;

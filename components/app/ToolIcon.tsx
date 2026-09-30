@@ -1,7 +1,7 @@
 import {
   Archive, ArrowsClockwise, ArrowsLeftRight, ArrowsOut, Copy, File, FileArrowDown,
   FileImage, FilePdf, FilePlus, FilmStrip, Fingerprint, HighlighterCircle, ImageSquare, List,
-  ListNumbers, Microphone, MinusSquare, Plus, Prohibit, Scan, Scissors, ShieldCheck,
+  ListNumbers, Microphone, MinusSquare, PenNib, Plus, Prohibit, Scan, Scissors, ShieldCheck,
   SpeakerSimpleX, Square, Stack, TextAa, Textbox, Timer, type IconProps, Waveform,
 } from "@phosphor-icons/react";
 
@@ -17,6 +17,7 @@ const toolIcons: Record<string, PhosphorIcon> = {
   "list-numbers": ListNumbers, layers: Stack, prohibit: Prohibit,
   "highlighter-circle": HighlighterCircle, square: Square, "minus-square": MinusSquare,
   copy: Copy, textbox: Textbox, scan: Scan, scissors: Scissors, fingerprint: Fingerprint,
+  "pen-nib": PenNib,
 };
 
 const toolColors: Record<string, string> = {
@@ -26,7 +27,7 @@ const toolColors: Record<string, string> = {
   rotate: "#ef6b6b", "3d-rotate": "#ef6b6b", "text-aa": "#f0a36b",
   "list-numbers": "#e5bf6a", layers: "#b7a7f5", prohibit: "#ef6b6b",
   "highlighter-circle": "#f0cf58", square: "#7eb7ed", "minus-square": "#9a9a9a",
-  copy: "#9a9a9a", textbox: "#e09aee", scan: "#b98ce8", scissors: "#ef9a72",
+  copy: "#9a9a9a", textbox: "#e09aee", scan: "#b98ce8", scissors: "#ef9a72", "pen-nib": "#f0a36b",
 };
 
 export function ToolIcon({ name, size = 20 }: { name: string; size?: number }) {

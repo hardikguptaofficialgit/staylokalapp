@@ -221,13 +221,20 @@ const pdfProcessor: ToolProcessor = async (files, options, context) => {
     output.addPage(duplicate);
     return [{ blob: new Blob([Uint8Array.from(await output.save())], { type: "application/pdf" }), type: "application/pdf", name: "page-duplicated.pdf" }];
   }
-  if (operation === "pdf-add-image") {
-    const source = await PDFDocument.load(await files[0].arrayBuffer());
+  if (operation === "pdf-add-image" || operation === "pdf-sign") {
+    const source = await PDFDocument.load(await files[0].arrayBuffer(), { ignoreEncryption: true });
     const imageData = typeof options.imageData === "string" ? options.imageData : "";
     const encoded = imageData.split(",")[1];
-    if (!encoded) throw new ProcessingError("Choose a JPG or PNG image first.", "invalid");
+    if (!encoded) {
+      throw new ProcessingError(
+        operation === "pdf-sign" ? "Draw or upload a signature first." : "Choose a JPG or PNG image first.",
+        "invalid",
+      );
+    }
     const bytes = Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0));
-    const image = imageData.startsWith("data:image/png") ? await source.embedPng(bytes) : await source.embedJpg(bytes);
+    const image = imageData.startsWith("data:image/png") || options.imageType === "image/png"
+      ? await source.embedPng(bytes)
+      : await source.embedJpg(bytes);
     const pageNumber = Math.max(1, Number(options.pageNumber) || 1);
     if (pageNumber > source.getPageCount()) throw new ProcessingError(`Page ${pageNumber} does not exist.`, "invalid");
     const page = source.getPage(pageNumber - 1);
@@ -243,7 +250,11 @@ const pdfProcessor: ToolProcessor = async (files, options, context) => {
       width: drawWidth,
       height: drawHeight,
     });
-    return [{ blob: new Blob([Uint8Array.from(await source.save())], { type: "application/pdf" }), type: "application/pdf", name: "image-annotated.pdf" }];
+    return [{
+      blob: new Blob([Uint8Array.from(await source.save())], { type: "application/pdf" }),
+      type: "application/pdf",
+      name: operation === "pdf-sign" ? "signed.pdf" : "image-annotated.pdf",
+    }];
   }
   if (operation === "pdf-fill-form") {
     const source = await PDFDocument.load(await files[0].arrayBuffer());

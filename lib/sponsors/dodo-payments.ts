@@ -72,6 +72,15 @@ export function claimBidCents(claimData: Record<string, unknown>): number | null
   return normalizeBidCents(claimData.bidCents);
 }
 
+/** @deprecated Use expectedSponsorChargeCents with active sponsors at verification time. */
+export function claimChargeCents(claimData: Record<string, unknown>): number | null {
+  const totalBid = claimBidCents(claimData);
+  if (totalBid === null) return null;
+  const charge = normalizeBidCents(claimData.chargeCents);
+  if (charge !== null && charge >= 1) return charge;
+  return totalBid;
+}
+
 export function paymentMetadataClaimId(payment: DodoPaymentSnapshot): string {
   return String(payment.metadata?.claim_id ?? "").trim();
 }

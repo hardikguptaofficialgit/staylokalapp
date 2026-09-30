@@ -19,7 +19,9 @@ export default function PdfFileCard({ page, index, selected, included = false, o
       className={`pdf-file-card ${selected ? "is-selected" : ""} ${included ? "is-included" : ""}`}
     >
       <PdfPagePreview
-        previewUrl={page.previewUrl}
+        documentUrl={page.documentUrl}
+        pageNumber={page.pageIndex + 1}
+        rotation={page.rotation}
         title={`Page ${index + 1} thumbnail`}
         className="pdf-file-card-preview"
       />

@@ -1,13 +1,15 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import AppHeader from "@/components/app/AppHeader";
 import LandingState from "@/components/app/LandingState";
-import SelectedToolPanel from "@/components/app/SelectedToolPanel";
-import ToolBrowser from "@/components/app/ToolBrowser";
-import WorkspaceSidebar from "@/components/app/WorkspaceSidebar";
-import SponsorRail from "@/components/app/SponsorRail";
-import SponsorPaymentStatus from "@/components/app/SponsorPaymentStatus";
 import { useFileWorkflow } from "@/lib/app/useFileWorkflow";
+
+const SponsorPaymentStatus = dynamic(() => import("@/components/app/SponsorPaymentStatus"), { ssr: false });
+const SponsorRail = dynamic(() => import("@/components/app/SponsorRail"));
+const ToolBrowser = dynamic(() => import("@/components/app/ToolBrowser"));
+const WorkspaceSidebar = dynamic(() => import("@/components/app/WorkspaceSidebar"));
+const SelectedToolPanel = dynamic(() => import("@/components/app/SelectedToolPanel"));
 
 export default function Home() {
   const { inputRef, ...workflow } = useFileWorkflow();

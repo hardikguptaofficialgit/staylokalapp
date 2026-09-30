@@ -92,6 +92,7 @@ sent to those services.
 | PDF highlighting | `WORKING` | Percentage-based translucent highlight regions preserve the underlying PDF text. |
 | PDF rectangle annotations | `WORKING` | Percentage-based rectangle annotations preserve the underlying PDF text. |
 | PDF image annotations | `WORKING` | Local JPG/PNG images can be placed on a rendered PDF page and embedded into a new PDF copy; focused Chromium round-trip verification passes. |
+| PDF visual signature | `WORKING` | Draw or upload a signature image, place it on a rendered page, and embed into a new PDF copy locally; not cryptographic certificate signing. |
 | Blank-page removal | `WORKING` | PDF.js pixel inspection removes pages that render blank; output preserves remaining source pages. |
 | Page duplication | `WORKING` | A validated page can be appended as a duplicate in a new PDF copy. |
 | PDF form filling | `WORKING` | Editable AcroForm text/date-like fields, checkboxes, radio groups, dropdowns, and option lists can be inspected, filled, and saved locally. |
@@ -114,7 +115,7 @@ sent to those services.
 
 ## 3. Current exposed registry
 
-The registry in `lib/tools/registry.ts` exposes exactly eighty-four tools. No other tool is
+The registry in `lib/tools/registry.ts` exposes exactly eighty-five tools. No other tool is
 shown by the current tool picker. See `docs/functionality-audit.md` for competitor parity notes.
 
 ### Image
@@ -129,7 +130,7 @@ shown by the current tool picker. See `docs/functionality-audit.md` for competit
 `pdf-crop`, `pdf-page-size`,
 `pdf-watermark`, `pdf-page-numbers`, `pdf-add-text`, `pdf-header-footer`,
 `pdf-flatten`, `pdf-privacy`, `pdf-redact`, `pdf-highlight`, `pdf-shape`,
-`pdf-remove-blank`, `pdf-duplicate-page`, `pdf-add-image`, `pdf-fill-form`,
+`pdf-remove-blank`, `pdf-duplicate-page`, `pdf-add-image`, `pdf-sign`, `pdf-fill-form`,
 `pdf-compress`, and `pdf-ocr`.
 
 ### Video

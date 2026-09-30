@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Rubik_Doodle_Shadow } from "next/font/google";
+import PwaRegister from "@/components/app/PwaRegister";
+import PwaThemeColor from "@/components/app/PwaThemeColor";
 import "./styles/main.css";
 import { THEME_STORAGE_KEY } from "@/lib/app/theme";
 
@@ -22,13 +24,20 @@ const rubikDoodleShadow = Rubik_Doodle_Shadow({
 export const metadata: Metadata = {
   title: "StayLokal - Private file tools that run on your device.",
   description: "StayLokal is a local-first file utility desk for PDFs, images, video, audio, and more.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "StayLokal",
+  },
+  themeColor: "#080808",
   icons: {
     icon: [
-      { url: "/images/logo.png", type: "image/png" },
-      { url: "/images/logo.png", sizes: "32x32", type: "image/png" },
+      { url: "/images/pwa/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/images/pwa/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/images/pwa/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
-    shortcut: ["/images/logo.png"],
-    apple: [{ url: "/images/logo.png", type: "image/png" }],
+    shortcut: ["/images/pwa/icon-192.png"],
+    apple: [{ url: "/images/pwa/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
@@ -46,7 +55,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <PwaRegister />
+        <PwaThemeColor />
+        {children}
+      </body>
     </html>
   );
 }

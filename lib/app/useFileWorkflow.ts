@@ -6,6 +6,7 @@ import { ProcessingError, type ProcessedFile, type ToolDescriptor } from "@/lib/
 import { matchesAcceptedFile, maxInputBytes, validateToolInput } from "@/lib/tools/validation";
 import { detectFileType, hasUnsupportedDetectedType } from "@/lib/tools/file-types";
 import type { VideoEditorAction } from "@/components/editor/media";
+import { moveItemInArray, remapSelectedIndex } from "@/lib/app/move-file-order";
 import { applyTheme, resolveTheme, subscribeTheme, type Theme } from "@/lib/app/theme";
 
 export type Category = "All" | "PDF" | "Image" | "Video" | "Audio" | "Other";
@@ -83,8 +84,26 @@ export function useFileWorkflow() {
       event.preventDefault();
       addFiles(files);
     };
+    const handleDragOver = (event: DragEvent) => {
+      if (!event.dataTransfer?.types.includes("Files")) return;
+      event.preventDefault();
+    };
+    const handleDrop = (event: DragEvent) => {
+      const target = event.target;
+      if (target instanceof HTMLInputElement && target.type === "file") return;
+      const dropped = Array.from(event.dataTransfer?.files ?? []);
+      if (!dropped.length) return;
+      event.preventDefault();
+      addFiles(dropped);
+    };
     window.addEventListener("paste", handlePaste);
-    return () => window.removeEventListener("paste", handlePaste);
+    window.addEventListener("dragover", handleDragOver);
+    window.addEventListener("drop", handleDrop);
+    return () => {
+      window.removeEventListener("paste", handlePaste);
+      window.removeEventListener("dragover", handleDragOver);
+      window.removeEventListener("drop", handleDrop);
+    };
   // addFiles is stable enough for paste; listing it re-subscribes every render.
   // eslint-disable-next-line react-hooks/exhaustive-deps -- paste handler only needs latest addFiles behavior via closure refresh on mount
   }, []);
@@ -151,6 +170,17 @@ export function useFileWorkflow() {
 
   function clearSelectedTool() {
     setSelectedId(null);
+    setError("");
+    setStatus("idle");
+  }
+
+  function moveFile(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= files.length || toIndex >= files.length) {
+      return;
+    }
+    setFiles((current) => moveItemInArray(current, fromIndex, toIndex));
+    setSelectedFileIndex((current) => remapSelectedIndex(current, fromIndex, toIndex));
+    setResult([]);
     setError("");
     setStatus("idle");
   }
@@ -285,7 +315,7 @@ export function useFileWorkflow() {
     progress, result, resultUrls, error, panelSplit, selected, activeFile,
     oversizedInput, inputSizeError, detectedTypes, unsupportedTypes, compatibleTools,
     availableCategories, visibleTools, setCategory, setQuery, setOptions, clearWorkspace,
-    addFiles, replaceActiveFile, selectTool, clearSelectedTool, removeFile, processWithOptions, selectFile, processVideoAction,
+    addFiles, replaceActiveFile, selectTool, clearSelectedTool, removeFile, moveFile, processWithOptions, selectFile, processVideoAction,
     completeResult, reportError, setProcessingState, startDividerDrag, formatBytes,
     setPanelSplit, setProgress, cancelProcessing: () => controller.current?.abort(),
   };

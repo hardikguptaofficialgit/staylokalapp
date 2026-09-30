@@ -12,6 +12,23 @@ export function isStayLokalDonationMetadata(metadata?: Record<string, unknown>):
   return String(metadata?.source ?? "").trim() === "staylokal-donation";
 }
 
+function donationUsdCentsFromMetadata(metadata?: Record<string, unknown>): number | null {
+  const raw = metadata?.usd_cents ?? metadata?.donation_usd_cents;
+  if (raw === undefined || raw === null) return null;
+  const cents = Number(String(raw).trim());
+  return Number.isSafeInteger(cents) ? cents : null;
+}
+
+export function resolvedDonationUsdCents(payment: {
+  metadata?: Record<string, string | number | boolean | undefined>;
+  total_amount?: number;
+  amount?: number;
+}): number | null {
+  const fromMetadata = donationUsdCentsFromMetadata(payment.metadata);
+  if (fromMetadata !== null) return fromMetadata;
+  return paymentAmountCents(payment);
+}
+
 export async function verifyDonationPayment(paymentId: string) {
   if (!DONATION_PAYMENT_ID_PATTERN.test(paymentId)) {
     return { kind: "invalid" as const };
@@ -31,7 +48,7 @@ export async function verifyDonationPayment(paymentId: string) {
     return { kind: "not_donation" as const };
   }
 
-  const amountCents = paymentAmountCents(payment);
+  const amountCents = resolvedDonationUsdCents(payment);
   if (amountCents === null || amountCents < MINIMUM_DONATION_CENTS || amountCents > MAXIMUM_DONATION_CENTS) {
     return { kind: "invalid_amount" as const };
   }

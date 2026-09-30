@@ -1,6 +1,7 @@
 "use client";
 
-import { matchesAcceptedFile } from "@/lib/tools/validation";
+import OrderedFileList from "@/components/editor/OrderedFileList";
+import { acceptedFileQueueItems } from "@/lib/app/accepted-file-queue";
 import type { ToolDescriptor } from "@/lib/tools/types";
 
 type ArchiveCreateEditorProps = {
@@ -8,10 +9,17 @@ type ArchiveCreateEditorProps = {
   tool: ToolDescriptor;
   archiveName: string;
   onArchiveNameChange: (value: string) => void;
+  onMoveFile: (fromIndex: number, toIndex: number) => void;
 };
 
-export default function ArchiveCreateEditor({ files, tool, archiveName, onArchiveNameChange }: ArchiveCreateEditorProps) {
-  const included = files.filter((file) => matchesAcceptedFile(file, tool.accept));
+export default function ArchiveCreateEditor({
+  files,
+  tool,
+  archiveName,
+  onArchiveNameChange,
+  onMoveFile,
+}: ArchiveCreateEditorProps) {
+  const included = acceptedFileQueueItems(files, tool.accept);
   return (
     <section aria-label="ZIP creation" className="mb-8 space-y-4">
       <div className="rounded-xl border border-line bg-background p-4">
@@ -19,11 +27,11 @@ export default function ArchiveCreateEditor({ files, tool, archiveName, onArchiv
         <p className="mt-2 text-sm text-foreground">
           {included.length} {included.length === 1 ? "file" : "files"} will be added to the ZIP using each file&apos;s original name.
         </p>
-        {included.length > 0 && (
-          <ul className="mt-3 max-h-48 space-y-1 overflow-auto text-sm text-muted">
-            {included.map((file) => <li key={`${file.name}-${file.size}`} className="truncate">{file.name}</li>)}
-          </ul>
-        )}
+        <OrderedFileList
+          items={included}
+          onMove={onMoveFile}
+          hint="ZIP entry order follows this list."
+        />
         {included.length === 0 && (
           <p className="mt-3 text-sm text-red-500" role="alert">Add at least one compatible file to the workspace first.</p>
         )}

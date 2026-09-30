@@ -1,9 +1,10 @@
-import { activateClaim, findClaimById } from "../../../../lib/sponsors/appwrite";
+import { activateClaim, findClaimById, listActiveSponsors } from "../../../../lib/sponsors/appwrite";
 import {
   assertSponsorPaymentMatchesClaim,
   claimBidCents,
   createDodoClient,
 } from "../../../../lib/sponsors/dodo-payments";
+import { expectedSponsorChargeCents } from "../../../../lib/sponsors/sponsor-identity";
 import {
   sendSponsorActivatedEmail,
   sendSponsorPaymentFailedEmail,
@@ -91,8 +92,12 @@ export async function POST(request: Request) {
     if (claimData.status === "activated") {
       return Response.json({ received: true });
     }
-    const bidCents = claimBidCents(claimData);
-    if (bidCents === null) {
+    if (claimBidCents(claimData) === null) {
+      return Response.json({ error: "Sponsor claim is invalid." }, { status: 400 });
+    }
+    const activeSponsors = await listActiveSponsors();
+    const chargeCents = expectedSponsorChargeCents(claimData, activeSponsors);
+    if (chargeCents === null) {
       return Response.json({ error: "Sponsor claim is invalid." }, { status: 400 });
     }
 
@@ -100,7 +105,7 @@ export async function POST(request: Request) {
     const payment = await client.payments.retrieve(paymentId, { signal: AbortSignal.timeout(10_000) });
     const targetRank = Number(claimData.targetRank);
     try {
-      assertSponsorPaymentMatchesClaim(payment, claimId, bidCents, {
+      assertSponsorPaymentMatchesClaim(payment, claimId, chargeCents, {
         targetRank: Number.isInteger(targetRank) ? targetRank : undefined,
       });
     } catch {

@@ -5,6 +5,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { isDodoCheckoutUrl } from "@/lib/app/checkout-url";
 import { readJsonResponse } from "@/lib/app/fetch-json";
+import {
+  computeSponsorCheckoutAmounts,
+  findActiveSponsorByDestination,
+  parseSponsorDestinationInput,
+} from "@/lib/sponsors/sponsor-identity";
 import { formatBid, minimumBidForRank } from "@/lib/sponsors/ranking";
 import { SPONSOR_CATEGORIES, type RankedSponsor } from "@/lib/sponsors/types";
 import SponsorStackPreview from "./SponsorStackPreview";
@@ -299,6 +304,22 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
     return minimumBid;
   }, [form.bid, minimumBid]);
 
+  const existingListing = useMemo(() => {
+    const parsed = parseSponsorDestinationInput(form.destination);
+    if (!parsed) return null;
+    return findActiveSponsorByDestination(sponsors, parsed.destinationUrl, parsed.handle);
+  }, [form.destination, sponsors]);
+
+  const upgradeCheckout = useMemo(() => {
+    const parsed = parseSponsorDestinationInput(form.destination);
+    if (!parsed || !existingListing) return null;
+    return computeSponsorCheckoutAmounts(sponsors, {
+      bidCents: previewBidCents,
+      destinationUrl: parsed.destinationUrl,
+      handle: parsed.handle,
+    });
+  }, [existingListing, form.destination, previewBidCents, sponsors]);
+
   function updateForm(field: keyof typeof emptyForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
   }
@@ -423,7 +444,9 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
         <div className="sponsor-modal-content">
           <header className="sponsor-modal-header">
             <h2 id="sponsor-modal-title">Sponsor a spot</h2>
-            <p className="sponsor-modal-intro">Pick a rank, fill the basics, checkout.</p>
+            <p className="sponsor-modal-intro">
+              Pick a rank, fill the basics, checkout. India: UPI and cards at Dodo when you pay in INR.
+            </p>
           </header>
 
           <div className="sponsor-rank-picker" aria-label="Choose a sponsor rank">
@@ -508,7 +531,14 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
               />
             </span>
           </label>
-          <label className="sponsor-bid-label">Bid <span>{formatBid(Math.max(minimumBid, Math.round(Number(form.bid || 0) * 100)))}</span><input required min={minimumBid / 100} step="0.01" type="number" value={form.bid} onChange={(event) => updateForm("bid", event.target.value)} /></label>
+          <label className="sponsor-bid-label">Total bid <span>{formatBid(Math.max(minimumBid, Math.round(Number(form.bid || 0) * 100)))}</span><input required min={minimumBid / 100} step="0.01" type="number" value={form.bid} onChange={(event) => updateForm("bid", event.target.value)} /></label>
+          {existingListing && upgradeCheckout && !("error" in upgradeCheckout) && (
+            <p className="sponsor-upgrade-hint">
+              Same link as your current listing ({formatBid(existingListing.bidCents)}). Pay{" "}
+              <strong>{formatBid(upgradeCheckout.chargeCents)}</strong> now to move your total to{" "}
+              {formatBid(upgradeCheckout.totalBidCents)}.
+            </p>
+          )}
           <label className="sponsor-terms"><input checked={termsAccepted} type="checkbox" onChange={(event) => setTermsAccepted(event.target.checked)} /> One-time payment — I&apos;m good with that.</label>
           {error && <p className="sponsor-form-error" role="alert">{error}</p>}
           <button className="sponsor-submit" disabled={isSubmitting} type="submit">{isSubmitting ? "Heading to checkout…" : "Checkout"}<ArrowRight size={17} weight="bold" /></button>

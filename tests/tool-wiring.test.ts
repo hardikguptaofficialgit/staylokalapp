@@ -43,6 +43,7 @@ describe("exposed tool wiring", () => {
         || pdfVisualEditorTools.has(tool.id)
         || tool.id === "pdf-fill-form"
         || tool.id === "pdf-add-image"
+        || tool.id === "pdf-sign"
         || tool.id === "pdf-image-to-pdf"
         || tool.id === "pdf-metadata";
       expect(routed, tool.id).toBe(true);

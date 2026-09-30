@@ -1,6 +1,38 @@
-.donate-link:hover,
-.donate-back-link:hover {
+.donate-link:hover {
   color: var(--muted);
+}
+
+.donate-back-link {
+  background: rgb(0 0 0 / 0.58);
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.donate-back-link:hover,
+.donate-back-link:focus-visible {
+  background: rgb(0 0 0 / 0.68);
+  border-color: rgb(255 255 255 / 0.28);
+  color: #fff;
+  outline: none;
+}
+
+html[data-theme="light"] .donate-page .donate-back-link {
+  background: #fff;
+  border-color: rgb(26 20 16 / 0.12);
+  box-shadow: 0 1px 5px rgb(26 20 16 / 0.06);
+  color: #1a1410;
+}
+
+html[data-theme="light"] .donate-page .donate-back-link:hover,
+html[data-theme="light"] .donate-page .donate-back-link:focus-visible {
+  background: #fff;
+  border-color: rgb(26 20 16 / 0.2);
+  color: #6a5e55;
 }
 
 .donate-page {

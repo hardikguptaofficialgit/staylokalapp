@@ -11,6 +11,7 @@ import SponsorModal from "./SponsorModal";
 import { readJsonResponse } from "@/lib/app/fetch-json";
 import { formatSponsorCardAmount } from "@/lib/sponsors/ranking";
 import { sponsorMarkStyle } from "@/lib/sponsors/sponsor-mark";
+import { FOUNDER_X_HANDLE, FOUNDER_X_URL } from "@/lib/app/site-links";
 import type { RankedSponsor } from "@/lib/sponsors/types";
 import type { AppWorkflow } from "./types";
 
@@ -203,6 +204,7 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
           }}
           onDrop={(event) => {
             event.preventDefault();
+            event.stopPropagation();
             setDragging(false);
             workflow.addFiles(event.dataTransfer.files);
           }}
@@ -325,9 +327,30 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
               width={22}
             />
             <span>Built by</span>
-            <a href="https://x.com/strykerin" rel="me noreferrer" target="_blank">@strykerin</a>
+            <a href={FOUNDER_X_URL} rel="me noreferrer noopener" target="_blank">{FOUNDER_X_HANDLE}</a>
           </span>
         </p>
+        <p className="landing-footer-line landing-footer-charity">
+          <span>50% of donations and sponsor payments go to charity.</span>
+        </p>
+        <p className="landing-footer-line landing-footer-charity">
+          <span>
+            Know a nonprofit we should support?{" "}
+            <a href={FOUNDER_X_URL} rel="noreferrer noopener" target="_blank">DM {FOUNDER_X_HANDLE} on X</a>.
+          </span>
+          <span className="landing-footer-dot" aria-hidden="true">·</span>
+          <span>
+            Questions or support?{" "}
+            <a href={FOUNDER_X_URL} rel="noreferrer noopener" target="_blank">Contact {FOUNDER_X_HANDLE} on X</a>.
+          </span>
+        </p>
+        <nav aria-label="Policies" className="landing-footer-line landing-footer-policies">
+          <Link href="/privacy">Privacy</Link>
+          <span className="landing-footer-dot" aria-hidden="true">·</span>
+          <Link href="/rules">Sponsor rules</Link>
+          <span className="landing-footer-dot" aria-hidden="true">·</span>
+          <Link href="/donate">Donate</Link>
+        </nav>
       </footer>
     </>
   );

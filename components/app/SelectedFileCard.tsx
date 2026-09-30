@@ -1,4 +1,4 @@
-import { X } from "@phosphor-icons/react";
+import { ArrowDown, ArrowUp, X } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import type { AppWorkflow } from "./types";
@@ -31,9 +31,21 @@ export default function SelectedFileCard({ workflow, file, index }: { workflow: 
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [previewOpen]);
 
+  const showReorder = Boolean(workflow.selected?.orderMatters && workflow.files.length > 1);
+
   return (
     <>
       <div className={`selected-file-card ${workflow.selectedFileIndex === index ? "is-selected" : ""}`}>
+        {showReorder && (
+          <div className="selected-file-reorder" aria-label="Reorder file">
+            <button type="button" className="selected-file-reorder-btn" disabled={index === 0} aria-label={`Move ${file.name} up`} onClick={() => workflow.moveFile(index, index - 1)}>
+              <ArrowUp size={12} weight="bold" />
+            </button>
+            <button type="button" className="selected-file-reorder-btn" disabled={index === workflow.files.length - 1} aria-label={`Move ${file.name} down`} onClick={() => workflow.moveFile(index, index + 1)}>
+              <ArrowDown size={12} weight="bold" />
+            </button>
+          </div>
+        )}
         <button type="button" onClick={() => { workflow.selectFile(index); setPreviewOpen(true); }} aria-pressed={workflow.selectedFileIndex === index} className="selected-file-main">
         <FileTypeIcon kind={detected.kind} size={22} />
         <span className="selected-file-copy">

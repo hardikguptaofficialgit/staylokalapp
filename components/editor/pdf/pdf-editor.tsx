@@ -5,6 +5,7 @@ import JSZip from "jszip";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ProcessedFile } from "@/lib/tools/types";
 import PdfWorkspace from "./PdfWorkspace";
+import { describePdfLoadError } from "@/lib/pdf/load-errors";
 import type { PdfPage, PdfWorkflow } from "./types";
 
 type PdfEditorProps = {
@@ -21,12 +22,14 @@ function pdfBlob(bytes: Uint8Array) {
   return new Blob([buffer], { type: "application/pdf" });
 }
 
-async function pagePreview(source: PDFDocument, pageIndex: number) {
-  const preview = await PDFDocument.create();
-  const [page] = await preview.copyPages(source, [pageIndex]);
-  page.setRotation(degrees(0));
-  preview.addPage(page);
-  return URL.createObjectURL(pdfBlob(Uint8Array.from(await preview.save())));
+async function countPdfPages(documentUrl: string): Promise<number> {
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
+    import.meta.url,
+  ).toString();
+  const document = await pdfjs.getDocument({ url: documentUrl }).promise;
+  return document.numPages;
 }
 
 export default function PdfEditor({
@@ -65,25 +68,26 @@ export default function PdfEditor({
       const next: PdfPage[] = [];
       try {
         for (let sourceIndex = 0; sourceIndex < files.length; sourceIndex += 1) {
-          const source = await PDFDocument.load(await files[sourceIndex].arrayBuffer());
-          for (let pageIndex = 0; pageIndex < source.getPageCount(); pageIndex += 1) {
+          if (controller.signal.aborted || generation !== loadGeneration.current) return;
+          const documentUrl = URL.createObjectURL(files[sourceIndex]);
+          createdUrls.push(documentUrl);
+          const pageCount = await countPdfPages(documentUrl);
+          for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
             if (controller.signal.aborted || generation !== loadGeneration.current) return;
-            const previewUrl = await pagePreview(source, pageIndex);
-            createdUrls.push(previewUrl);
             next.push({
               id: `${sourceIndex}:${pageIndex}`,
               sourceIndex,
               pageIndex,
               label: files.length > 1 ? `${sourceIndex + 1} · ${pageIndex + 1}` : `${pageIndex + 1}`,
               rotation: 0,
-              previewUrl,
+              documentUrl,
             });
           }
         }
         if (!controller.signal.aborted && generation === loadGeneration.current) setPages(next);
-      } catch {
+      } catch (error) {
         createdUrls.forEach((url) => URL.revokeObjectURL(url));
-        setMessage("This PDF could not be rendered locally.");
+        if (generation === loadGeneration.current) setMessage(describePdfLoadError(error));
       } finally {
         if (generation === loadGeneration.current) setLoading(false);
       }
@@ -119,7 +123,6 @@ export default function PdfEditor({
       setMessage("Keep at least one page in the document.");
       return;
     }
-    URL.revokeObjectURL(pages[selected].previewUrl);
     setPages((currentPages) => currentPages.filter((_, index) => index !== selected));
     setSelected((index) => Math.min(index, pages.length - 2));
     setSelectedPages((current) => current.filter((index) => index !== selected).map((index) => index > selected ? index - 1 : index));
@@ -165,7 +168,9 @@ export default function PdfEditor({
       const sourceDocuments: PDFDocument[] = [];
       for (let sourceIndex = 0; sourceIndex < files.length; sourceIndex += 1) {
         if (controller.signal.aborted) throw new Error("cancelled");
-        sourceDocuments.push(await PDFDocument.load(await files[sourceIndex].arrayBuffer()));
+        sourceDocuments.push(
+          await PDFDocument.load(await files[sourceIndex].arrayBuffer(), { ignoreEncryption: true }),
+        );
       }
       const split = workflow === "pdf-split";
       const outputs: ProcessedFile[] = [];
@@ -210,7 +215,11 @@ export default function PdfEditor({
       }
       onComplete(outputs);
     } catch (error) {
-      onError(error instanceof Error && error.message === "cancelled" ? "Processing cancelled." : "The PDF could not be exported locally.");
+      if (error instanceof Error && error.message === "cancelled") {
+        onError("Processing cancelled.");
+      } else {
+        onError(describePdfLoadError(error));
+      }
     } finally {
       exportController.current = null;
       setProcessing(false);

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   assertSponsorPaymentMatchesClaim,
   claimBidCents,
+  claimChargeCents,
   paymentAmountCents,
   paymentBidCents,
   resolvedSponsorBidCents,
@@ -54,6 +55,11 @@ describe("dodo sponsor payment verification", () => {
   it("reads bid cents from claim rows with numeric strings", () => {
     expect(claimBidCents({ bidCents: "401" })).toBe(401);
     expect(claimBidCents({ bidCents: 100.9 })).toBe(101);
+  });
+
+  it("reads upgrade charge cents separately from total bid", () => {
+    expect(claimChargeCents({ bidCents: 3000, chargeCents: 1000 })).toBe(1000);
+    expect(claimChargeCents({ bidCents: 401 })).toBe(401);
   });
 
   it("subtracts tax when matching sponsor bid", () => {

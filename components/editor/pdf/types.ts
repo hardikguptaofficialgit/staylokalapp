@@ -12,5 +12,6 @@ export type PdfPage = {
   pageIndex: number;
   label: string;
   rotation: number;
-  previewUrl: string;
+  /** Object URL for the source PDF file (shared across pages from the same upload). */
+  documentUrl: string;
 };

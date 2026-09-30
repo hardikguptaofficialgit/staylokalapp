@@ -40,7 +40,7 @@ All shipped tools run in the browser; optional sponsor/donation APIs never recei
 | Blank page removal | `pdf-remove-blank` | Shipped | |
 | Duplicate page | `pdf-duplicate-page` | Shipped | |
 | Password protect / unlock | — | Gap | No verified browser round-trip |
-| Sign PDF | — | Gap | Deferred |
+| Sign PDF | `pdf-sign` | Shipped | Draw/upload visual signature; not PKCS#7 certificate signing |
 | PDF/A, repair, compare | — | Gap | Not local-verified |
 | Word/Excel/PPT → PDF (native) | `pptx-pdf` only | Partial | PPTX render local; no DOC/XLS → PDF |
 

@@ -1,9 +1,32 @@
 .landing-footer {
+  align-items: center;
   border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
   margin: 2.5rem auto 0;
   max-width: 66rem;
   padding: 1rem 0 1.25rem;
   width: 100%;
+}
+
+.landing-footer-charity {
+  color: color-mix(in srgb, var(--muted) 92%, var(--foreground));
+  font-size: 0.73rem;
+  max-width: 40rem;
+}
+
+.landing-footer-policies a {
+  color: var(--foreground);
+  font-size: 0.73rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.landing-footer-policies a:hover,
+.landing-footer-policies a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
 }
 
 .landing-footer-line {

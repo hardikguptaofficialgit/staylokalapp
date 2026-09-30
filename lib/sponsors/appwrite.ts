@@ -1,6 +1,11 @@
 import "server-only";
 
 import { activationOutcome, normalizeBidCents } from "./ranking";
+import {
+  findActiveSponsorByDestination,
+  normalizeSponsorDestinationKey,
+  pendingUpgradeSponsorId,
+} from "./sponsor-identity";
 import { normalizeSponsorLogoUrl } from "./validation";
 import type { SponsorRecord, SponsorStatus } from "./types";
 
@@ -332,41 +337,103 @@ export async function activateClaim(claimId: string, paymentId: string) {
     if (bidCents === null) {
       throw new Error("Claim is not eligible for activation.");
     }
-    const sponsorId = uniqueId();
     const paidAt = new Date().toISOString();
-    const newSponsor: SponsorRecord = {
-      bidCents,
-      category: claimData.category as SponsorRecord["category"],
-      companyName: String(claimData.companyName),
-      description: String(claimData.description),
-      destinationUrl: String(claimData.destinationUrl),
-      handle: claimData.handle ? String(claimData.handle) : undefined,
-      id: sponsorId,
-      logoUrl: normalizeSponsorLogoUrl(claimData.logoUrl),
-      paidAt,
-      status: "active",
-    };
-    const { displacedIds, newSponsorStatus } = activationOutcome(activeSponsors, newSponsor);
+    const claimDestinationUrl = String(claimData.destinationUrl);
+    const claimHandle = claimData.handle ? String(claimData.handle) : undefined;
+    const pendingPriorId = pendingUpgradeSponsorId(claimData);
+    const priorSponsor = pendingPriorId
+      ? activeSponsors.find((sponsor) => sponsor.id === pendingPriorId)
+      : findActiveSponsorByDestination(activeSponsors, claimDestinationUrl, claimHandle);
 
-    await tables.createRow({
-      tableId: process.env.APPWRITE_SPONSORS_TABLE_ID!,
-      databaseId: process.env.APPWRITE_DATABASE_ID!,
-      rowId: sponsorId,
-      data: {
-        bidCents: newSponsor.bidCents,
-        category: newSponsor.category,
-        claimId,
-        companyName: newSponsor.companyName,
-        description: newSponsor.description,
-        destinationUrl: newSponsor.destinationUrl,
-        handle: newSponsor.handle ?? "",
-        logoUrl: newSponsor.logoUrl ?? "",
+    let sponsorId: string;
+    let displacedIds: string[];
+    let newSponsorStatus: SponsorStatus;
+
+    if (priorSponsor) {
+      const claimKey = normalizeSponsorDestinationKey(claimDestinationUrl, claimHandle);
+      const priorKey = normalizeSponsorDestinationKey(priorSponsor.destinationUrl, priorSponsor.handle);
+      if (claimKey !== priorKey) {
+        throw new Error("Upgrade claim does not match the active listing.");
+      }
+      if (bidCents <= priorSponsor.bidCents) {
+        throw new Error("Upgrade bid must exceed the current placement amount.");
+      }
+
+      sponsorId = priorSponsor.id;
+      const updatedSponsor: SponsorRecord = {
+        ...priorSponsor,
+        bidCents,
+        category: claimData.category as SponsorRecord["category"],
+        companyName: String(claimData.companyName),
+        description: String(claimData.description),
+        destinationUrl: claimDestinationUrl,
+        handle: claimHandle,
+        logoUrl: normalizeSponsorLogoUrl(claimData.logoUrl) ?? priorSponsor.logoUrl,
         paidAt,
-        paymentId,
-        status: newSponsorStatus,
-      },
-      transactionId: transaction.$id,
-    });
+        status: "active",
+      };
+      const others = activeSponsors.filter((sponsor) => sponsor.id !== sponsorId);
+      const outcome = activationOutcome(others, updatedSponsor);
+      displacedIds = outcome.displacedIds;
+      newSponsorStatus = outcome.newSponsorStatus;
+
+      await tables.updateRow({
+        tableId: process.env.APPWRITE_SPONSORS_TABLE_ID!,
+        databaseId: process.env.APPWRITE_DATABASE_ID!,
+        rowId: sponsorId,
+        data: {
+          bidCents: updatedSponsor.bidCents,
+          category: updatedSponsor.category,
+          claimId,
+          companyName: updatedSponsor.companyName,
+          description: updatedSponsor.description,
+          destinationUrl: updatedSponsor.destinationUrl,
+          handle: updatedSponsor.handle ?? "",
+          logoUrl: updatedSponsor.logoUrl ?? "",
+          paidAt,
+          paymentId,
+          status: newSponsorStatus,
+        },
+        transactionId: transaction.$id,
+      });
+    } else {
+      sponsorId = uniqueId();
+      const newSponsor: SponsorRecord = {
+        bidCents,
+        category: claimData.category as SponsorRecord["category"],
+        companyName: String(claimData.companyName),
+        description: String(claimData.description),
+        destinationUrl: claimDestinationUrl,
+        handle: claimHandle,
+        id: sponsorId,
+        logoUrl: normalizeSponsorLogoUrl(claimData.logoUrl),
+        paidAt,
+        status: "active",
+      };
+      const outcome = activationOutcome(activeSponsors, newSponsor);
+      displacedIds = outcome.displacedIds;
+      newSponsorStatus = outcome.newSponsorStatus;
+
+      await tables.createRow({
+        tableId: process.env.APPWRITE_SPONSORS_TABLE_ID!,
+        databaseId: process.env.APPWRITE_DATABASE_ID!,
+        rowId: sponsorId,
+        data: {
+          bidCents: newSponsor.bidCents,
+          category: newSponsor.category,
+          claimId,
+          companyName: newSponsor.companyName,
+          description: newSponsor.description,
+          destinationUrl: newSponsor.destinationUrl,
+          handle: newSponsor.handle ?? "",
+          logoUrl: newSponsor.logoUrl ?? "",
+          paidAt,
+          paymentId,
+          status: newSponsorStatus,
+        },
+        transactionId: transaction.$id,
+      });
+    }
 
     for (const documentId of displacedIds) {
       await tables.updateRow({

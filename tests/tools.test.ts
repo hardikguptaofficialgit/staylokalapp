@@ -81,6 +81,7 @@ describe("tool registry", () => {
       "pdf-remove-blank",
       "pdf-duplicate-page",
       "pdf-add-image",
+      "pdf-sign",
       "pdf-fill-form",
       "pdf-ocr",
       "trim",
@@ -114,7 +115,7 @@ describe("tool registry", () => {
       "audio-reverse",
     ]);
     expect(deferredToolIds).toEqual([]);
-    expect(tools).toHaveLength(84);
+    expect(tools).toHaveLength(85);
   });
 
   it("treats office, archive, and text files as supported types", () => {
@@ -131,6 +132,11 @@ describe("tool registry", () => {
       expect(tool.available).toBe(true);
       expect(tool.kind).toMatch(/image|pdf|ffmpeg|document/);
     }
+  });
+
+  it("flags batch tools where queue order affects output", () => {
+    const ordered = tools.filter((tool) => tool.orderMatters).map((tool) => tool.id).sort();
+    expect(ordered).toEqual(["archive-create", "image-contact-sheet", "image-gif", "pdf-image-to-pdf", "pdf-merge"]);
   });
 
   it("marks recently added tools as new without marking the original tools", () => {

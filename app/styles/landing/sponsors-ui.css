@@ -749,6 +749,18 @@ html[data-theme="light"] .sponsor-modal-preview {
   margin: 0;
 }
 
+.sponsor-upgrade-hint {
+  color: var(--muted);
+  font-size: 0.68rem;
+  grid-column: 1 / -1;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.sponsor-upgrade-hint strong {
+  color: var(--foreground);
+}
+
 .sponsor-form-error {
   background: rgb(190 55 55 / 0.12);
   border: 1px solid rgb(225 100 100 / 0.35);

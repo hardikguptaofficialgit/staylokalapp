@@ -1,5 +1,6 @@
 import { isDodoCheckoutUrl } from "../../../../lib/app/checkout-url";
 import { donationAmountToCents, MAXIMUM_DONATION_CENTS } from "../../../../lib/donations";
+import { staylokalCheckoutSessionOptions } from "../../../../lib/payments/dodo-checkout-session";
 import { createDodoClient } from "../../../../lib/sponsors/dodo-payments";
 
 export const runtime = "nodejs";
@@ -32,8 +33,8 @@ export async function POST(request: Request) {
   try {
     const client = createDodoClient();
     const session = await client.checkoutSessions.create({
-      billing_currency: "USD",
-      metadata: { source: "staylokal-donation" },
+      ...staylokalCheckoutSessionOptions(),
+      metadata: { source: "staylokal-donation", usd_cents: String(amount) },
       product_cart: [{ amount, product_id: productId, quantity: 1 }],
       return_url: returnUrl,
     });
