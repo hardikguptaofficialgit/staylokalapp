@@ -14,7 +14,7 @@
 
   .landing-section {
     background-attachment: scroll;
-    background-image: url("/chatbg.png");
+    background-image: var(--staylokal-landing-bg);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -25,10 +25,6 @@
     padding-left: 1rem;
     padding-right: 1rem;
     width: 100%;
-  }
-
-  html[data-theme="light"] .landing-section {
-    background-image: url("/images/bglightland.png");
   }
 
   .floating-file-card,

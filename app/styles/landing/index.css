@@ -1,4 +1,5 @@
 /* Landing styles - import order matters. */
+@import "./landing-bg.css";
 @import "./hero-layout.css";
 @import "./donate.css";
 @import "./how-it-works.css";

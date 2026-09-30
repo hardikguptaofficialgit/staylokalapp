@@ -1,0 +1,8 @@
+/* Theme landing backgrounds (WebP). */
+:root {
+  --staylokal-landing-bg: url("/images/darkmodebg.webp");
+}
+
+html[data-theme="light"] {
+  --staylokal-landing-bg: url("/images/lightmodebg.webp");
+}

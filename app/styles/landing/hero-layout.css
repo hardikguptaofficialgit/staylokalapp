@@ -16,7 +16,7 @@
   overflow: hidden;
   position: relative;
   isolation: isolate;
-  background-image: url("/chatbg.png");
+  background-image: var(--staylokal-landing-bg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -32,8 +32,8 @@
 
 /* Full-bleed hero bg (same framing as landing), fixed while tool list scrolls */
 .all-tools-section::after {
-  background-attachment: fixed;
-  background-image: url("/chatbg.png");
+  background-attachment: scroll;
+  background-image: var(--staylokal-landing-bg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -63,16 +63,8 @@
   z-index: 2;
 }
 
-html[data-theme="light"] .landing-section {
-  background-image: url("/images/bglightland.png");
-}
-
 html[data-theme="light"] .all-tools-section {
   background-color: var(--background);
-}
-
-html[data-theme="light"] .all-tools-section::after {
-  background-image: url("/images/bglightland.png");
 }
 
 html[data-theme="light"] .all-tools-section::before {

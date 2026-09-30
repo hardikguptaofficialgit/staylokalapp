@@ -43,6 +43,8 @@ export type ProcessedFile = {
   blob: Blob;
   name: string;
   type: string;
+  /** Short human-readable result note (for example compression savings). */
+  detail?: string;
 };
 
 export type ToolProcessor = (

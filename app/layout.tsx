@@ -55,7 +55,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("${THEME_STORAGE_KEY}");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;}catch(e){}})();`,
+            __html: `(function(){try{var k="${THEME_STORAGE_KEY}";var t=localStorage.getItem(k);if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;var bg=t==="light"?"/images/lightmodebg.webp":"/images/darkmodebg.webp";var l=document.createElement("link");l.rel="preload";l.as="image";l.href=bg;document.head.appendChild(l);}catch(e){}})();`,
           }}
         />
       </head>

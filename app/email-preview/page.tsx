@@ -21,7 +21,7 @@ export default async function EmailPreviewPage() {
   return (
     <main
       style={{
-        background: "#060c0b url('/chatbg.png') center top / cover fixed",
+        background: "#060c0b url('/images/darkmodebg.webp') center top / cover",
         minHeight: "100vh",
         padding: "40px 16px",
       }}

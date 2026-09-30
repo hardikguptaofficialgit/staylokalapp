@@ -377,7 +377,10 @@ export default function SelectedToolPanel({ workflow, inputRef }: { workflow: Ap
           <div className="flex flex-col gap-2">
             {workflow.resultUrls.map((item) => (
               <a key={item.name} download={item.name} href={item.url} className="group flex items-center justify-between rounded-lg border border-line bg-panel p-3 transition-colors hover:border-foreground hover:bg-foreground hover:text-background text-sm font-medium">
-                <span className="truncate pr-4">{item.name}</span>
+                <span className="min-w-0 pr-4">
+                  <span className="block truncate">{item.name}</span>
+                  {item.detail && <span className="mt-0.5 block truncate text-xs font-normal text-muted group-hover:text-background/80">{item.detail}</span>}
+                </span>
                 <CloudArrowDown size={20} className="shrink-0 text-muted group-hover:text-background" />
               </a>
             ))}

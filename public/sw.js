@@ -1,9 +1,10 @@
 /* StayLokal offline shell — bump when cache strategy changes. */
-const CACHE_VERSION = "staylokal-v3";
+const CACHE_VERSION = "staylokal-v4";
 const PRECACHE_URLS = [
   "/offline",
   "/images/pwa/icon-192.png",
   "/images/pwa/icon-512.png",
+  "/images/pwa/icon-512-maskable.png",
 ];
 
 self.addEventListener("install", (event) => {

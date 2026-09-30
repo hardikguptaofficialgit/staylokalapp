@@ -18,7 +18,7 @@ const details = {
   "pdf-crop": { icon: Images, label: "Crop PDF pages", description: "Crop every page to a selected region without rasterizing the document." },
   "pdf-page-size": { icon: Images, label: "Resize PDF pages", description: "Fit every page to a standard paper size without rasterizing." },
   "pdf-ocr": { icon: Scan, label: "OCR searchable PDF", description: "Run English OCR locally and download text plus a searchable PDF." },
-  "pdf-compress": { icon: FileArrowDown, label: "Compress PDF", description: "Optimize streams locally and report only a smaller result." },
+  "pdf-compress": { icon: FileArrowDown, label: "Compress PDF", description: "Run multi-pass local qpdf optimization and show how much smaller the file became." },
   "pdf-watermark": { icon: FilePdf, label: "Add watermark", description: "Stamp every page with your own text locally." },
   "pdf-page-numbers": { icon: FilePdf, label: "Add page numbers", description: "Add a discreet page number to every page locally." },
   "pdf-add-text": { icon: FilePdf, label: "Add text", description: "Place text on one selected PDF page locally." },
@@ -43,6 +43,8 @@ export default function PdfAdvancedEditor({ operation, file, processing, onProce
   const [textPage, setTextPage] = useState(1);
   const [textRegion, setTextRegion] = useState({ pageNumber: 1, x: 10, y: 10, width: 20, height: 8 });
   const [footer, setFooter] = useState("");
+  const [compressProfile, setCompressProfile] = useState<"balanced" | "maximum">("balanced");
+  const [removeMetadata, setRemoveMetadata] = useState(false);
   const [redaction, setRedaction] = useState({ pageNumber: 1, x: 0, y: 0, width: 20, height: 20 });
   const detail = details[operation];
   const Icon = detail.icon;
@@ -57,6 +59,7 @@ export default function PdfAdvancedEditor({ operation, file, processing, onProce
   const isHighlight = operation === "pdf-highlight";
   const isShape = operation === "pdf-shape";
   const isDuplicatePage = operation === "pdf-duplicate-page";
+  const isCompress = operation === "pdf-compress";
   const hasRegionEditor = isWatermark || isTextOverlay || isHeaderFooter || isCrop || isRedact || isHighlight || isShape;
   return (
     <section className="pdf-advanced-editor" aria-label={detail.label}>
@@ -191,8 +194,24 @@ export default function PdfAdvancedEditor({ operation, file, processing, onProce
             </label>
           </div>
         )}
+        {isCompress && (
+          <div className="pdf-export-options" aria-label="PDF compression options">
+            <label>
+              <span>Compression strength</span>
+              <select value={compressProfile} onChange={(event) => setCompressProfile(event.target.value === "maximum" ? "maximum" : "balanced")} disabled={processing}>
+                <option value="balanced">Balanced — one fast pass</option>
+                <option value="maximum">Maximum — up to four optimization passes</option>
+              </select>
+            </label>
+            <label className="pdf-checkbox-option">
+              <input type="checkbox" checked={removeMetadata} onChange={(event) => setRemoveMetadata(event.target.checked)} disabled={processing} />
+              <span>Strip document metadata before compressing</span>
+            </label>
+            <small>Maximum mode can take longer on large PDFs but tries deeper stream, decode, and cleanup passes.</small>
+          </div>
+        )}
       </div>
-      <button type="button" className="action-button" onClick={() => onProcess(isRasterExport ? { exportMode, pageNumber, format: exportFormat } : isContactSheet ? { columns } : isPageSize ? { size: pageSize } : isWatermark ? { text, fontSize } : isTextOverlay ? { text, pageNumber: textRegion.pageNumber, fontSize, x: textRegion.x, y: textRegion.y } : isHeaderFooter ? { header: text, footer, fontSize } : (isCrop || isRedact || isHighlight || isShape) ? redaction : isDuplicatePage ? { pageNumber } : { fontSize })} disabled={processing}>
+      <button type="button" className="action-button" onClick={() => onProcess(isRasterExport ? { exportMode, pageNumber, format: exportFormat } : isContactSheet ? { columns } : isPageSize ? { size: pageSize } : isWatermark ? { text, fontSize } : isTextOverlay ? { text, pageNumber: textRegion.pageNumber, fontSize, x: textRegion.x, y: textRegion.y } : isHeaderFooter ? { header: text, footer, fontSize } : (isCrop || isRedact || isHighlight || isShape) ? redaction : isDuplicatePage ? { pageNumber } : isCompress ? { compressProfile, removeMetadata } : { fontSize })} disabled={processing}>
         <FilePdf size={17} /> {processing ? "Processing..." : "Run tool"}
       </button>
     </section>

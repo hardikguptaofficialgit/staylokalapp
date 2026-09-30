@@ -211,7 +211,7 @@
   align-items: center;
   background:
     linear-gradient(165deg, rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.72)),
-    url("/chatbg.png") center / cover;
+    var(--staylokal-landing-bg) center / cover;
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -220,12 +220,6 @@
   overflow: hidden;
   padding: 1.1rem 0.5rem;
   position: relative;
-}
-
-html[data-theme="light"] .sponsor-modal-preview {
-  background:
-    linear-gradient(180deg, rgb(25 49 45 / 0.1), rgb(15 35 32 / 0.78)),
-    url("/images/bglightland.png") center / cover;
 }
 
 .sponsor-modal-preview-label {

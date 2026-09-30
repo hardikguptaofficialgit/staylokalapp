@@ -2,6 +2,7 @@ import { PDFCheckBox, PDFDocument, PDFDropdown, PDFOptionList, PDFRadioGroup, PD
 import { exportCanvasToBlob, imageExtensionForMime, resolvePdfRasterExportFormat } from "./image-formats";
 import { ProcessingError, type ProcessedFile, type ToolProcessor } from "./types";
 import { runPdfWorker } from "./pdf-worker-client";
+import { compressPdfFile } from "./pdf-compress";
 
 async function rasterizeImageFileToPngBytes(file: File) {
   const url = URL.createObjectURL(file);
@@ -407,38 +408,16 @@ const pdfProcessor: ToolProcessor = async (files, options, context) => {
     }
   }
   if (operation === "pdf-compress") {
-    try {
-      const { createQpdfRunner } = await import("qpdf-run");
-      const runner = await createQpdfRunner({
-        workerUrl: new URL("qpdf-run/worker", import.meta.url).toString(),
-        qpdfJsUrl: new URL("qpdf-run/qpdf.js", import.meta.url).toString(),
-        wasmUrl: new URL("qpdf-run/qpdf.wasm", import.meta.url).toString(),
-      });
-      try {
-        const input = new Uint8Array(await files[0].arrayBuffer());
-        context.onProgress({ ratio: 0.2, label: "Optimizing PDF streams locally…" });
-        const result = await runner.runOne({
-          input,
-          inputName: "input.pdf",
-          outputName: "compressed.pdf",
-          args: ["--stream-data=compress", "--object-streams=generate", "--compress-streams=y", "--recompress-flate", "--compression-level=9", "--", "input.pdf", "compressed.pdf"],
-        });
-        if (result.byteLength >= input.byteLength) {
-          throw new ProcessingError("Compression did not reduce this PDF. The original file is already efficiently encoded.", "invalid");
-        }
-        context.onProgress({ ratio: 1, label: "Compression complete" });
-        const baseName = files[0].name.replace(/\.pdf$/i, "");
-        return [{ blob: blobFromBytes(result, "application/pdf"), type: "application/pdf", name: `${baseName}-compressed.pdf` }];
-      } finally {
-        await runner.destroy();
-      }
-    } catch (error) {
-      if (error instanceof ProcessingError) throw error;
-      throw new ProcessingError(
-        "PDF compression could not start in this browser session. Try flattening large scans or removing embedded attachments first.",
-        "unsupported",
-      );
-    }
+    const result = await compressPdfFile(files[0], {
+      compressProfile: String(options.compressProfile ?? "balanced"),
+      removeMetadata: Boolean(options.removeMetadata),
+    }, context);
+    return [{
+      blob: blobFromBytes(result.bytes, "application/pdf"),
+      type: "application/pdf",
+      name: result.name,
+      detail: result.summary.detail,
+    }];
   }
   if (operation === "pdf-image-to-pdf") {
     const output = await PDFDocument.create();

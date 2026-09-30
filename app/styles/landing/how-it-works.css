@@ -398,7 +398,12 @@ html[data-theme="light"] .rules-link {
    ========================================================================== */
 
 .rules-page {
-  background: var(--background) url("/chatbg.png") center / cover fixed;
+  background-color: var(--background);
+  background-image: var(--staylokal-landing-bg);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: scroll;
   color: var(--foreground);
   min-height: 100vh;
   padding: 1.25rem clamp(1rem, 5vw, 5rem) 4rem;
@@ -542,10 +547,6 @@ html[data-theme="light"] .rules-link {
   color: var(--foreground);
   text-decoration: underline;
   text-underline-offset: 0.18em;
-}
-
-html[data-theme="light"] .rules-page {
-  background-image: url("/images/bglightland.png");
 }
 
 /* ==========================================================================
