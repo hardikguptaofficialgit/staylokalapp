@@ -40,5 +40,5 @@ export async function GET(
   }
 
   const fallback = new URL(`/ffmpeg/${file}`, request.url);
-  return fetch(fallback);
+  return fetch(fallback, { redirect: "error" });
 }

@@ -40,8 +40,6 @@ export async function POST(request: Request) {
     return Response.json({ sent: true, to });
   } catch (error) {
     console.error("Dev sponsor email test failed:", error);
-    return Response.json({
-      error: error instanceof Error ? error.message : "Unable to send test email.",
-    }, { status: 502 });
+    return Response.json({ error: "Unable to send test email." }, { status: 502 });
   }
 }

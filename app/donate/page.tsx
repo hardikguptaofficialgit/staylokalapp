@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { isDodoCheckoutUrl } from "@/lib/app/checkout-url";
 import { readJsonResponse } from "@/lib/app/fetch-json";
 import { ArrowLeft, CheckCircle, CircleNotch, Heart, LockKey } from "@phosphor-icons/react";
 import { applyTheme, resolveTheme, subscribeTheme, type Theme } from "@/lib/app/theme";
@@ -9,7 +10,10 @@ import ThemeToggle from "@/components/app/ThemeToggle";
 import { firePaymentConfetti } from "@/lib/app/payment-confetti";
 import { FormEvent, useEffect, useState, useSyncExternalStore } from "react";
 
-const MINIMUM_DONATION = 5;
+import { MAXIMUM_DONATION_CENTS, MINIMUM_DONATION_CENTS } from "@/lib/donations";
+
+const MINIMUM_DONATION = MINIMUM_DONATION_CENTS / 100;
+const MAXIMUM_DONATION = MAXIMUM_DONATION_CENTS / 100;
 type DonationReturnState = "none" | "verifying" | "verified" | "failed";
 
 function readReturnPaymentId(): string | null {
@@ -94,6 +98,10 @@ export default function DonatePage() {
       setError("Please enter a donation of at least $5.");
       return;
     }
+    if (parsedAmount > MAXIMUM_DONATION) {
+      setError(`Please enter a donation of $${MAXIMUM_DONATION.toLocaleString()} or less.`);
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -103,7 +111,7 @@ export default function DonatePage() {
         method: "POST",
       });
       const result = await readJsonResponse<{ checkoutUrl?: string; error?: string }>(response);
-      if (!response.ok || !result.checkoutUrl) {
+      if (!response.ok || !result.checkoutUrl || !isDodoCheckoutUrl(result.checkoutUrl)) {
         throw new Error(result.error ?? "Unable to start checkout.");
       }
       window.location.assign(result.checkoutUrl);
@@ -158,6 +166,7 @@ export default function DonatePage() {
               id="donation-amount"
               inputMode="decimal"
               min={MINIMUM_DONATION}
+              max={MAXIMUM_DONATION}
               name="amount"
               onChange={(event) => setAmount(event.target.value)}
               placeholder="5.00"

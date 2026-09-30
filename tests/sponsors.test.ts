@@ -56,6 +56,8 @@ describe("sponsor logo url", () => {
     expect(normalizeSponsorLogoUrl("")).toBeUndefined();
     expect(normalizeSponsorLogoUrl("https://staylokal.com/images/logo.png")).toBeUndefined();
     expect(normalizeSponsorLogoUrl("https://cdn.example.com/acme.png")).toBe("https://cdn.example.com/acme.png");
+    expect(normalizeSponsorLogoUrl('https://evil.com/x");background:url(')).toBeUndefined();
+    expect(normalizeSponsorLogoUrl("http://cdn.example.com/acme.png")).toBeUndefined();
   });
 });
 

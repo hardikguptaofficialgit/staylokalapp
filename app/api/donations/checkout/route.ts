@@ -1,4 +1,5 @@
-import { donationAmountToCents } from "../../../../lib/donations";
+import { isDodoCheckoutUrl } from "../../../../lib/app/checkout-url";
+import { donationAmountToCents, MAXIMUM_DONATION_CENTS } from "../../../../lib/donations";
 import { createDodoClient } from "../../../../lib/sponsors/dodo-payments";
 
 export const runtime = "nodejs";
@@ -13,6 +14,10 @@ export async function POST(request: Request) {
 
   const amount = donationAmountToCents(body.amount);
   if (amount === null) {
+    const parsed = Number(body.amount);
+    if (Number.isFinite(parsed) && parsed * 100 > MAXIMUM_DONATION_CENTS) {
+      return Response.json({ error: "Donation amount exceeds the supported maximum." }, { status: 400 });
+    }
     return Response.json({ error: "Donation amount must be at least $5." }, { status: 400 });
   }
 
@@ -33,6 +38,9 @@ export async function POST(request: Request) {
       return_url: returnUrl,
     });
 
+    if (!isDodoCheckoutUrl(session.checkout_url)) {
+      return Response.json({ error: "Unable to start secure checkout." }, { status: 502 });
+    }
     return Response.json({ checkoutUrl: session.checkout_url });
   } catch {
     return Response.json({ error: "Unable to start secure checkout." }, { status: 502 });

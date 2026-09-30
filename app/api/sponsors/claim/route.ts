@@ -1,3 +1,4 @@
+import { isDodoCheckoutUrl } from "../../../../lib/app/checkout-url";
 import { appOriginFromRequest } from "../../../../lib/sponsors/app-origin";
 import { buildSponsorCheckoutReturnUrl } from "../../../../lib/sponsors/checkout-return-url";
 import { createDodoClient } from "../../../../lib/sponsors/dodo-payments";
@@ -12,9 +13,16 @@ import { validateSponsorClaim } from "../../../../lib/sponsors/validation";
 
 export const runtime = "nodejs";
 
+const MAX_CLAIM_BODY_BYTES = 750_000;
+
 export async function POST(request: Request) {
   if (!appwriteClaimsAreConfigured() || !process.env.DODO_SPONSOR_PRODUCT_ID || !process.env.DODO_PAYMENTS_API_KEY) {
     return Response.json({ error: "Sponsor claims are not configured yet." }, { status: 503 });
+  }
+
+  const contentLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(contentLength) && contentLength > MAX_CLAIM_BODY_BYTES) {
+    return Response.json({ error: "Request body is too large." }, { status: 413 });
   }
 
   let body: {
@@ -95,6 +103,9 @@ export async function POST(request: Request) {
       return_url: buildSponsorCheckoutReturnUrl(appOrigin, pendingClaim.$id),
     });
 
+    if (!isDodoCheckoutUrl(session.checkout_url)) {
+      return Response.json({ error: "Unable to create sponsor checkout." }, { status: 502 });
+    }
     return Response.json({ checkoutUrl: session.checkout_url, claimId: pendingClaim.$id });
   } catch (error) {
     console.error("Sponsor checkout failed:", error);

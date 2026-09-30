@@ -13,6 +13,11 @@ describe("donation amounts", () => {
     expect(donationAmountToCents("not-an-amount")).toBeNull();
     expect(donationAmountToCents(Infinity)).toBeNull();
   });
+
+  it("rejects amounts above the supported maximum", () => {
+    expect(donationAmountToCents(10_001)).toBeNull();
+    expect(donationAmountToCents(10_000)).toBe(1_000_000);
+  });
 });
 
 describe("donation checkout route", () => {

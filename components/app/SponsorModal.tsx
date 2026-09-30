@@ -3,6 +3,7 @@
 import { ArrowRight, CaretDown, Check, Tag, UploadSimple, X } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { isDodoCheckoutUrl } from "@/lib/app/checkout-url";
 import { readJsonResponse } from "@/lib/app/fetch-json";
 import { formatBid, minimumBidForRank } from "@/lib/sponsors/ranking";
 import { SPONSOR_CATEGORIES, type RankedSponsor } from "@/lib/sponsors/types";
@@ -366,7 +367,9 @@ export default function SponsorModal({ sponsors, initialRank = 5, onClose }: Spo
         window.dispatchEvent(new Event("sponsor-leaderboard-refresh"));
         throw new Error(result.error ?? `This rank now requires at least ${formatBid(result.minimumBidCents)}.`);
       }
-      if (!response.ok || !result.checkoutUrl) throw new Error(result.error ?? "Unable to start checkout.");
+      if (!response.ok || !result.checkoutUrl || !isDodoCheckoutUrl(result.checkoutUrl)) {
+        throw new Error(result.error ?? "Unable to start checkout.");
+      }
       if (result.claimId) {
         window.sessionStorage.setItem("staylokal-sponsor-claim-id", result.claimId);
       }

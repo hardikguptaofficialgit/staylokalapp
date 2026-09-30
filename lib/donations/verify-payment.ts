@@ -1,4 +1,4 @@
-import { MINIMUM_DONATION_CENTS } from "../donations";
+import { MAXIMUM_DONATION_CENTS, MINIMUM_DONATION_CENTS } from "../donations";
 import {
   createDodoClient,
   dodoApiErrorStatus,
@@ -32,7 +32,7 @@ export async function verifyDonationPayment(paymentId: string) {
   }
 
   const amountCents = paymentAmountCents(payment);
-  if (amountCents === null || amountCents < MINIMUM_DONATION_CENTS) {
+  if (amountCents === null || amountCents < MINIMUM_DONATION_CENTS || amountCents > MAXIMUM_DONATION_CENTS) {
     return { kind: "invalid_amount" as const };
   }
 

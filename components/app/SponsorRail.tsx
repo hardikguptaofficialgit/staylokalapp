@@ -110,7 +110,7 @@ export default function SponsorRail() {
             <p className="sponsor-details-category">{selected.category}</p>
             <p className="sponsor-details-description">{selected.description}</p>
             <div className="sponsor-details-actions">
-              <a href={selected.destinationUrl} target="_blank" rel="noreferrer">Visit website ↗</a>
+              <a href={selected.destinationUrl} target="_blank" rel="noreferrer noopener">Visit website ↗</a>
               <button type="button" onClick={() => { setSelected(null); setModalRank(selected.rank); }}>Outbid #{selected.rank}</button>
             </div>
           </section>

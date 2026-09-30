@@ -25,6 +25,8 @@ vi.mock("../lib/sponsors/appwrite", () => ({
 
 import { POST } from "../app/api/webhooks/dodo/route";
 
+const claimId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+
 describe("Dodo sponsor webhook", () => {
   beforeEach(() => {
     process.env.DODO_PAYMENTS_API_KEY = "test-api-key";
@@ -37,7 +39,7 @@ describe("Dodo sponsor webhook", () => {
     findClaimByIdMock.mockResolvedValue({ bidCents: 401 });
     retrieveMock.mockResolvedValue({
       amount: 401,
-      metadata: { claim_id: "claim-1" },
+      metadata: { claim_id: claimId },
       status: "succeeded",
     });
   });
@@ -71,6 +73,19 @@ describe("Dodo sponsor webhook", () => {
     expect(activateClaimMock).not.toHaveBeenCalled();
   });
 
+  it("rejects successful events with malformed claim ids", async () => {
+    unwrapMock.mockReturnValue({
+      type: "payment.succeeded",
+      data: { metadata: { claim_id: "claim-1" }, payment_id: "pay_12345678" },
+    });
+    const response = await POST(new Request("https://example.com/webhook", {
+      body: "{}",
+      method: "POST",
+    }));
+    expect(response.status).toBe(400);
+    expect(activateClaimMock).not.toHaveBeenCalled();
+  });
+
   it("rejects successful events without sponsor payment metadata", async () => {
     unwrapMock.mockReturnValue({ type: "payment.succeeded", data: { metadata: {} } });
     const response = await POST(new Request("https://example.com/webhook", {
@@ -84,7 +99,7 @@ describe("Dodo sponsor webhook", () => {
   it("returns a retryable error when activation fails", async () => {
     unwrapMock.mockReturnValue({
       type: "payment.succeeded",
-      data: { metadata: { claim_id: "claim-1" }, payment_id: "pay_12345678" },
+      data: { metadata: { claim_id: claimId }, payment_id: "pay_12345678" },
     });
     activateClaimMock.mockRejectedValue(new Error("temporary Appwrite failure"));
 
@@ -101,7 +116,7 @@ describe("Dodo sponsor webhook", () => {
     findClaimByIdMock.mockResolvedValue({ bidCents: 401, status: "activated" });
     unwrapMock.mockReturnValue({
       type: "payment.succeeded",
-      data: { metadata: { claim_id: "claim-1" }, payment_id: "pay_12345678" },
+      data: { metadata: { claim_id: claimId }, payment_id: "pay_12345678" },
     });
 
     const response = await POST(new Request("https://example.com/webhook", {
@@ -117,7 +132,7 @@ describe("Dodo sponsor webhook", () => {
   it("activates a sponsor claim from payment metadata", async () => {
     unwrapMock.mockReturnValue({
       type: "payment.succeeded",
-      data: { metadata: { claim_id: "claim-1" }, payment_id: "pay_12345678" },
+      data: { metadata: { claim_id: claimId }, payment_id: "pay_12345678" },
     });
 
     const response = await POST(new Request("https://example.com/webhook", {
@@ -126,8 +141,8 @@ describe("Dodo sponsor webhook", () => {
     }));
 
     expect(response.status).toBe(200);
-    expect(findClaimByIdMock).toHaveBeenCalledWith("claim-1");
+    expect(findClaimByIdMock).toHaveBeenCalledWith(claimId);
     expect(retrieveMock).toHaveBeenCalledWith("pay_12345678", { signal: expect.any(AbortSignal) });
-    expect(activateClaimMock).toHaveBeenCalledWith("claim-1", "pay_12345678");
+    expect(activateClaimMock).toHaveBeenCalledWith(claimId, "pay_12345678");
   });
 });

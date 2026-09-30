@@ -8,6 +8,7 @@ import {
   sendSponsorActivatedEmail,
   sendSponsorPaymentFailedEmail,
 } from "../../../../lib/notifications/sponsor-email";
+import { isSponsorClaimId } from "../../../../lib/sponsors/claim-id";
 
 export const runtime = "nodejs";
 
@@ -49,10 +50,10 @@ export async function POST(request: Request) {
     return Response.json({ received: true });
   }
 
-  const claimId = event.data?.metadata?.claim_id;
+  const claimId = event.data?.metadata?.claim_id?.trim();
   const paymentId = event.data?.payment_id ?? event.data?.paymentId;
   const metadataSource = event.data?.metadata?.source;
-  if (!claimId) {
+  if (!claimId || !isSponsorClaimId(claimId)) {
     if (event.type === "payment.failed" || metadataSource === "staylokal-donation") {
       return Response.json({ received: true });
     }

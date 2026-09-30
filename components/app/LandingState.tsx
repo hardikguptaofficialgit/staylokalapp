@@ -257,7 +257,7 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
               <p className="sponsor-details-category">{selectedSponsor.category}</p>
               <p className="sponsor-details-description">{selectedSponsor.description}</p>
               <div className="sponsor-details-actions">
-                <a href={selectedSponsor.destinationUrl} target="_blank" rel="noreferrer">Visit website ↗</a>
+                <a href={selectedSponsor.destinationUrl} target="_blank" rel="noreferrer noopener">Visit website ↗</a>
                 <button type="button" onClick={() => { setSelectedSponsor(null); setSponsorModalRank(selectedSponsor.rank); }}>Outbid #{selectedSponsor.rank}</button>
               </div>
             </section>

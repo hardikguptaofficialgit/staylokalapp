@@ -97,3 +97,31 @@ The application stores bids as integer cents. Five active listings are sorted by
 To claim rank `N`, the bid must be at least one cent above the current bid at
 rank `N`. A successful payment is inserted into the active set, the five ranks
 are recalculated, and any sixth listing is marked `outbid`.
+
+## Verify payments without spending money
+
+**Live mode** (`DODO_PAYMENTS_ENVIRONMENT=live_mode`, production today) always
+charges a real card. Test card numbers such as `4242424242424242` are rejected
+on live checkout.
+
+**Automated check (no card):** run the sponsor payment test bundle:
+
+```text
+npm run test:sponsor-payment
+```
+
+That covers bid rules, Dodo payment matching, webhook activation, and the
+browser return confirm poll (`tests/sponsor-payment-flow.test.ts` chains the
+full path with mocks).
+
+**Optional browser checkout (no real money):** in the Dodo dashboard, turn off
+Live Mode, create a **test-mode** API key (live keys return `401` in
+`test_mode`), and copy `.env.test.local.example` to `.env.test.local`. Run
+`npm run verify:dodo-test-key`, then `npm run dev:test` and complete checkout with
+Visa test card `4242424242424242`, expiry `06/32`, CVV `123`. See [Dodo testing
+process](https://docs.dodopayments.com/miscellaneous/testing-process).
+
+Test-mode product IDs for this project (dashboard test catalog):
+
+- Sponsor: `pdt_0NneHBMUPJHxxUZqj6BIc`
+- Donation: `pdt_0NneGQ08GrJZXgme3syHw`
