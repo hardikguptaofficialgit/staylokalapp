@@ -1,5 +1,5 @@
 /**
- * Push server env vars from .env.local to the staylokal Cloudflare Worker.
+ * Push server env vars from .env.local to the staylokalapp Cloudflare Worker.
  * Requires: wrangler logged into the account that owns staylokal.app.
  *
  * Usage: node scripts/sync-wrangler-secrets.mjs
@@ -13,7 +13,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const envPath = resolve(root, ".env.local");
 const wranglerText = readFileSync(resolve(root, "wrangler.jsonc"), "utf8");
 const workerMatch = wranglerText.match(/"name"\s*:\s*"([^"]+)"/);
-const workerName = workerMatch?.[1] ?? "staylokal";
+const workerName = workerMatch?.[1] ?? "staylokalapp";
 
 // Non-secret Appwrite IDs live in wrangler.jsonc `vars` (stay in sync with VelocityBrain).
 const SECRET_KEYS = [
