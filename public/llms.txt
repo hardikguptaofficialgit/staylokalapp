@@ -1,0 +1,25 @@
+# StayLokal
+
+https://staylokal.app
+
+StayLokal is a privacy-first PWA and browser file toolkit built by @strykerin. Convert, compress, edit, and export PDFs, images, video, audio, Office documents, spreadsheets, and ZIP archives entirely on your device. Processing runs in the browser with WebAssembly workers and canvas APIs—your working files are not uploaded for tool execution, and no account is required. Optional donations and a sponsor leaderboard use hosted checkout; those flows do not receive your source files.
+
+## Tool categories
+
+- PDF: merge, split, compress, rotate, OCR, forms, signatures, redaction, watermarks, and page editing
+- Image: resize, crop, convert, background removal, AI upscale, watermark, meme, and contact sheets
+- Video: trim, cut, convert, compress, GIF, thumbnails, metadata removal, and more
+- Audio: trim, normalize, convert, fades, volume, and metadata removal
+- Documents and utilities: DOC/DOCX/PPT/PPTX text, spreadsheets, JSON, Base64, hashing, ZIP create/list/extract
+
+## Privacy promise
+
+Everything runs locally in your browser. StayLokal does not upload your files to its servers for processing, storage, or model training. Large optional assets (FFmpeg, OCR, segmentation models) download to your browser and execute on-device.
+
+## Links
+
+- All tools: https://staylokal.app/tools
+- Sponsor: https://staylokal.app/#sponsors
+- Donate: https://staylokal.app/donate
+- Privacy: https://staylokal.app/privacy
+- Sponsor rules: https://staylokal.app/rules

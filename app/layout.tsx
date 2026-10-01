@@ -5,6 +5,7 @@ import PwaRegister from "@/components/app/PwaRegister";
 import PwaThemeColor from "@/components/app/PwaThemeColor";
 import "./styles/main.css";
 import { THEME_STORAGE_KEY } from "@/lib/app/theme";
+import { SITE_DESCRIPTION, SITE_HOME_TITLE, SITE_NAME, SITE_OG_IMAGE, SITE_URL, absoluteUrl } from "@/lib/seo/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,9 +23,30 @@ const rubikDoodleShadow = Rubik_Doodle_Shadow({
   subsets: ["latin"],
 });
 
+const defaultOgImage = absoluteUrl(SITE_OG_IMAGE);
+
 export const metadata: Metadata = {
-  title: "StayLokal - Private file tools that run on your device.",
-  description: "StayLokal is a local-first file utility desk for PDFs, images, video, audio, and more.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_HOME_TITLE,
+    template: "%s",
+  },
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: SITE_NAME,
+    title: SITE_HOME_TITLE,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    images: [{ url: defaultOgImage, width: 512, height: 512, alt: SITE_NAME }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_HOME_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [defaultOgImage],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

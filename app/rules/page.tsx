@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LegalPageShell from "@/components/app/LegalPageShell";
+import { createPageMetadata } from "@/lib/seo/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Sponsor rules · StayLokal",
   description:
-    "How StayLokal sponsor leaderboard ranking, bidding, payments, content eligibility, and charity pledge work.",
-};
+    "StayLokal sponsor leaderboard ranking, bidding, payments, and content rules. File tools stay local—no upload for processing.",
+  path: "/rules",
+});
 
 export default function RulesPage() {
   return (

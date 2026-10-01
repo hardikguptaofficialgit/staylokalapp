@@ -60,6 +60,19 @@ export function useFileWorkflow() {
     applyTheme(theme);
   }, [theme]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("view") === "all") {
+      setViewMode("all");
+    }
+    const toolId = params.get("tool")?.trim();
+    const tool = toolId ? getTool(toolId) : undefined;
+    if (tool) {
+      setViewMode("all");
+      pendingToolId.current = tool.id;
+    }
+  }, []);
+
   useEffect(() => () => {
     resultUrls.forEach((item) => URL.revokeObjectURL(item.url));
   }, [resultUrls]);

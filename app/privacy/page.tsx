@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import LegalPageShell from "@/components/app/LegalPageShell";
 import { FOUNDER_X_HANDLE, FOUNDER_X_URL } from "@/lib/app/site-links";
+import { createPageMetadata } from "@/lib/seo/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Privacy policy · StayLokal",
   description:
-    "How StayLokal handles your files locally, what leaves your device for donations and sponsors, and how to contact us.",
-};
+    "How StayLokal handles files locally, what leaves your device for donations and sponsors, and how to contact us. No upload for processing.",
+  path: "/privacy",
+});
 
 const LAST_UPDATED = "September 30, 2026";
 
