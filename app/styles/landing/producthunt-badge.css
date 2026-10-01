@@ -1,0 +1,40 @@
+.landing-ph-badge {
+  display: inline-flex;
+  justify-content: center;
+  margin-top: 1.15rem;
+  opacity: 0.94;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.landing-ph-badge:hover,
+.landing-ph-badge:focus-visible {
+  opacity: 1;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.landing-ph-badge-img {
+  display: block;
+  height: auto;
+  max-width: min(250px, 78vw);
+  width: 250px;
+}
+
+.landing-ph-badge-img--light {
+  display: none;
+}
+
+html[data-theme="light"] .landing-ph-badge-img--dark {
+  display: none;
+}
+
+html[data-theme="light"] .landing-ph-badge-img--light {
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .landing-ph-badge {
+    margin-top: 0.85rem;
+    order: 2;
+  }
+}

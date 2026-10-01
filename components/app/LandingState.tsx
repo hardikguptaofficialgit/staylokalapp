@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import PeerlistPostEmbed from "./PeerlistPostEmbed";
+import ProductHuntBadge from "./ProductHuntBadge";
 import SponsorModal from "./SponsorModal";
 import { readJsonResponse } from "@/lib/app/fetch-json";
 import { formatSponsorCardAmount } from "@/lib/sponsors/ranking";
@@ -183,6 +184,8 @@ export default function LandingState({ workflow, inputRef }: { workflow: AppWork
         <p className="landing-hero-lead">
           Convert, compress, and edit files instantly. No servers. No accounts.
         </p>
+
+        <ProductHuntBadge />
 
         <div
           className={`drop-zone group relative mt-16 mx-auto w-full max-w-[40rem] cursor-pointer rounded-[2rem] px-5 py-14 text-center transition-all duration-300 hover:bg-panel/50 sm:px-8 sm:py-16 ${dragging ? "drop-zone-active" : ""}`}
