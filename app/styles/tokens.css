@@ -35,6 +35,7 @@
 }
 
 :root {
+  --app-ui-scale: 0.9;
   --theme-transition-duration: 720ms;
   --theme-transition-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --background: #080808;
@@ -46,6 +47,7 @@
 }
 
 html {
+  font-size: calc(100% * var(--app-ui-scale));
   scrollbar-gutter: stable;
   view-transition-name: root;
 }
